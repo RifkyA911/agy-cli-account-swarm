@@ -28,9 +28,19 @@ public partial class App : System.Windows.Application
             ITerminalLauncherService launcherService = new TerminalLauncherService();
             IAuthDetectorService authDetector = new AuthDetectorService();
             IAudioService audioService = new AudioService();
+            ILocalizationService localizationService = new LocalizationService();
+            IMcpService mcpService = new McpService();
+            ITelemetryService telemetryService = new TelemetryService();
 
             // 3. Setup MainViewModel
-            var mainViewModel = new MainViewModel(storageService, launcherService, authDetector, audioService);
+            var mainViewModel = new MainViewModel(
+                storageService,
+                launcherService,
+                authDetector,
+                audioService,
+                localizationService,
+                mcpService,
+                telemetryService);
 
             // 4. Show MainWindow
             var mainWindow = new MainWindow(mainViewModel);
