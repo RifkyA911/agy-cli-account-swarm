@@ -10,4 +10,6 @@ public class AppSettings
     public bool CloseToTray { get; set; } = true;
     public bool MinimizeToTray { get; set; } = true;
     public bool SoundEnabled { get; set; } = true;
+    public string Language { get; set; } = "en";
+    public string PreferredChartMode { get; set; } = "Bar";
 }
