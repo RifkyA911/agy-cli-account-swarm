@@ -1,80 +1,84 @@
 # Agy Account Swarm ⚡
 
-> **A minimalist, high-performance desktop orchestrator & multi-account manager for Antigravity CLI (`agy`).**  
-> Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts and workspace environments.
+> **A minimalist, high-performance desktop orchestrator & multi-account manager for Google Antigravity CLI (`agy`).**  
+> Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, real-time quota tracking, and workspace sandboxing.
 
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
 [![WPF](https://img.shields.io/badge/UI-WPF%20XAML-0078D4?style=flat&logo=windows)](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
-[![Architecture](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D7?style=flat&logo=windows)](https://microsoft.com/windows)
+[![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
+[![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D7?style=flat&logo=windows)](https://microsoft.com/windows)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
 
 ---
 
 ## 💡 Overview
 
-Google's **Antigravity CLI (`agy`)** stores its OAuth tokens, history, and configuration inside the user's home directory (`~/.gemini/antigravity-cli`). Running multiple CLI windows or agents at the same time on different Google accounts typically causes:
+Google's **Antigravity CLI (`agy`)** stores its OAuth tokens, history, and configuration inside the host user's home directory (`~/.gemini/antigravity-cli`). Running multiple CLI windows simultaneously on different Google accounts typically causes:
 
 - **Auth Collisions**: One account's session overwrites the other's OAuth token.
-- **Lock Contention**: Process locking conflicts on `~/.gemini/antigravity-cli/presence/*.lock`.
-- **Quota Clashes**: Inability to parallelize tasks across multiple quota limits.
+- **Lock Contention**: Concurrency errors on `~/.gemini/antigravity-cli/presence/*.lock`.
+- **Quota Clashes**: Inability to parallelize tasks across independent subscription quotas.
 
-**Agy Account Swarm** solves this cleanly by isolating each account into dedicated sandbox environments using selective runtime environment redirection (`USERPROFILE` and `HOME`). Each profile operates with its own credentials, settings, and conversation logs, allowing **true simultaneous multi-agent execution**.
+**Agy Account Swarm** solves this cleanly by virtualizing environment variables (`USERPROFILE` and `HOME`) to dedicated per-worker sandboxes (`~/.gemini-profiles/{id}`). Each profile operates with its own credentials, settings, and conversation logs, enabling **true parallel multi-agent execution**.
 
 ---
 
 ## ✨ Features
 
-- **🛡️ Strict Environment Isolation**: Each profile points to its own sandbox (`~/.gemini-profiles/{profile-name}`) with independent tokens and sessions.
-- **⚡ 1-Click Launchers**: Open any account in **Windows Terminal** (tabs or split panes), **PowerShell**, or **Command Prompt** with pre-configured environment variables.
-- **🐝 Flexible Swarm Modes**: Choose how your account swarm launches:
-  - **Split Panes**: Auto-arranges sessions into a tiled matrix inside a single Windows Terminal.
-  - **Separate Tabs**: Spawns accounts as distinct tabs in Windows Terminal.
-  - **Multi-Window**: Spawns independent windows for flexible multi-monitor setups.
-- **🧠 Active Model & Activity Meter**: Inspects and displays the currently active AI model (e.g. `Gemini 3.8 Flash (Medium)`) and prompt activity counter with a visual progress meter for every account.
-- **🔍 Live Auth & Status Inspector**: Automatically inspects profile storage to display:
-  - Status indicator (🟢 *Authenticated*, 🟡 *Needs Login*, ⚪ *Not Initialized*).
-  - Detected Google account email (extracted from active token or Google identity cache).
-- **🐱 Custom Cat Icon & System Tray Mode**: Keeps running in the background tray with double-click restore, minimize-to-tray, and close-to-tray options.
-- **🌓 Dark & Light Theme Switcher**: 1-click instant theme toggle between sleek slate dark and clean high-contrast light mode.
-- **📂 Workspace Anchoring**: Assign dedicated project folders to each account profile (e.g. Profile A always starts in `D:\Works\Project-A`, Profile B in `D:\Works\Project-B`).
-- **📋 Instant CLI Snippet Copy**: 1-click copy of the exact command-line snippet for CMD or PowerShell so you can paste it into any custom script or external automation.
+- **🛡️ Strict Environment Isolation**: Each profile points to its own sandbox (`~/.gemini-profiles/{id}`) with independent tokens, brain logs, and history files.
+- **🌐 Bilingual Multi-Language Support**: Seamless instant switching between **English (EN - Default)** and **Bahasa Indonesia (ID)**.
+- **📊 Real Telemetry & Multi-Mode Charts**:
+  - Direct timestamp parsing from local `history.jsonl` (no synthetic dummy data).
+  - Multi-mode rendering: **Bar Chart**, **Line Chart**, and **Area Chart** with gradient fills.
+  - Interactive filters: Timeframe (*24h*, *7d*, *30d*, *All Time*), Model, and Tier.
+- **🧩 Model Context Protocol (MCP) Manager**:
+  - Live inspection and management of local MCP tool servers (`context7`, `filesystem`, etc.).
+  - Automatic tool discovery and schema inspection.
+- **🧠 Full Model Support (Including Claude Opus)**:
+  - Supports `claude-3-opus`, `claude-3.5-sonnet`, `claude-3.7-sonnet`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-1.5-pro`, and `gpt-4o`.
+- **🚨 Quota Exhaustion Alerts & Audio Synthesizer**:
+  - High-visibility warning banner and synthesized acoustic alarm when an account reaches 100% daily quota.
+  - In-memory synthesized audio tones for clicks, launches, sync droplet chimes, and soft welcome purrs.
+- **🐱 Fluid Cat Welcome Animation**:
+  - Elegant 3-second animated vector cat greeting on startup with satisfying fluffy purr chime.
+- **🐝 Flexible Swarm Launch Arrangements**:
+  - **Split Panes**: Auto-arranges parallel workers into a tiled matrix inside a single Windows Terminal.
+  - **Separate Tabs**: Spawns workers as distinct tabs in Windows Terminal.
+  - **Separate Windows**: Spawns decoupled windows for multi-monitor setups.
+- **📖 Comprehensive In-App Documentation (`/docs`)**:
+  - Built-in guides covering Architecture, Swarm Workflow, Data Storage schemas, and MCP integration.
+- **🌓 Theme & System Tray**:
+  - Instant toggle between Dark Mode and high-contrast Light Mode.
+  - Background tray integration (Minimize to Tray and Close to Tray).
 
 ---
 
-## 🛠️ How Environment Isolation Works
+## 🏗️ System Architecture
 
-Under the hood on Windows, `agy` utilizes `os.UserHomeDir()` to locate its root directory:
-
-```text
-Host Machine
-├── C:\Users\rifky\.gemini\                   --> Default Account (Primary)
-│   ├── antigravity-cli/
-│   │   ├── antigravity-oauth-token          --> Token for Account 1
-│   │   └── settings.json
-│   └── google_accounts.json
-│
-└── C:\Users\rifky\.gemini-profiles\
-    ├── worker-alpha\.gemini\                --> Isolated Account 2
-    │   ├── antigravity-cli\
-    │   │   └── antigravity-oauth-token      --> Token for Account 2
-    │   └── google_accounts.json
-    │
-    └── worker-beta\.gemini\                 --> Isolated Account 3
-        └── antigravity-cli\
-            └── antigravity-oauth-token      --> Token for Account 3
+```mermaid
+graph TD
+    App["Agy Account Swarm (WPF .NET 9)"]
+    Storage["ProfileStorageService (%APPDATA%/AgyAccountSwarm)"]
+    Launcher["TerminalLauncherService"]
+    Auth["AuthDetector & TelemetryService"]
+    MCP["McpService"]
+    
+    App --> Storage
+    App --> Launcher
+    App --> Auth
+    App --> MCP
+    
+    Launcher --> WT["Windows Terminal (wt.exe)"]
+    Launcher --> PS["PowerShell"]
+    Launcher --> CMD["Command Prompt"]
+    
+    WT --> W1["Worker 1 (Main Profile)"]
+    WT --> W2["Worker 2 (worker-alpha)"]
+    
+    W1 --> Dir1["~/.gemini/ (Default Credentials)"]
+    W2 --> Dir2["~/.gemini-profiles/worker-alpha/.gemini/"]
 ```
-
-When launching an account session, **Agy Account Swarm** creates and injects localized environment variables into the spawned terminal process:
-
-```cmd
-set "USERPROFILE=C:\Users\rifky\.gemini-profiles\worker-alpha"
-set "HOME=C:\Users\rifky\.gemini-profiles\worker-alpha"
-cd /d "D:\Works\YourProject"
-agy
-```
-
-Because environment variables are inherited only by the child process, your global Windows environment remains clean and untouched!
 
 ---
 
@@ -83,82 +87,48 @@ Because environment variables are inherited only by the child process, your glob
 ### Prerequisites
 - Windows 10 / 11 (64-bit)
 - [.NET 9.0 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) (or [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0))
-- [Antigravity CLI (`agy`)](https://antigravity.google/docs/cli) installed and in `PATH` (or at `%LOCALAPPDATA%\agy\bin\agy.exe`)
-- *(Optional)* [Windows Terminal](https://aka.ms/terminal) for multi-tab and split-pane swarm execution
+- [Antigravity CLI (`agy`)](https://antigravity.google/docs/cli) installed and in `PATH`
+- *(Recommended)* [Windows Terminal](https://aka.ms/terminal) for split-pane matrix orchestration
 
-### Running the App
-Pre-built binaries are located in the `publish/` directory:
+### Running from Published Output
+Pre-built executable binaries are located in the `publish/` directory:
 ```powershell
-D:\Works\Project\C#\agy-cli-account-swarm\publish\AgyAccountSwarm.exe
+& "D:\Works\Project\C#\agy-cli-account-swarm\publish\AgyAccountSwarm.exe"
 ```
 
-Or run via `dotnet`:
+### Building from Source
 ```powershell
-cd "D:\Works\Project\C#\agy-cli-account-swarm"
-dotnet run
+# Clone the repository
+git clone https://github.com/RifkyA911/agy-cli-account-swarm.git
+cd agy-cli-account-swarm
+
+# Build solution
+dotnet build AgyAccountSwarm.sln -c Release
+
+# Run application
+dotnet run --project AgyAccountSwarm.csproj
 ```
 
 ---
 
-## 🏗️ Project Architecture
+## 📖 In-App Documentation
 
-Built using modern **C# 13** and **.NET 9 WPF** adhering to clean MVVM (Model-View-ViewModel) design principles:
-
-```text
-agy-cli-account-swarm/
-├── Models/
-│   ├── AccountProfile.cs            # Profile data model & path resolver
-│   ├── ProfileAuthStatus.cs         # Auth state & Google email metadata
-│   ├── TerminalType.cs              # Windows Terminal / PowerShell / CMD enums
-│   └── AppSettings.cs               # App settings & preferences
-├── Services/
-│   ├── IProfileStorageService.cs    # Storage abstraction (%APPDATA%\AgyAccountSwarm)
-│   ├── ProfileStorageService.cs     # JSON persistence & auto-seeding
-│   ├── IAuthDetectorService.cs      # Token & Google profile detector
-│   ├── AuthDetectorService.cs       # Token verification implementation
-│   ├── ITerminalLauncherService.cs  # Terminal execution abstraction
-│   └── TerminalLauncherService.cs   # Windows Terminal / WT split-pane builder
-├── ViewModels/
-│   ├── MainViewModel.cs             # Primary orchestrator, stats, swarm dispatch
-│   ├── ProfileItemViewModel.cs      # Reactive card item with launch & copy commands
-│   └── ProfileEditViewModel.cs      # Modal viewmodel for creating/editing profiles
-├── Views/
-│   ├── MainWindow.xaml              # Modern dark WPF main dashboard
-│   ├── MainWindow.xaml.cs
-│   ├── ProfileEditDialog.xaml       # Modal dialog for profile configuration
-│   └── ProfileEditDialog.xaml.cs
-├── Converters/
-│   └── Converters.cs                # WPF UI binding converters
-├── Resources/
-│   └── Theme.xaml                   # Custom dark theme dictionary & controls
-├── AgyAccountSwarm.csproj
-└── README.md
-```
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Deep-dive into process isolation and environment virtualization.
+- [`docs/SWARM_WORKFLOW.md`](docs/SWARM_WORKFLOW.md): Step-by-step launch state machine and terminal tiling.
+- [`docs/MCP_GUIDE.md`](docs/MCP_GUIDE.md): Model Context Protocol configuration and tool discovery.
 
 ---
 
-## 💻 Tech Stack & Dependencies
+## 🤝 Open Source & Contributions
 
-- **Framework**: .NET 9.0 (`net9.0-windows`)
-- **UI Platform**: Windows Presentation Foundation (WPF) with XAML
-- **MVVM Toolkit**: `CommunityToolkit.Mvvm` (8.4.2)
-- **JSON Serialization**: `System.Text.Json`
-- **Zero Heavy Dependencies**: Completely native, instant cold start, lightweight footprint (~450 KB total binary).
+Contributions, bug reports, and feature requests are very welcome!  
+Feel free to open an issue or pull request:
 
----
-
-## 📝 First-Time Account Login Walkthrough
-
-1. Open **Agy Account Swarm**.
-2. Click **+ New Profile** and enter a name (e.g., `Personal Swarm`).
-3. Click **▶ Launch agy** on the new card.
-4. An isolated terminal opens. Because it's a new profile, `agy` will launch the browser login page.
-5. Sign in with your secondary Google account.
-6. Return to **Agy Account Swarm** and click **Refresh Auth** — the status turns to `🟢 Authenticated (your-email@gmail.com)`.
-7. You're ready to run both accounts concurrently!
+- **Repository**: [https://github.com/RifkyA911/agy-cli-account-swarm](https://github.com/RifkyA911/agy-cli-account-swarm)
+- **Author**: [RifkyA911](https://github.com/RifkyA911)
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE) - Copyright (c) 2026 RifkyA911.
