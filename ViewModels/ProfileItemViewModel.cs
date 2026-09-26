@@ -111,15 +111,41 @@ public partial class ProfileItemViewModel : ObservableObject
 
     public bool IsModelActive => AuthStatus.Status is AuthStatusType.Authenticated or AuthStatusType.QuotaExhausted;
 
-    public string TierBadgeBackground => Tier?.ToLowerInvariant() switch
+    public string TierBadgeText
     {
-        "ultra" => "#D97706", // Amber gold
-        "pro" => "#7C3AED",   // Vivid purple
-        "plus" => "#0284C7",  // Light blue
-        _ => "#64748B"        // Slate / Basic
-    };
+        get
+        {
+            if (AuthStatus.Status is AuthStatusType.NeedsLogin or AuthStatusType.NotInitialized)
+            {
+                return "Pending Login";
+            }
+            if (string.IsNullOrWhiteSpace(Tier) || Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Basic";
+            }
+            return Tier;
+        }
+    }
 
-    public string TierBadgeBorder => Tier?.ToLowerInvariant() switch
+    public string TierBadgeBackground
+    {
+        get
+        {
+            if (AuthStatus.Status is AuthStatusType.NeedsLogin or AuthStatusType.NotInitialized)
+            {
+                return "#475569"; // Neutral slate for unauthenticated accounts
+            }
+            return TierBadgeText.ToLowerInvariant() switch
+            {
+                "ultra" => "#D97706", // Amber gold
+                "pro" => "#7C3AED",   // Vivid purple
+                "plus" => "#0284C7",  // Light blue
+                _ => "#64748B"        // Slate / Basic
+            };
+        }
+    }
+
+    public string TierBadgeBorder => TierBadgeText.ToLowerInvariant() switch
     {
         "ultra" => "#F59E0B",
         "pro" => "#8B5CF6",
@@ -183,6 +209,7 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(StatusBadgeText));
             OnPropertyChanged(nameof(CurrentModel));
             OnPropertyChanged(nameof(IsModelActive));
+            OnPropertyChanged(nameof(TierBadgeText));
             OnPropertyChanged(nameof(TierBadgeBackground));
             OnPropertyChanged(nameof(TierBadgeBorder));
             OnPropertyChanged(nameof(HasExhaustedQuota));
