@@ -58,7 +58,7 @@ public class TerminalLauncherService : ITerminalLauncherService
     {
         return Task.Run(() =>
         {
-            var effectiveDir = profile.GetEffectiveProfileDirectory();
+            var effectiveDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
             if (!Directory.Exists(effectiveDir))
             {
                 Directory.CreateDirectory(effectiveDir);
@@ -69,7 +69,6 @@ public class TerminalLauncherService : ITerminalLauncherService
             var extraArgs = profile.ExtraArguments?.Trim() ?? string.Empty;
             var title = $"AGY [{profile.Name}]";
 
-            // If user asked to force login or test auth, we can append a prompt hint or let it run
             var agyCommand = string.IsNullOrEmpty(extraArgs) ? agyBinary : $"{agyBinary} {extraArgs}";
 
             ProcessStartInfo psi;
@@ -77,8 +76,8 @@ public class TerminalLauncherService : ITerminalLauncherService
             // Check if Windows Terminal is requested and available
             if (terminal == TerminalType.WindowsTerminal && IsWindowsTerminalAvailable())
             {
-                // In wt.exe, we can launch cmd or powershell tab
-                var cmdInner = $"title {title} && set USERPROFILE={effectiveDir} && set HOME={effectiveDir} && cd /d \"{workingDir}\" && {agyCommand}";
+                // CRITICAL FIX: set "VAR=VAL" without trailing spaces before &&
+                var cmdInner = $"title {title} && set \"USERPROFILE={effectiveDir}\" && set \"HOME={effectiveDir}\" && cd /d \"{workingDir}\" && {agyCommand}";
                 psi = new ProcessStartInfo
                 {
                     FileName = "wt.exe",
@@ -105,8 +104,8 @@ public class TerminalLauncherService : ITerminalLauncherService
             }
             else
             {
-                // Default Command Prompt
-                var cmdArgs = $"/k \"title {title} && set USERPROFILE={effectiveDir} && set HOME={effectiveDir} && cd /d \"{workingDir}\" && {agyCommand}\"";
+                // Command Prompt - CRITICAL FIX: set "VAR=VAL" quotes
+                var cmdArgs = $"/k \"title {title} && set \"USERPROFILE={effectiveDir}\" && set \"HOME={effectiveDir}\" && cd /d \"{workingDir}\" && {agyCommand}\"";
                 psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
@@ -130,28 +129,29 @@ public class TerminalLauncherService : ITerminalLauncherService
         });
     }
 
-    public async Task<List<Process>> LaunchSwarmAsync(IEnumerable<AccountProfile> profiles, TerminalType terminal, bool splitPanes)
+    public async Task<List<Process>> LaunchSwarmAsync(IEnumerable<AccountProfile> profiles, TerminalType terminal, SwarmLaunchMode swarmMode)
     {
         var profileList = profiles.ToList();
         var processes = new List<Process>();
 
         if (profileList.Count == 0) return processes;
 
-        // If Windows Terminal is selected, available, and splitPanes is requested
-        if (terminal == TerminalType.WindowsTerminal && IsWindowsTerminalAvailable() && splitPanes && profileList.Count > 1)
+        // If Windows Terminal is available and user chose SplitPanes or SeparateTabs
+        if (terminal == TerminalType.WindowsTerminal && IsWindowsTerminalAvailable() && swarmMode != SwarmLaunchMode.SeparateWindows && profileList.Count > 1)
         {
             var wtArgs = new List<string>();
 
             for (int i = 0; i < profileList.Count; i++)
             {
                 var p = profileList[i];
-                var dir = p.GetEffectiveProfileDirectory();
+                var dir = p.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
                 var workDir = GetValidWorkingDirectory(p);
                 var agyBinary = FindAgyExecutablePath() ?? "agy";
                 var title = $"AGY [{p.Name}]";
-                var innerCmd = $"title {title} && set USERPROFILE={dir} && set HOME={dir} && cd /d \"{workDir}\" && {agyBinary} {p.ExtraArguments?.Trim()}";
+                // CRITICAL FIX: set "VAR=VAL" quotes
+                var innerCmd = $"title {title} && set \"USERPROFILE={dir}\" && set \"HOME={dir}\" && cd /d \"{workDir}\" && {agyBinary} {p.ExtraArguments?.Trim()}";
 
                 if (i == 0)
                 {
@@ -160,9 +160,16 @@ public class TerminalLauncherService : ITerminalLauncherService
                 }
                 else
                 {
-                    // Subsequent panes: split pane vertical or horizontal
-                    var splitFlag = (i % 2 == 1) ? "-V" : "-H";
-                    wtArgs.Add($"; split-pane {splitFlag} --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"{innerCmd}\"");
+                    if (swarmMode == SwarmLaunchMode.SplitPanes)
+                    {
+                        var splitFlag = (i % 2 == 1) ? "-V" : "-H";
+                        wtArgs.Add($"; split-pane {splitFlag} --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"{innerCmd}\"");
+                    }
+                    else
+                    {
+                        // SeparateTabs
+                        wtArgs.Add($"; new-tab --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"{innerCmd}\"");
+                    }
                 }
 
                 p.LastLaunchedAt = DateTime.UtcNow;
@@ -181,12 +188,11 @@ public class TerminalLauncherService : ITerminalLauncherService
             return processes;
         }
 
-        // Sequential individual window launch
+        // Multi-Window Launch mode (Separate independent terminal windows)
         foreach (var profile in profileList)
         {
             var proc = await LaunchProfileAsync(profile, terminal);
             if (proc != null) processes.Add(proc);
-            // Slight delay so window positions don't perfectly overlap
             await Task.Delay(300);
         }
 
@@ -195,7 +201,7 @@ public class TerminalLauncherService : ITerminalLauncherService
 
     public string GetCliSnippet(AccountProfile profile, TerminalType terminal)
     {
-        var effectiveDir = profile.GetEffectiveProfileDirectory();
+        var effectiveDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
         var workDir = GetValidWorkingDirectory(profile);
         var extraArgs = string.IsNullOrWhiteSpace(profile.ExtraArguments) ? "" : $" {profile.ExtraArguments.Trim()}";
 
@@ -210,7 +216,7 @@ public class TerminalLauncherService : ITerminalLauncherService
 
     public void OpenProfileFolder(AccountProfile profile)
     {
-        var dir = profile.GetEffectiveProfileDirectory();
+        var dir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
         if (!Directory.Exists(dir))
         {
             Directory.CreateDirectory(dir);

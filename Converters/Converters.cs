@@ -21,7 +21,7 @@ public class HexToBrushConverter : IValueConverter
                 // Fallback
             }
         }
-        return new SolidColorBrush(Color.FromRgb(59, 130, 246));
+        return new SolidColorBrush(System.Windows.Media.Color.FromRgb(59, 130, 246));
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

@@ -13,7 +13,7 @@ public class AuthDetectorService : IAuthDetectorService
         return Task.Run(() =>
         {
             var status = new ProfileAuthStatus();
-            var profileDir = profile.GetEffectiveProfileDirectory();
+            var profileDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
 
             if (!Directory.Exists(profileDir))
             {
@@ -30,7 +30,52 @@ public class AuthDetectorService : IAuthDetectorService
                 return status;
             }
 
-            // Check 1: ~/.gemini/google_accounts.json
+            var cliDir = Path.Combine(geminiDir, "antigravity-cli");
+
+            // 1. Read Current Model from ~/.gemini/antigravity-cli/settings.json
+            var cliSettingsFile = Path.Combine(cliDir, "settings.json");
+            if (File.Exists(cliSettingsFile))
+            {
+                try
+                {
+                    var settingsJson = File.ReadAllText(cliSettingsFile);
+                    using var doc = JsonDocument.Parse(settingsJson);
+                    if (doc.RootElement.TryGetProperty("model", out var modelProp) &&
+                        modelProp.GetString() is { Length: > 0 } modelName)
+                    {
+                        status.CurrentModel = modelName;
+                    }
+                }
+                catch
+                {
+                    // Fallback to default
+                }
+            }
+
+            // 2. Read Usage / Activity from history.jsonl
+            var historyFile = Path.Combine(cliDir, "history.jsonl");
+            if (File.Exists(historyFile))
+            {
+                try
+                {
+                    int lineCount = 0;
+                    using var reader = new StreamReader(historyFile);
+                    while (reader.ReadLine() != null)
+                    {
+                        lineCount++;
+                    }
+                    status.TotalTurnsCount = lineCount;
+                    // Provide a normalized activity gauge (e.g. 500 turns = 100% activity bar)
+                    status.UsagePercentage = Math.Min(100.0, (lineCount / 500.0) * 100.0);
+                    status.UsageLabel = $"{lineCount} prompts run";
+                }
+                catch
+                {
+                    status.UsageLabel = "0 prompts run";
+                }
+            }
+
+            // 3. Check ~/.gemini/google_accounts.json
             var googleAccountsPath = Path.Combine(geminiDir, "google_accounts.json");
             if (File.Exists(googleAccountsPath))
             {
@@ -46,12 +91,12 @@ public class AuthDetectorService : IAuthDetectorService
                 }
                 catch
                 {
-                    // Ignore parse errors, continue to other checks
+                    // Ignore parse errors, continue
                 }
             }
 
-            // Check 2: ~/.gemini/antigravity-cli/antigravity-oauth-token
-            var oauthTokenPath = Path.Combine(geminiDir, "antigravity-cli", "antigravity-oauth-token");
+            // 4. Check ~/.gemini/antigravity-cli/antigravity-oauth-token
+            var oauthTokenPath = Path.Combine(cliDir, "antigravity-oauth-token");
             if (File.Exists(oauthTokenPath))
             {
                 status.TokenModifiedAt = File.GetLastWriteTime(oauthTokenPath);
@@ -60,7 +105,6 @@ public class AuthDetectorService : IAuthDetectorService
                     var tokenJson = File.ReadAllText(oauthTokenPath);
                     using var doc = JsonDocument.Parse(tokenJson);
                     
-                    // Try to extract email or identity if present in token payload
                     if (string.IsNullOrEmpty(status.AccountEmail))
                     {
                         if (doc.RootElement.TryGetProperty("user_email", out var emailProp))
@@ -87,8 +131,6 @@ public class AuthDetectorService : IAuthDetectorService
                 }
             }
 
-            // Check 3: If google_accounts.json had an active email or antigravity-cli directory exists
-            var cliDir = Path.Combine(geminiDir, "antigravity-cli");
             if (!string.IsNullOrEmpty(status.AccountEmail))
             {
                 status.Status = AuthStatusType.Authenticated;

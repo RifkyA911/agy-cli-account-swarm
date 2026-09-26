@@ -29,7 +29,16 @@ public partial class MainViewModel : ObservableObject
     private TerminalType _selectedTerminal = TerminalType.WindowsTerminal;
 
     [ObservableProperty]
-    private bool _launchSwarmInSplitPanes = true;
+    private SwarmLaunchMode _selectedSwarmMode = SwarmLaunchMode.SplitPanes;
+
+    [ObservableProperty]
+    private string _currentTheme = "Dark";
+
+    [ObservableProperty]
+    private bool _closeToTray = true;
+
+    [ObservableProperty]
+    private bool _minimizeToTray = true;
 
     [ObservableProperty]
     private bool _isWindowsTerminalAvailable;
@@ -90,7 +99,13 @@ public partial class MainViewModel : ObservableObject
             // Load settings
             var settings = await _storageService.LoadSettingsAsync();
             SelectedTerminal = settings.PreferredTerminal;
-            LaunchSwarmInSplitPanes = settings.LaunchSwarmInSplitPanes;
+            SelectedSwarmMode = settings.SwarmMode;
+            CurrentTheme = settings.Theme;
+            CloseToTray = settings.CloseToTray;
+            MinimizeToTray = settings.MinimizeToTray;
+
+            // Apply loaded theme
+            ThemeManager.ApplyTheme(CurrentTheme);
 
             // If WT not available, fallback to PowerShell or CMD
             if (SelectedTerminal == TerminalType.WindowsTerminal && !IsWindowsTerminalAvailable)
@@ -143,6 +158,7 @@ public partial class MainViewModel : ObservableObject
         var q = SearchQuery.Trim().ToLowerInvariant();
         return item.Name.ToLowerInvariant().Contains(q) ||
                item.Description.ToLowerInvariant().Contains(q) ||
+               item.CurrentModel.ToLowerInvariant().Contains(q) ||
                (item.AuthStatus.AccountEmail?.ToLowerInvariant().Contains(q) ?? false);
     }
 
@@ -156,9 +172,28 @@ public partial class MainViewModel : ObservableObject
         _ = SaveSettingsAsync();
     }
 
-    partial void OnLaunchSwarmInSplitPanesChanged(bool value)
+    partial void OnSelectedSwarmModeChanged(SwarmLaunchMode value)
     {
         _ = SaveSettingsAsync();
+    }
+
+    partial void OnCloseToTrayChanged(bool value)
+    {
+        _ = SaveSettingsAsync();
+    }
+
+    partial void OnMinimizeToTrayChanged(bool value)
+    {
+        _ = SaveSettingsAsync();
+    }
+
+    [RelayCommand]
+    public void ToggleTheme()
+    {
+        CurrentTheme = CurrentTheme == "Dark" ? "Light" : "Dark";
+        ThemeManager.ApplyTheme(CurrentTheme);
+        _ = SaveSettingsAsync();
+        ShowNotification($"Switched to {CurrentTheme} theme");
     }
 
     [RelayCommand]
@@ -247,9 +282,9 @@ public partial class MainViewModel : ObservableObject
             var procs = await _launcherService.LaunchSwarmAsync(
                 targets.Select(t => t.Profile),
                 SelectedTerminal,
-                LaunchSwarmInSplitPanes);
+                SelectedSwarmMode);
 
-            ShowNotification($"Swarm launched: {targets.Count} account sessions started!");
+            ShowNotification($"Swarm launched: {targets.Count} account sessions started ({SelectedSwarmMode})!");
         }
         catch (Exception ex)
         {
@@ -318,7 +353,10 @@ public partial class MainViewModel : ObservableObject
         var settings = new AppSettings
         {
             PreferredTerminal = SelectedTerminal,
-            LaunchSwarmInSplitPanes = LaunchSwarmInSplitPanes
+            SwarmMode = SelectedSwarmMode,
+            Theme = CurrentTheme,
+            CloseToTray = CloseToTray,
+            MinimizeToTray = MinimizeToTray
         };
         await _storageService.SaveSettingsAsync(settings);
     }

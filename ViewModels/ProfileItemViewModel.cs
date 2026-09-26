@@ -65,12 +65,16 @@ public partial class ProfileItemViewModel : ObservableObject
         _authStatus = profile.AuthStatus;
     }
 
-    public string EffectiveProfilePath => Profile.GetEffectiveProfileDirectory();
+    public string EffectiveProfilePath => Profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
 
     public string DisplayWorkspace =>
         string.IsNullOrWhiteSpace(DefaultWorkspace)
             ? "(User Home Directory)"
             : DefaultWorkspace;
+
+    public string CurrentModel => AuthStatus.CurrentModel ?? "Gemini 3.8 Flash";
+    public string UsageLabel => AuthStatus.UsageLabel;
+    public double UsagePercentage => AuthStatus.UsagePercentage;
 
     public string StatusBadgeColor => AuthStatus.Status switch
     {
@@ -99,6 +103,9 @@ public partial class ProfileItemViewModel : ObservableObject
             Profile.AuthStatus = AuthStatus;
             OnPropertyChanged(nameof(StatusBadgeColor));
             OnPropertyChanged(nameof(StatusBadgeText));
+            OnPropertyChanged(nameof(CurrentModel));
+            OnPropertyChanged(nameof(UsageLabel));
+            OnPropertyChanged(nameof(UsagePercentage));
         }
         finally
         {
