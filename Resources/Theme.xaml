@@ -17,6 +17,21 @@
     <SolidColorBrush x:Key="BrushDanger" Color="#EF4444" />
     <SolidColorBrush x:Key="BrushPopupBg" Color="#17191E" />
 
+    <SolidColorBrush x:Key="BrushAlertBg" Color="#1E293B" />
+    <SolidColorBrush x:Key="BrushAlertBorder" Color="#3B82F6" />
+    <SolidColorBrush x:Key="BrushAlertText" Color="#93C5FD" />
+
+    <SolidColorBrush x:Key="BrushBadgeBg" Color="#1E293B" />
+    <SolidColorBrush x:Key="BrushBadgeBorder" Color="#334155" />
+    <SolidColorBrush x:Key="BrushBadgeText" Color="#93C5FD" />
+
+    <SolidColorBrush x:Key="BrushModelBadgeBg" Color="#1E293B" />
+    <SolidColorBrush x:Key="BrushModelBadgeBorder" Color="#334155" />
+    <SolidColorBrush x:Key="BrushModelBadgeText" Color="#93C5FD" />
+
+    <SolidColorBrush x:Key="BrushProgressTrack" Color="#1F2430" />
+    <SolidColorBrush x:Key="BrushMonoPath" Color="#60A5FA" />
+
     <!-- Typography -->
     <FontFamily x:Key="FontMain">Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
     <FontFamily x:Key="FontMono">Cascadia Code, Consolas, Courier New</FontFamily>

@@ -54,6 +54,31 @@ public class TerminalLauncherService : ITerminalLauncherService
         return pathEnv.Split(Path.PathSeparator).Any(p => File.Exists(Path.Combine(p.Trim(), "wt.exe")));
     }
 
+    public string EnsureLauncherScript(AccountProfile profile)
+    {
+        var effectiveDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
+        if (!Directory.Exists(effectiveDir))
+        {
+            Directory.CreateDirectory(effectiveDir);
+        }
+
+        var workDir = GetValidWorkingDirectory(profile);
+        var agyBinary = FindAgyExecutablePath() ?? "agy";
+        var extraArgs = string.IsNullOrWhiteSpace(profile.ExtraArguments) ? "" : " " + profile.ExtraArguments.Trim();
+        var title = $"AGY [{profile.Name}]";
+
+        var scriptPath = Path.Combine(effectiveDir, "run-agy.cmd");
+        var content = "@echo off\r\n" +
+                      $"title {title}\r\n" +
+                      $"set \"USERPROFILE={effectiveDir}\"\r\n" +
+                      $"set \"HOME={effectiveDir}\"\r\n" +
+                      $"cd /d \"{workDir}\"\r\n" +
+                      $"\"{agyBinary}\"{extraArgs} %*\r\n";
+
+        File.WriteAllText(scriptPath, content, System.Text.Encoding.ASCII);
+        return scriptPath;
+    }
+
     public Task<Process?> LaunchProfileAsync(AccountProfile profile, TerminalType terminal, bool forceLoginPrompt = false)
     {
         return Task.Run(() =>
@@ -68,20 +93,17 @@ public class TerminalLauncherService : ITerminalLauncherService
             var agyBinary = FindAgyExecutablePath() ?? "agy";
             var extraArgs = profile.ExtraArguments?.Trim() ?? string.Empty;
             var title = $"AGY [{profile.Name}]";
-
-            var agyCommand = string.IsNullOrEmpty(extraArgs) ? agyBinary : $"{agyBinary} {extraArgs}";
+            var scriptPath = EnsureLauncherScript(profile);
 
             ProcessStartInfo psi;
 
             // Check if Windows Terminal is requested and available
             if (terminal == TerminalType.WindowsTerminal && IsWindowsTerminalAvailable())
             {
-                // CRITICAL FIX: set "VAR=VAL" without trailing spaces before &&
-                var cmdInner = $"title {title} && set \"USERPROFILE={effectiveDir}\" && set \"HOME={effectiveDir}\" && cd /d \"{workingDir}\" && {agyCommand}";
                 psi = new ProcessStartInfo
                 {
                     FileName = "wt.exe",
-                    Arguments = $"--title \"{title}\" -d \"{workingDir}\" cmd.exe /k \"{cmdInner}\"",
+                    Arguments = $"--title \"{title}\" -d \"{workingDir}\" cmd.exe /k \"\"{scriptPath}\"\"",
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
@@ -104,12 +126,10 @@ public class TerminalLauncherService : ITerminalLauncherService
             }
             else
             {
-                // Command Prompt - CRITICAL FIX: set "VAR=VAL" quotes
-                var cmdArgs = $"/k \"title {title} && set \"USERPROFILE={effectiveDir}\" && set \"HOME={effectiveDir}\" && cd /d \"{workingDir}\" && {agyCommand}\"";
                 psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = cmdArgs,
+                    Arguments = $"/k \"\"{scriptPath}\"\"",
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
@@ -144,31 +164,24 @@ public class TerminalLauncherService : ITerminalLauncherService
             for (int i = 0; i < profileList.Count; i++)
             {
                 var p = profileList[i];
-                var dir = p.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
-                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-
                 var workDir = GetValidWorkingDirectory(p);
-                var agyBinary = FindAgyExecutablePath() ?? "agy";
                 var title = $"AGY [{p.Name}]";
-                // CRITICAL FIX: set "VAR=VAL" quotes
-                var innerCmd = $"title {title} && set \"USERPROFILE={dir}\" && set \"HOME={dir}\" && cd /d \"{workDir}\" && {agyBinary} {p.ExtraArguments?.Trim()}";
+                var scriptPath = EnsureLauncherScript(p);
 
                 if (i == 0)
                 {
-                    // First pane / tab
-                    wtArgs.Add($"--title \"{title}\" -d \"{workDir}\" cmd.exe /k \"{innerCmd}\"");
+                    wtArgs.Add($"--title \"{title}\" -d \"{workDir}\" cmd.exe /k \"\"{scriptPath}\"\"");
                 }
                 else
                 {
                     if (swarmMode == SwarmLaunchMode.SplitPanes)
                     {
                         var splitFlag = (i % 2 == 1) ? "-V" : "-H";
-                        wtArgs.Add($"; split-pane {splitFlag} --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"{innerCmd}\"");
+                        wtArgs.Add($"; split-pane {splitFlag} --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"\"{scriptPath}\"\"");
                     }
                     else
                     {
-                        // SeparateTabs
-                        wtArgs.Add($"; new-tab --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"{innerCmd}\"");
+                        wtArgs.Add($"; new-tab --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"\"{scriptPath}\"\"");
                     }
                 }
 
