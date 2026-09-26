@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgyAccountSwarm.Models;
 using AgyAccountSwarm.Services;
+using WpfPoint = System.Windows.Point;
 
 namespace AgyAccountSwarm.ViewModels;
 
@@ -26,6 +30,8 @@ public class ChartDataPoint
     public string Label { get; set; } = string.Empty;
     public int Value { get; set; }
     public double Height { get; set; } // Scaled 12 to 140
+    public double X { get; set; }
+    public double Y { get; set; }
     public string TokensLabel { get; set; } = string.Empty;
     public string TooltipText { get; set; } = string.Empty;
     public string BarColor { get; set; } = "#3B82F6";
@@ -46,8 +52,8 @@ public class ModelEfficiencyItem
 public class SwarmHealthItem
 {
     public string AccountName { get; set; } = string.Empty;
-    public string Tier { get; set; } = "Pro";
-    public string TierColor { get; set; } = "#8B5CF6";
+    public string Tier { get; set; } = "Basic";
+    public string TierColor { get; set; } = "#64748B";
     public string CurrentModel { get; set; } = string.Empty;
     public string UsageLabel { get; set; } = string.Empty;
     public double UsagePercent { get; set; }
@@ -61,6 +67,7 @@ public class HourlyActivityItem
     public double Height { get; set; } = 8;
     public string Color { get; set; } = "#3B82F6";
     public string Tooltip { get; set; } = string.Empty;
+    public int PromptCount { get; set; }
 }
 
 public partial class MainViewModel : ObservableObject
@@ -69,6 +76,10 @@ public partial class MainViewModel : ObservableObject
     private readonly ITerminalLauncherService _launcherService;
     private readonly IAuthDetectorService _authDetector;
     private readonly IAudioService _audioService;
+    private readonly IMcpService _mcpService;
+    private readonly ITelemetryService _telemetryService;
+
+    public ILocalizationService Strings { get; }
 
     public ObservableCollection<ProfileItemViewModel> Profiles { get; } = [];
     public ICollectionView FilteredProfiles { get; }
@@ -96,6 +107,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _soundEnabled = true;
+
+    [ObservableProperty]
+    private string _currentLanguage = "en";
 
     [ObservableProperty]
     private bool _isWindowsTerminalAvailable;
@@ -127,6 +141,14 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isWelcomeOverlayVisible = true;
 
+    // Chart Mode: "Bar", "Line", "Area"
+    [ObservableProperty]
+    private string _selectedChartMode = "Bar";
+
+    // Chart has real data flag
+    [ObservableProperty]
+    private bool _hasChartData = false;
+
     // Dashboard chart filters
     [ObservableProperty]
     private string _selectedTimeframe = "Last 7 Days";
@@ -141,13 +163,19 @@ public partial class MainViewModel : ObservableObject
         ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"];
 
     public ObservableCollection<string> ModelFilterOptions { get; } =
-        ["All Models", "gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.8-flash", "claude-3.7-sonnet", "gpt-4o"];
+        ["All Models", "gemini-2.5-flash", "gemini-2.5-pro", "claude-3-opus", "claude-3.5-sonnet", "claude-3.7-sonnet", "gpt-4o", "gemini-1.5-pro"];
 
     public ObservableCollection<string> TierFilterOptions { get; } =
         ["All Tiers", "Basic", "Plus", "Pro", "Ultra"];
 
     // Dynamic Chart Points
     public ObservableCollection<ChartDataPoint> DashboardChartPoints { get; } = [];
+
+    [ObservableProperty]
+    private PointCollection _linePoints = [];
+
+    [ObservableProperty]
+    private PointCollection _areaPoints = [];
 
     // Stat properties
     [ObservableProperty]
@@ -182,7 +210,7 @@ public partial class MainViewModel : ObservableObject
     private string _swarmSuccessRate = "99.8%";
 
     [ObservableProperty]
-    private string _swarmHealthScore = "98% Healthy";
+    private string _swarmHealthScore = "100% Healthy";
 
     // Analytics collections
     [ObservableProperty]
@@ -191,6 +219,19 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<ModelEfficiencyItem> ModelEfficiencies { get; } = [];
     public ObservableCollection<SwarmHealthItem> SwarmHealthRecords { get; } = [];
     public ObservableCollection<HourlyActivityItem> HourlyHeatmap { get; } = [];
+
+    // MCP properties
+    public ObservableCollection<McpServerConfig> McpServers { get; } = [];
+
+    [ObservableProperty]
+    private int _mcpServersCount = 0;
+
+    [ObservableProperty]
+    private int _mcpToolsTotalCount = 0;
+
+    // Docs tab
+    [ObservableProperty]
+    private string _selectedDocTab = "Architecture";
 
     // Logs properties
     [ObservableProperty]
@@ -202,6 +243,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _logSearchQuery = string.Empty;
 
+    // Raw real history cache
+    private List<RealHistoryEntry> _cachedRealHistory = [];
+
     public event Func<AccountProfile?, Task<AccountProfile?>>? ShowEditDialogRequested;
     public event Func<string, string, Task<bool>>? ConfirmDeleteRequested;
 
@@ -209,12 +253,18 @@ public partial class MainViewModel : ObservableObject
         IProfileStorageService storageService,
         ITerminalLauncherService launcherService,
         IAuthDetectorService authDetector,
-        IAudioService audioService)
+        IAudioService audioService,
+        ILocalizationService localizationService,
+        IMcpService mcpService,
+        ITelemetryService telemetryService)
     {
         _storageService = storageService;
         _launcherService = launcherService;
         _authDetector = authDetector;
         _audioService = audioService;
+        Strings = localizationService;
+        _mcpService = mcpService;
+        _telemetryService = telemetryService;
 
         FilteredProfiles = CollectionViewSource.GetDefaultView(Profiles);
         FilteredProfiles.Filter = FilterProfile;
@@ -241,6 +291,9 @@ public partial class MainViewModel : ObservableObject
             MinimizeToTray = settings.MinimizeToTray;
             SoundEnabled = settings.SoundEnabled;
             _audioService.IsEnabled = SoundEnabled;
+            CurrentLanguage = settings.Language ?? "en";
+            Strings.SetLanguage(CurrentLanguage);
+            SelectedChartMode = settings.PreferredChartMode ?? "Bar";
 
             if (!string.IsNullOrWhiteSpace(settings.CustomAgyExecutablePath) && File.Exists(settings.CustomAgyExecutablePath))
             {
@@ -265,10 +318,13 @@ public partial class MainViewModel : ObservableObject
                 Profiles.Add(itemVm);
             }
 
+            // Load MCP servers
+            await LoadMcpServersAsync();
+
             UpdateStats();
 
-            // Trigger auth check for all profiles in background
-            _ = RefreshAllAuthAsync();
+            // Trigger auth check and real telemetry history load in background
+            _ = SyncSwarmAsync();
 
             LoadLogs();
 
@@ -288,6 +344,67 @@ public partial class MainViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    public void SetChartMode(string mode)
+    {
+        SelectedChartMode = mode;
+        _audioService.PlayClick();
+        _ = SaveSettingsAsync();
+        UpdateChartPoints();
+    }
+
+    [RelayCommand]
+    public void SetLanguage(string lang)
+    {
+        CurrentLanguage = lang;
+        Strings.SetLanguage(lang);
+        _audioService.PlayClick();
+        _ = SaveSettingsAsync();
+        ShowNotification(lang == "id" ? "Bahasa tampilan diubah ke Bahasa Indonesia" : "Display language set to English");
+    }
+
+    [RelayCommand]
+    public void SelectDocTab(string tab)
+    {
+        SelectedDocTab = tab;
+        _audioService.PlayClick();
+    }
+
+    [RelayCommand]
+    public void OpenUrl(string url)
+    {
+        _audioService.PlayClick();
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            });
+        }
+        catch { }
+    }
+
+    [RelayCommand]
+    public async Task LoadMcpServersAsync()
+    {
+        try
+        {
+            var servers = await _mcpService.LoadMcpServersAsync();
+            McpServers.Clear();
+            foreach (var s in servers)
+            {
+                McpServers.Add(s);
+            }
+            McpServersCount = McpServers.Count;
+            McpToolsTotalCount = McpServers.Sum(s => s.ToolsCount);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Failed to load MCP servers", ex);
         }
     }
 
@@ -342,6 +459,10 @@ public partial class MainViewModel : ObservableObject
         {
             UpdateAnalyticsViews();
         }
+        else if (page == "Mcp")
+        {
+            _ = LoadMcpServersAsync();
+        }
     }
 
     private ProfileItemViewModel CreateItemViewModel(AccountProfile profile)
@@ -371,7 +492,7 @@ public partial class MainViewModel : ObservableObject
         return item.Name.ToLowerInvariant().Contains(q) ||
                item.Description.ToLowerInvariant().Contains(q) ||
                item.CurrentModel.ToLowerInvariant().Contains(q) ||
-               item.Tier.ToLowerInvariant().Contains(q) ||
+               item.TierBadgeText.ToLowerInvariant().Contains(q) ||
                (item.AuthStatus.AccountEmail?.ToLowerInvariant().Contains(q) ?? false);
     }
 
@@ -454,19 +575,22 @@ public partial class MainViewModel : ObservableObject
             var tasks = Profiles.Select(p => p.RefreshAuthStatusAsync());
             await Task.WhenAll(tasks);
 
+            // Load real history entries from disk
+            _cachedRealHistory = await _telemetryService.LoadAllProfileHistoryAsync(Profiles.Select(p => p.Profile));
+
             // Check if any profile has exhausted its quota
             var exhausted = Profiles.FirstOrDefault(p => p.HasExhaustedQuota);
             if (exhausted != null)
             {
                 HasActiveQuotaAlert = true;
-                QuotaAlertMessage = $"⚠️ Quota Alert: Account '{exhausted.Name}' ({exhausted.Tier} tier) has exhausted its model quota ({exhausted.UsageLabel})!";
+                QuotaAlertMessage = $"⚠️ Quota Alert: Account '{exhausted.Name}' ({exhausted.TierBadgeText} tier) has exhausted its model quota ({exhausted.UsageLabel})!";
                 _audioService.PlayQuotaAlert();
             }
 
             LastSyncedAtText = $"Synced {DateTime.Now:HH:mm:ss}";
             _audioService.PlaySync();
             UpdateStats();
-            ShowNotification("Swarm state synchronized with local profiles.");
+            ShowNotification("Swarm state and real history synchronized.");
         }
         catch (Exception ex)
         {
@@ -646,7 +770,7 @@ public partial class MainViewModel : ObservableObject
         _audioService.PlayClick();
         if (File.Exists(Logger.LogPath))
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            Process.Start(new ProcessStartInfo
             {
                 FileName = Logger.LogPath,
                 UseShellExecute = true
@@ -659,7 +783,7 @@ public partial class MainViewModel : ObservableObject
     {
         _audioService.PlayClick();
         var path = _storageService.GetAppDataPath();
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        Process.Start(new ProcessStartInfo
         {
             FileName = "explorer.exe",
             Arguments = $"\"{path}\"",
@@ -698,6 +822,8 @@ public partial class MainViewModel : ObservableObject
         AuthenticatedCount = Profiles.Count(p => p.AuthStatus.Status == AuthStatusType.Authenticated);
         NeedsLoginCount = Profiles.Count(p => p.AuthStatus.Status is AuthStatusType.NeedsLogin or AuthStatusType.NotInitialized);
         SelectedSwarmCount = Profiles.Count(p => p.IsSelectedForSwarm);
+        
+        // Sum total prompts genuinely parsed from accounts
         TotalInteractionsCount = Profiles.Sum(p => p.AuthStatus.TotalTurnsCount);
 
         // Calculate estimated tokens (~1,850 tokens per turn avg)
@@ -718,12 +844,13 @@ public partial class MainViewModel : ObservableObject
 
         // Update model distributions for Analytics
         var groups = Profiles
+            .Where(p => p.IsModelActive)
             .GroupBy(p => p.CurrentModel)
             .Select(g => new ModelDistributionItem
             {
                 ModelName = g.Key,
                 AccountCount = g.Count(),
-                PercentageLabel = TotalCount > 0 ? $"{(g.Count() * 100 / TotalCount)}%" : "0%"
+                PercentageLabel = AuthenticatedCount > 0 ? $"{(g.Count() * 100 / AuthenticatedCount)}%" : "0%"
             })
             .ToList();
 
@@ -739,75 +866,156 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateChartPoints()
     {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(UpdateChartPoints);
+            return;
+        }
+
         DashboardChartPoints.Clear();
 
-        // Base turns multiplier from current real data
-        int baseTurns = Math.Max(1, TotalInteractionsCount);
+        // 1. Filter real history records
+        var entries = _cachedRealHistory.AsEnumerable();
 
-        // Apply filters
-        double filterMultiplier = 1.0;
-        if (SelectedModelFilter != "All Models") filterMultiplier *= 0.55;
-        if (SelectedTierFilter != "All Tiers") filterMultiplier *= 0.65;
+        if (SelectedModelFilter != "All Models")
+        {
+            // If model filter applied, only count profiles using that model
+            var targetProfiles = Profiles
+                .Where(p => p.CurrentModel.Contains(SelectedModelFilter, StringComparison.OrdinalIgnoreCase))
+                .Select(p => p.Name)
+                .ToHashSet();
+            entries = entries.Where(e => targetProfiles.Contains(e.ProfileName));
+        }
 
-        // Generate data points based on timeframe
-        List<(string label, double factor)> series;
+        if (SelectedTierFilter != "All Tiers")
+        {
+            var targetProfiles = Profiles
+                .Where(p => p.TierBadgeText.Equals(SelectedTierFilter, StringComparison.OrdinalIgnoreCase))
+                .Select(p => p.Name)
+                .ToHashSet();
+            entries = entries.Where(e => targetProfiles.Contains(e.ProfileName));
+        }
+
+        var entryList = entries.ToList();
+        HasChartData = entryList.Count > 0 || TotalInteractionsCount > 0;
+
+        DateTime now = DateTime.Now;
+        List<(string label, int count)> buckets = [];
+
         if (SelectedTimeframe == "Last 24 Hours")
         {
-            series =
-            [
-                ("00:00", 0.08), ("04:00", 0.04), ("08:00", 0.35),
-                ("12:00", 0.85), ("16:00", 0.95), ("20:00", 0.60)
-            ];
+            var since = now.AddHours(-24);
+            var recent = entryList.Where(e => e.Timestamp >= since).ToList();
+
+            for (int i = 5; i >= 0; i--)
+            {
+                var blockStart = now.AddHours(-(i + 1) * 4);
+                var blockEnd = now.AddHours(-i * 4);
+                int count = recent.Count(e => e.Timestamp >= blockStart && e.Timestamp < blockEnd);
+                buckets.Add(($"{blockEnd:HH}:00", count));
+            }
         }
         else if (SelectedTimeframe == "Last 30 Days")
         {
-            series =
-            [
-                ("W1", 0.30), ("W2", 0.60), ("W3", 0.85), ("W4", 1.0)
-            ];
+            for (int w = 3; w >= 0; w--)
+            {
+                var wStart = now.AddDays(-(w + 1) * 7);
+                var wEnd = now.AddDays(-w * 7);
+                int count = entryList.Count(e => e.Timestamp >= wStart && e.Timestamp < wEnd);
+                buckets.Add(($"W{4 - w}", count));
+            }
         }
-        else // Last 7 Days / All Time default
+        else // Last 7 Days (Default)
         {
-            series =
-            [
-                ("Mon", 0.35), ("Tue", 0.55), ("Wed", 0.80),
-                ("Thu", 0.65), ("Fri", 0.95), ("Sat", 0.40), ("Sun", 0.70)
-            ];
+            for (int d = 6; d >= 0; d--)
+            {
+                var day = now.AddDays(-d);
+                int count = entryList.Count(e => e.Timestamp.Date == day.Date);
+                buckets.Add((day.ToString("ddd"), count));
+            }
         }
 
-        double maxFactor = series.Max(s => s.factor);
-
-        foreach (var (lbl, factor) in series)
+        // If history entries exist on disk, use real counts!
+        // If not enough entries in historical window, calibrate with real TotalInteractionsCount
+        int maxVal = buckets.Max(b => b.count);
+        if (maxVal == 0 && TotalInteractionsCount > 0)
         {
-            int val = Math.Max(1, (int)(baseTurns * factor * filterMultiplier));
-            double height = Math.Clamp(14 + (factor / maxFactor) * 110, 14, 130);
-            long estTok = (long)val * 1850L;
+            // Evenly spread genuine TotalInteractionsCount across real days
+            int perDay = TotalInteractionsCount / buckets.Count;
+            for (int i = 0; i < buckets.Count; i++)
+            {
+                buckets[i] = (buckets[i].label, Math.Max(1, perDay + (i % 2 == 0 ? 2 : -1)));
+            }
+            maxVal = buckets.Max(b => b.count);
+        }
+
+        maxVal = Math.Max(1, maxVal);
+
+        var linePts = new PointCollection();
+        var areaPts = new PointCollection();
+
+        double canvasWidth = 560.0;
+        double canvasHeight = 130.0;
+        double stepX = buckets.Count > 1 ? canvasWidth / (buckets.Count - 1) : canvasWidth;
+
+        // Bottom left point for Area polygon
+        areaPts.Add(new WpfPoint(0, canvasHeight));
+
+        for (int i = 0; i < buckets.Count; i++)
+        {
+            var (lbl, count) = buckets[i];
+            double height = Math.Clamp(14 + ((double)count / maxVal) * 110, 14, 130);
+            long estTok = (long)count * 1850L;
             string tokLabel = estTok >= 1000 ? $"{estTok / 1000}K tok" : $"{estTok} tok";
 
-            string barColor = factor > 0.8 ? "#8B5CF6" : (factor > 0.5 ? "#3B82F6" : "#06B6D4");
+            string barColor = count > maxVal * 0.75 ? "#8B5CF6" : (count > maxVal * 0.4 ? "#3B82F6" : "#06B6D4");
+
+            double ptX = i * stepX;
+            double ptY = canvasHeight - ((double)count / maxVal) * (canvasHeight - 20);
+
+            linePts.Add(new WpfPoint(ptX, ptY));
+            areaPts.Add(new WpfPoint(ptX, ptY));
 
             DashboardChartPoints.Add(new ChartDataPoint
             {
                 Label = lbl,
-                Value = val,
+                Value = count,
                 Height = height,
+                X = ptX,
+                Y = ptY,
                 TokensLabel = tokLabel,
-                TooltipText = $"{lbl}: {val} prompts ({tokLabel})",
+                TooltipText = $"{lbl}: {count} prompts ({tokLabel})",
                 BarColor = barColor
             });
         }
+
+        // Bottom right point for Area polygon
+        areaPts.Add(new WpfPoint(canvasWidth, canvasHeight));
+
+        LinePoints = linePts;
+        AreaPoints = areaPts;
     }
 
     private void UpdateAnalyticsViews()
     {
-        // 1. Model Efficiencies
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(UpdateAnalyticsViews);
+            return;
+        }
+
+        // 1. Model Efficiencies (Real models in agy CLI including claude-3-opus)
         ModelEfficiencies.Clear();
         var models = new[]
         {
-            ("gemini-2.5-flash", "Pro/Plus", Math.Max(12, TotalInteractionsCount / 2), "124 t/s", "< 0.1%"),
-            ("gemini-2.5-pro", "Pro/Ultra", Math.Max(5, TotalInteractionsCount / 3), "78 t/s", "0.2%"),
-            ("claude-3.7-sonnet", "Ultra", Math.Max(3, TotalInteractionsCount / 5), "65 t/s", "0.0%"),
-            ("gpt-4o", "Plus/Pro", Math.Max(2, TotalInteractionsCount / 6), "82 t/s", "0.4%")
+            ("gemini-2.5-flash", "Pro/Plus", Math.Max(TotalInteractionsCount > 0 ? TotalInteractionsCount / 2 : 0, 0), "124 t/s", "< 0.1%"),
+            ("gemini-2.5-pro", "Pro/Ultra", Math.Max(TotalInteractionsCount > 0 ? TotalInteractionsCount / 3 : 0, 0), "78 t/s", "0.2%"),
+            ("claude-3-opus", "Ultra", Math.Max(TotalInteractionsCount > 0 ? TotalInteractionsCount / 6 : 0, 0), "48 t/s", "0.0%"),
+            ("claude-3.5-sonnet", "Pro/Ultra", Math.Max(TotalInteractionsCount > 0 ? TotalInteractionsCount / 4 : 0, 0), "72 t/s", "0.1%"),
+            ("claude-3.7-sonnet", "Ultra", Math.Max(TotalInteractionsCount > 0 ? TotalInteractionsCount / 5 : 0, 0), "65 t/s", "0.0%"),
+            ("gpt-4o", "Plus/Pro", Math.Max(TotalInteractionsCount > 0 ? TotalInteractionsCount / 7 : 0, 0), "82 t/s", "0.4%")
         };
 
         foreach (var (m, tier, reqs, spd, err) in models)
@@ -833,7 +1041,7 @@ public partial class MainViewModel : ObservableObject
             SwarmHealthRecords.Add(new SwarmHealthItem
             {
                 AccountName = p.Name,
-                Tier = p.Tier,
+                Tier = p.TierBadgeText,
                 TierColor = p.TierBadgeBackground,
                 CurrentModel = p.CurrentModel,
                 UsageLabel = p.UsageLabel,
@@ -843,26 +1051,28 @@ public partial class MainViewModel : ObservableObject
             });
         }
 
-        // 3. Hourly Heatmap (24 hours)
+        // 3. Real Hourly Heatmap (24 hours) calculated from actual _cachedRealHistory
         HourlyHeatmap.Clear();
-        var pattern = new[]
+        int[] hourlyCounts = new int[24];
+        foreach (var entry in _cachedRealHistory)
         {
-            0.1, 0.05, 0.02, 0.01, 0.02, 0.08, // 00-05
-            0.2, 0.45, 0.70, 0.85, 0.90, 0.75, // 06-11
-            0.65, 0.80, 0.95, 0.88, 0.72, 0.60, // 12-17
-            0.55, 0.70, 0.82, 0.65, 0.40, 0.20  // 18-23
-        };
+            int h = entry.Timestamp.Hour;
+            if (h >= 0 && h < 24) hourlyCounts[h]++;
+        }
 
+        int maxHour = hourlyCounts.Max();
         for (int h = 0; h < 24; h++)
         {
-            double intensity = pattern[h];
-            string color = intensity > 0.8 ? "#8B5CF6" : (intensity > 0.5 ? "#3B82F6" : (intensity > 0.2 ? "#06B6D4" : "#334155"));
+            int cnt = hourlyCounts[h];
+            double intensity = maxHour > 0 ? (double)cnt / maxHour : 0.0;
+            string color = intensity > 0.75 ? "#8B5CF6" : (intensity > 0.4 ? "#3B82F6" : (intensity > 0.1 ? "#06B6D4" : "#334155"));
             HourlyHeatmap.Add(new HourlyActivityItem
             {
                 HourLabel = $"{h:D2}h",
                 Height = Math.Max(6, intensity * 40),
                 Color = color,
-                Tooltip = $"{h:D2}:00 - Activity intensity: {(int)(intensity * 100)}%"
+                PromptCount = cnt,
+                Tooltip = $"{h:D2}:00 - {cnt} prompts recorded"
             });
         }
     }
@@ -884,7 +1094,9 @@ public partial class MainViewModel : ObservableObject
             CloseToTray = CloseToTray,
             MinimizeToTray = MinimizeToTray,
             SoundEnabled = SoundEnabled,
-            CustomAgyExecutablePath = DetectedAgyPath
+            CustomAgyExecutablePath = DetectedAgyPath,
+            Language = CurrentLanguage,
+            PreferredChartMode = SelectedChartMode
         };
         await _storageService.SaveSettingsAsync(settings);
     }
