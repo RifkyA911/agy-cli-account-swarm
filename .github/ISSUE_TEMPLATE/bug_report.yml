@@ -1,0 +1,29 @@
+name: "Bug Report"
+description: "File a bug report for agy-cli-account-swarm"
+title: "[BUG]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Thanks for taking the time to report an issue!"
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: "What happened?"
+      description: "Describe the bug you encountered."
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: "Windows Version"
+      description: "e.g. Windows 11 23H2 or Windows 10 22H2"
+    validations:
+      required: true
+  - type: input
+    id: agy-version
+    attributes:
+      label: "Google Antigravity CLI version"
+      description: "Run `agy --version`"
+    validations:
+      required: false
