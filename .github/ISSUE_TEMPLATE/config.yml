@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions / Community
+    url: https://github.com/RifkyA911/agy-cli-account-swarm/discussions
+    about: Ask questions, share ideas, and discuss swarm setups.
