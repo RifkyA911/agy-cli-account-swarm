@@ -1,0 +1,157 @@
+<Window x:Class="AgyAccountSwarm.Views.ProfileEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:AgyAccountSwarm.ViewModels"
+        Title="{Binding DialogTitle}"
+        Height="540" Width="480"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BrushBg}"
+        Foreground="{StaticResource BrushTextPrimary}"
+        FontFamily="{StaticResource FontMain}">
+
+    <Border Padding="24">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Dialog Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="{Binding DialogTitle}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="{StaticResource BrushTextPrimary}" />
+                <TextBlock Text="Configure profile storage, workspace directory, and CLI preferences."
+                           FontSize="12"
+                           Foreground="{StaticResource BrushTextSecondary}"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+
+            <!-- Form Content -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
+                <StackPanel>
+                    <!-- Validation Error Banner -->
+                    <Border Background="#331418"
+                            BorderBrush="{StaticResource BrushDanger}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12,8"
+                            Margin="0,0,0,16"
+                            Visibility="{Binding ValidationError, Converter={StaticResource NullOrEmptyToVisConverter}, ConverterParameter=False}">
+                        <TextBlock Text="{Binding ValidationError}"
+                                   Foreground="#F87171"
+                                   FontSize="12"
+                                   FontWeight="SemiBold" />
+                    </Border>
+
+                    <!-- Profile Name -->
+                    <TextBlock Text="Profile Name *" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource ModernTextBox}"
+                             Margin="0,6,0,14" />
+
+                    <!-- Description -->
+                    <TextBlock Text="Description / Notes" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource ModernTextBox}"
+                             Margin="0,6,0,14" />
+
+                    <!-- Color Tag -->
+                    <TextBlock Text="Color Accent" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,0,8" />
+                    <ItemsControl ItemsSource="{Binding ColorPresets}" Margin="0,0,0,14">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.SelectColorCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Width="28" Height="28"
+                                        Margin="0,0,8,0"
+                                        Cursor="Hand"
+                                        Background="{Binding Converter={StaticResource HexToBrushConverter}}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="14"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="#FFFFFF"
+                                                    BorderThickness="1" />
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Workspace Folder -->
+                    <TextBlock Text="Default Workspace / Project Directory" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <Grid Margin="0,6,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding DefaultWorkspace, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}" />
+                        <Button Grid.Column="1"
+                                Content="Browse..."
+                                Click="BrowseWorkspace_Click"
+                                Style="{StaticResource ModernButton}"
+                                Margin="8,0,0,0"
+                                Padding="12,6" />
+                    </Grid>
+
+                    <!-- Custom Profile Directory -->
+                    <TextBlock Text="Custom Isolated Home Directory (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBlock Text="Leave empty to use default ~/.gemini-profiles/{Name}" FontSize="11" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,4" />
+                    <Grid Margin="0,2,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding CustomProfilePath, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}" />
+                        <Button Grid.Column="1"
+                                Content="Browse..."
+                                Click="BrowseProfileDir_Click"
+                                Style="{StaticResource ModernButton}"
+                                Margin="8,0,0,0"
+                                Padding="12,6" />
+                    </Grid>
+
+                    <!-- Extra Arguments -->
+                    <TextBlock Text="Extra agy CLI Flags (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBlock Text="e.g. --dangerously-skip-permissions --model 'Gemini 3.8 Flash'" FontSize="11" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,4" />
+                    <TextBox Text="{Binding ExtraArguments, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource ModernTextBox}"
+                             Margin="0,2,0,14" />
+
+                    <!-- Swarm Checkbox -->
+                    <CheckBox IsChecked="{Binding IsSelectedForSwarm}"
+                              Style="{StaticResource ModernCheckBox}"
+                              Content="Include in Swarm Launch (Multi-session)"
+                              Margin="0,4,0,8" />
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancel"
+                        Command="{Binding CancelCommand}"
+                        Style="{StaticResource ModernButton}"
+                        Margin="0,0,8,0"
+                        Width="90" />
+                <Button Content="Save Profile"
+                        Command="{Binding SaveCommand}"
+                        Style="{StaticResource PrimaryButton}"
+                        Width="110" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
