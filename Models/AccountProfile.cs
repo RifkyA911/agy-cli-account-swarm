@@ -31,9 +31,9 @@ public class AccountProfile
     public bool IsSelectedForSwarm { get; set; } = true;
 
     /// <summary>
-    /// Subscription tier: Basic, Plus, Pro, Ultra
+    /// Subscription tier: Basic, Plus, Pro, Ultra, or Unverified (default before login)
     /// </summary>
-    public string Tier { get; set; } = "Pro";
+    public string Tier { get; set; } = "Unverified";
 
     /// <summary>
     /// Target / preferred model (e.g. gemini-2.5-flash, gemini-2.5-pro, claude-3.7-sonnet)
