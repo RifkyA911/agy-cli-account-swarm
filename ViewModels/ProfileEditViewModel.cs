@@ -47,6 +47,21 @@ public partial class ProfileEditViewModel : ObservableObject
         "#64748B"  // Slate
     ];
 
+    [ObservableProperty]
+    private string _tier = "Pro";
+
+    [ObservableProperty]
+    private string _preferredModel = "gemini-2.5-flash";
+
+    [ObservableProperty]
+    private int _quotaLimit = 500;
+
+    [ObservableProperty]
+    private bool _isQuotaExhausted = false;
+
+    public ObservableCollection<string> TierOptions { get; } = ["Basic", "Plus", "Pro", "Ultra"];
+    public ObservableCollection<string> ModelOptions { get; } = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.8-flash", "claude-3.7-sonnet", "gpt-4o"];
+
     public bool IsEditMode { get; private set; }
     public AccountProfile ResultProfile { get; private set; } = new();
 
@@ -56,6 +71,9 @@ public partial class ProfileEditViewModel : ObservableObject
     {
         _dialogTitle = "Add Account Profile";
         IsEditMode = false;
+        _tier = "Pro";
+        _preferredModel = "gemini-2.5-flash";
+        _quotaLimit = 500;
     }
 
     public ProfileEditViewModel(AccountProfile profileToEdit)
@@ -71,6 +89,10 @@ public partial class ProfileEditViewModel : ObservableObject
         _defaultWorkspace = profileToEdit.DefaultWorkspace;
         _extraArguments = profileToEdit.ExtraArguments;
         _isSelectedForSwarm = profileToEdit.IsSelectedForSwarm;
+        _tier = string.IsNullOrWhiteSpace(profileToEdit.Tier) ? "Pro" : profileToEdit.Tier;
+        _preferredModel = string.IsNullOrWhiteSpace(profileToEdit.PreferredModel) ? "gemini-2.5-flash" : profileToEdit.PreferredModel;
+        _quotaLimit = profileToEdit.QuotaLimit > 0 ? profileToEdit.QuotaLimit : 500;
+        _isQuotaExhausted = profileToEdit.IsQuotaExhausted;
     }
 
     [RelayCommand]
@@ -95,6 +117,10 @@ public partial class ProfileEditViewModel : ObservableObject
         ResultProfile.DefaultWorkspace = string.IsNullOrWhiteSpace(DefaultWorkspace) ? null : DefaultWorkspace.Trim();
         ResultProfile.ExtraArguments = string.IsNullOrWhiteSpace(ExtraArguments) ? null : ExtraArguments.Trim();
         ResultProfile.IsSelectedForSwarm = IsSelectedForSwarm;
+        ResultProfile.Tier = Tier;
+        ResultProfile.PreferredModel = PreferredModel;
+        ResultProfile.QuotaLimit = QuotaLimit > 0 ? QuotaLimit : 500;
+        ResultProfile.IsQuotaExhausted = IsQuotaExhausted;
 
         RequestClose?.Invoke(true);
     }

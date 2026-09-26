@@ -42,7 +42,9 @@ public partial class MainWindow : Window
     {
         try
         {
-            var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "cat.ico");
+            var faviconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "favicon.ico");
+            var catIconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "cat.ico");
+            var iconPath = File.Exists(faviconPath) ? faviconPath : catIconPath;
             System.Drawing.Icon? appIcon = null;
 
             if (File.Exists(iconPath))

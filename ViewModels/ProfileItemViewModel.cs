@@ -66,7 +66,23 @@ public partial class ProfileItemViewModel : ObservableObject
         _extraArguments = profile.ExtraArguments;
         _isSelectedForSwarm = profile.IsSelectedForSwarm;
         _authStatus = profile.AuthStatus;
+        _tier = profile.Tier;
+        _preferredModel = profile.PreferredModel;
+        _quotaLimit = profile.QuotaLimit;
+        _isQuotaExhausted = profile.IsQuotaExhausted;
     }
+
+    [ObservableProperty]
+    private string _tier = "Pro";
+
+    [ObservableProperty]
+    private string _preferredModel = "gemini-2.5-flash";
+
+    [ObservableProperty]
+    private int _quotaLimit = 500;
+
+    [ObservableProperty]
+    private bool _isQuotaExhausted;
 
     public string EffectiveProfilePath => Profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
 
@@ -75,7 +91,52 @@ public partial class ProfileItemViewModel : ObservableObject
             ? "(User Home Directory)"
             : DefaultWorkspace;
 
-    public string CurrentModel => AuthStatus.CurrentModel ?? "Gemini 3.8 Flash";
+    public string CurrentModel
+    {
+        get
+        {
+            if (AuthStatus.Status is AuthStatusType.NeedsLogin or AuthStatusType.NotInitialized)
+            {
+                return "Not Connected (Login Required)";
+            }
+            if (AuthStatus.Status == AuthStatusType.QuotaExhausted)
+            {
+                return $"{AuthStatus.CurrentModel ?? PreferredModel} [EXHAUSTED]";
+            }
+            return !string.IsNullOrWhiteSpace(AuthStatus.CurrentModel)
+                ? AuthStatus.CurrentModel
+                : (!string.IsNullOrWhiteSpace(PreferredModel) ? PreferredModel : "gemini-2.5-flash");
+        }
+    }
+
+    public bool IsModelActive => AuthStatus.Status is AuthStatusType.Authenticated or AuthStatusType.QuotaExhausted;
+
+    public string TierBadgeBackground => Tier?.ToLowerInvariant() switch
+    {
+        "ultra" => "#D97706", // Amber gold
+        "pro" => "#7C3AED",   // Vivid purple
+        "plus" => "#0284C7",  // Light blue
+        _ => "#64748B"        // Slate / Basic
+    };
+
+    public string TierBadgeBorder => Tier?.ToLowerInvariant() switch
+    {
+        "ultra" => "#F59E0B",
+        "pro" => "#8B5CF6",
+        "plus" => "#38BDF8",
+        _ => "#94A3B8"
+    };
+
+    public bool HasExhaustedQuota => IsQuotaExhausted || AuthStatus.Status == AuthStatusType.QuotaExhausted || UsagePercentage >= 100.0;
+
+    public string QuotaStatusText => HasExhaustedQuota
+        ? "QUOTA EXHAUSTED"
+        : (UsagePercentage >= 80.0 ? "NEARING LIMIT" : "HEALTHY");
+
+    public string QuotaStatusColor => HasExhaustedQuota
+        ? "#EF4444"
+        : (UsagePercentage >= 80.0 ? "#F59E0B" : "#10B981");
+
     public string UsageLabel => AuthStatus.UsageLabel;
     
     public double UsagePercentage
@@ -85,12 +146,16 @@ public partial class ProfileItemViewModel : ObservableObject
         {
             AuthStatus.UsagePercentage = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(HasExhaustedQuota));
+            OnPropertyChanged(nameof(QuotaStatusText));
+            OnPropertyChanged(nameof(QuotaStatusColor));
         }
     }
 
     public string StatusBadgeColor => AuthStatus.Status switch
     {
         AuthStatusType.Authenticated => "#10B981", // Emerald
+        AuthStatusType.QuotaExhausted => "#EF4444",// Red
         AuthStatusType.NeedsLogin => "#F59E0B",    // Amber
         AuthStatusType.Error => "#EF4444",         // Red
         _ => "#6B7280"                             // Neutral gray
@@ -101,6 +166,7 @@ public partial class ProfileItemViewModel : ObservableObject
         AuthStatusType.Authenticated => string.IsNullOrEmpty(AuthStatus.AccountEmail)
             ? "Authenticated"
             : AuthStatus.AccountEmail,
+        AuthStatusType.QuotaExhausted => "Quota Exhausted",
         AuthStatusType.NeedsLogin => "Needs Login",
         AuthStatusType.Error => "Auth Error",
         _ => "Not Initialized"
@@ -116,6 +182,12 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(StatusBadgeColor));
             OnPropertyChanged(nameof(StatusBadgeText));
             OnPropertyChanged(nameof(CurrentModel));
+            OnPropertyChanged(nameof(IsModelActive));
+            OnPropertyChanged(nameof(TierBadgeBackground));
+            OnPropertyChanged(nameof(TierBadgeBorder));
+            OnPropertyChanged(nameof(HasExhaustedQuota));
+            OnPropertyChanged(nameof(QuotaStatusText));
+            OnPropertyChanged(nameof(QuotaStatusColor));
             OnPropertyChanged(nameof(UsageLabel));
             OnPropertyChanged(nameof(UsagePercentage));
         }
@@ -198,5 +270,9 @@ public partial class ProfileItemViewModel : ObservableObject
         Profile.DefaultWorkspace = DefaultWorkspace;
         Profile.ExtraArguments = ExtraArguments;
         Profile.IsSelectedForSwarm = IsSelectedForSwarm;
+        Profile.Tier = Tier;
+        Profile.PreferredModel = PreferredModel;
+        Profile.QuotaLimit = QuotaLimit;
+        Profile.IsQuotaExhausted = IsQuotaExhausted;
     }
 }

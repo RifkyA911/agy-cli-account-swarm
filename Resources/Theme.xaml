@@ -32,6 +32,10 @@
     <SolidColorBrush x:Key="BrushProgressTrack" Color="#1F2430" />
     <SolidColorBrush x:Key="BrushMonoPath" Color="#60A5FA" />
 
+    <SolidColorBrush x:Key="BrushQuotaExhaustedBg" Color="#311118" />
+    <SolidColorBrush x:Key="BrushQuotaExhaustedBorder" Color="#DC2626" />
+    <SolidColorBrush x:Key="BrushQuotaExhaustedText" Color="#FCA5A5" />
+
     <!-- Typography -->
     <FontFamily x:Key="FontMain">Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
     <FontFamily x:Key="FontMono">Cascadia Code, Consolas, Courier New</FontFamily>

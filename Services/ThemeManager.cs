@@ -48,6 +48,11 @@ public static class ThemeManager
             // Progress & Mono
             app.Resources["BrushProgressTrack"] = new SolidColorBrush(MediaColor.FromRgb(226, 232, 240));
             app.Resources["BrushMonoPath"] = new SolidColorBrush(MediaColor.FromRgb(37, 99, 235));
+
+            // Quota Exhausted Alert (Light Mode)
+            app.Resources["BrushQuotaExhaustedBg"] = new SolidColorBrush(MediaColor.FromRgb(254, 242, 242));
+            app.Resources["BrushQuotaExhaustedBorder"] = new SolidColorBrush(MediaColor.FromRgb(248, 113, 113));
+            app.Resources["BrushQuotaExhaustedText"] = new SolidColorBrush(MediaColor.FromRgb(185, 28, 28));
         }
         else
         {
@@ -80,6 +85,11 @@ public static class ThemeManager
             // Progress & Mono
             app.Resources["BrushProgressTrack"] = new SolidColorBrush(MediaColor.FromRgb(31, 36, 48));
             app.Resources["BrushMonoPath"] = new SolidColorBrush(MediaColor.FromRgb(96, 165, 250));
+
+            // Quota Exhausted Alert (Dark Mode)
+            app.Resources["BrushQuotaExhaustedBg"] = new SolidColorBrush(MediaColor.FromRgb(49, 17, 24));
+            app.Resources["BrushQuotaExhaustedBorder"] = new SolidColorBrush(MediaColor.FromRgb(220, 38, 38));
+            app.Resources["BrushQuotaExhaustedText"] = new SolidColorBrush(MediaColor.FromRgb(252, 165, 165));
         }
     }
 }

@@ -30,6 +30,26 @@ public class AccountProfile
     /// </summary>
     public bool IsSelectedForSwarm { get; set; } = true;
 
+    /// <summary>
+    /// Subscription tier: Basic, Plus, Pro, Ultra
+    /// </summary>
+    public string Tier { get; set; } = "Pro";
+
+    /// <summary>
+    /// Target / preferred model (e.g. gemini-2.5-flash, gemini-2.5-pro, claude-3.7-sonnet)
+    /// </summary>
+    public string PreferredModel { get; set; } = "gemini-2.5-flash";
+
+    /// <summary>
+    /// Quota limit in prompt turns before warning/exhaustion.
+    /// </summary>
+    public int QuotaLimit { get; set; } = 500;
+
+    /// <summary>
+    /// Manually or automatically flagged as quota exhausted.
+    /// </summary>
+    public bool IsQuotaExhausted { get; set; } = false;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLaunchedAt { get; set; }
 

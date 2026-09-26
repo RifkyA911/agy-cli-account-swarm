@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:AgyAccountSwarm.ViewModels"
         Title="{Binding DialogTitle}"
-        Icon="../Resources/cat.ico"
-        Height="540" Width="480"
+        Icon="../Resources/favicon.ico"
+        Height="620" Width="500"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource BrushBg}"
@@ -24,10 +24,10 @@
                 <TextBlock Text="{Binding DialogTitle}"
                            FontSize="18"
                            FontWeight="Bold"
-                           Foreground="{StaticResource BrushTextPrimary}" />
-                <TextBlock Text="Configure profile storage, workspace directory, and CLI preferences."
+                           Foreground="{DynamicResource BrushTextPrimary}" />
+                <TextBlock Text="Configure profile credentials, subscription tier, and CLI preferences."
                            FontSize="12"
-                           Foreground="{StaticResource BrushTextSecondary}"
+                           Foreground="{DynamicResource BrushTextSecondary}"
                            Margin="0,4,0,0" />
             </StackPanel>
 
@@ -36,7 +36,7 @@
                 <StackPanel>
                     <!-- Validation Error Banner -->
                     <Border Background="#331418"
-                            BorderBrush="{StaticResource BrushDanger}"
+                            BorderBrush="{DynamicResource BrushDanger}"
                             BorderThickness="1"
                             CornerRadius="6"
                             Padding="12,8"
@@ -49,19 +49,69 @@
                     </Border>
 
                     <!-- Profile Name -->
-                    <TextBlock Text="Profile Name *" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBlock Text="Profile Name *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource ModernTextBox}"
                              Margin="0,6,0,14" />
 
                     <!-- Description -->
-                    <TextBlock Text="Description / Notes" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBlock Text="Description / Notes" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                     <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource ModernTextBox}"
                              Margin="0,6,0,14" />
 
+                    <!-- Tier and Model Row -->
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Subscription Tier *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                            <ComboBox ItemsSource="{Binding TierOptions}"
+                                      SelectedItem="{Binding Tier}"
+                                      Style="{StaticResource ModernComboBox}"
+                                      Margin="0,6,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Target / Preferred Model" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                            <ComboBox ItemsSource="{Binding ModelOptions}"
+                                      SelectedItem="{Binding PreferredModel}"
+                                      IsEditable="True"
+                                      Style="{StaticResource ModernComboBox}"
+                                      Margin="0,6,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Quota Limit & Exhausted Status -->
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Prompt Turns Quota Limit" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                            <TextBox Text="{Binding QuotaLimit, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource ModernTextBox}"
+                                     Margin="0,6,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                            <CheckBox IsChecked="{Binding IsQuotaExhausted}"
+                                      Style="{StaticResource ModernCheckBox}"
+                                      Content="Flag as Quota Exhausted"
+                                      ToolTip="Manually flag quota exhausted to test notifications"
+                                      Margin="0,0,0,8" />
+                        </StackPanel>
+                    </Grid>
+
                     <!-- Color Tag -->
-                    <TextBlock Text="Color Accent" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,0,8" />
+                    <TextBlock Text="Color Accent" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,8" />
                     <ItemsControl ItemsSource="{Binding ColorPresets}" Margin="0,0,0,14">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -90,7 +140,7 @@
                     </ItemsControl>
 
                     <!-- Workspace Folder -->
-                    <TextBlock Text="Default Workspace / Project Directory" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBlock Text="Default Workspace / Project Directory" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                     <Grid Margin="0,6,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />

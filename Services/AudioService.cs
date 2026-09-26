@@ -12,11 +12,67 @@ public interface IAudioService
     void PlaySuccess();
     void PlayClick();
     void PlayDelete();
+    void PlaySync();
+    void PlayQuotaAlert();
+    void PlayFluffyPurr();
 }
 
 public class AudioService : IAudioService
 {
     public bool IsEnabled { get; set; } = true;
+
+    public void PlayFluffyPurr()
+    {
+        if (!IsEnabled) return;
+        Task.Run(() =>
+        {
+            try
+            {
+                // Harmonious fluffy arpeggio with soft purr modulation
+                PlayPurrChord(new[] { 523.25, 659.25, 783.99, 1046.50 }, 650);
+            }
+            catch
+            {
+                SystemSounds.Asterisk.Play();
+            }
+        });
+    }
+
+    public void PlayQuotaAlert()
+    {
+        if (!IsEnabled) return;
+        Task.Run(() =>
+        {
+            try
+            {
+                // Minor warning descent: 493Hz (B4) then 370Hz (F#4)
+                PlayTone(493, 110);
+                PlayTone(370, 160);
+            }
+            catch
+            {
+                SystemSounds.Exclamation.Play();
+            }
+        });
+    }
+
+    public void PlaySync()
+    {
+        if (!IsEnabled) return;
+        Task.Run(() =>
+        {
+            try
+            {
+                // Refresh droplet arpeggio: 740Hz then 1174Hz
+                PlayTone(740, 50);
+                PlayTone(1174, 75);
+            }
+            catch
+            {
+                SystemSounds.Beep.Play();
+            }
+        });
+    }
 
     public void PlayLaunch()
     {
@@ -122,6 +178,71 @@ public class AudioService : IAudioService
                 double angle = 2.0 * Math.PI * frequency * t;
                 byte sample = (byte)(128 + 60 * Math.Sin(angle) * envelope);
                 writer.Write(sample);
+            }
+
+            stream.Position = 0;
+            using var player = new SoundPlayer(stream);
+            player.PlaySync();
+        }
+        catch
+        {
+            // Silently fail if audio device is unavailable
+        }
+    }
+
+    private static void PlayPurrChord(double[] frequencies, int durationMs)
+    {
+        try
+        {
+            var sampleRate = 8000;
+            var numSamples = (sampleRate * durationMs) / 1000;
+            using var stream = new MemoryStream();
+            using var writer = new BinaryWriter(stream);
+
+            // WAV header
+            writer.Write("RIFF"u8.ToArray());
+            writer.Write(36 + numSamples);
+            writer.Write("WAVE"u8.ToArray());
+            writer.Write("fmt "u8.ToArray());
+            writer.Write(16); // Subchunk1Size
+            writer.Write((short)1); // AudioFormat PCM
+            writer.Write((short)1); // NumChannels Mono
+            writer.Write(sampleRate);
+            writer.Write(sampleRate); // ByteRate
+            writer.Write((short)1); // BlockAlign
+            writer.Write((short)8); // BitsPerSample
+            writer.Write("data"u8.ToArray());
+            writer.Write(numSamples);
+
+            // Polyphonic sine mix with gentle purr amplitude tremolo
+            for (int i = 0; i < numSamples; i++)
+            {
+                double t = (double)i / sampleRate;
+                
+                // Envelope: Smooth fade-in, sustained body, gentle fade-out
+                double envelope = 1.0;
+                if (i < 300) envelope = (double)i / 300;
+                else if (i > numSamples - 600) envelope = (double)(numSamples - i) / 600;
+
+                // Subtle purr tremolo at 24Hz
+                double purrMod = 0.82 + 0.18 * Math.Sin(2.0 * Math.PI * 24.0 * t);
+
+                double waveSum = 0;
+                for (int f = 0; f < frequencies.Length; f++)
+                {
+                    double freq = frequencies[f];
+                    // Stagger arpeggio start times slightly for a rich fluid chord
+                    double noteOffset = f * 0.045;
+                    if (t >= noteOffset)
+                    {
+                        double noteT = t - noteOffset;
+                        waveSum += Math.Sin(2.0 * Math.PI * freq * noteT) / frequencies.Length;
+                    }
+                }
+
+                double sampleVal = 128.0 + 55.0 * waveSum * envelope * purrMod;
+                sampleVal = Math.Clamp(sampleVal, 0.0, 255.0);
+                writer.Write((byte)sampleVal);
             }
 
             stream.Position = 0;

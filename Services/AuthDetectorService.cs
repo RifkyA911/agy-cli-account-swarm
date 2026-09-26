@@ -65,9 +65,9 @@ public class AuthDetectorService : IAuthDetectorService
                         lineCount++;
                     }
                     status.TotalTurnsCount = lineCount;
-                    // Provide a normalized activity gauge (e.g. 500 turns = 100% activity bar)
-                    status.UsagePercentage = Math.Min(100.0, (lineCount / 500.0) * 100.0);
-                    status.UsageLabel = $"{lineCount} prompts run";
+                    int maxQuota = profile.QuotaLimit > 0 ? profile.QuotaLimit : 500;
+                    status.UsagePercentage = Math.Min(100.0, ((double)lineCount / maxQuota) * 100.0);
+                    status.UsageLabel = $"{lineCount} / {maxQuota} prompts";
                 }
                 catch
                 {
@@ -117,26 +117,62 @@ public class AuthDetectorService : IAuthDetectorService
                         }
                     }
 
-                    status.Status = AuthStatusType.Authenticated;
-                    status.StatusMessage = string.IsNullOrEmpty(status.AccountEmail)
-                        ? "Authenticated"
-                        : $"Logged in ({status.AccountEmail})";
+                    if (profile.IsQuotaExhausted || status.UsagePercentage >= 100.0)
+                    {
+                        status.Status = AuthStatusType.QuotaExhausted;
+                        status.StatusMessage = "Quota Exhausted (Limit Reached)";
+                    }
+                    else
+                    {
+                        status.Status = AuthStatusType.Authenticated;
+                        status.StatusMessage = string.IsNullOrEmpty(status.AccountEmail)
+                            ? "Authenticated"
+                            : $"Logged in ({status.AccountEmail})";
+                    }
+
+                    if (string.IsNullOrEmpty(status.CurrentModel))
+                    {
+                        status.CurrentModel = !string.IsNullOrWhiteSpace(profile.PreferredModel)
+                            ? profile.PreferredModel
+                            : "gemini-2.5-flash";
+                    }
+
                     return status;
                 }
                 catch
                 {
                     status.Status = AuthStatusType.Error;
                     status.StatusMessage = "Corrupt OAuth token file";
+                    status.CurrentModel = null;
                     return status;
                 }
             }
 
             if (!string.IsNullOrEmpty(status.AccountEmail))
             {
-                status.Status = AuthStatusType.Authenticated;
-                status.StatusMessage = $"Logged in ({status.AccountEmail})";
+                if (profile.IsQuotaExhausted || status.UsagePercentage >= 100.0)
+                {
+                    status.Status = AuthStatusType.QuotaExhausted;
+                    status.StatusMessage = "Quota Exhausted (Limit Reached)";
+                }
+                else
+                {
+                    status.Status = AuthStatusType.Authenticated;
+                    status.StatusMessage = $"Logged in ({status.AccountEmail})";
+                }
+
+                if (string.IsNullOrEmpty(status.CurrentModel))
+                {
+                    status.CurrentModel = !string.IsNullOrWhiteSpace(profile.PreferredModel)
+                        ? profile.PreferredModel
+                        : "gemini-2.5-flash";
+                }
+
                 return status;
             }
+
+            // If not authenticated, do not show active model!
+            status.CurrentModel = null;
 
             if (Directory.Exists(cliDir))
             {
