@@ -135,15 +135,6 @@ public class TerminalLauncherService : ITerminalLauncherService
                 };
             }
 
-            // Set environment variables directly on the parent ProcessStartInfo as well
-            psi.Environment["USERPROFILE"] = effectiveDir;
-            psi.Environment["HOME"] = effectiveDir;
-            if (effectiveDir.Length >= 2 && effectiveDir[1] == ':')
-            {
-                psi.Environment["HOMEDRIVE"] = effectiveDir[..2];
-                psi.Environment["HOMEPATH"] = effectiveDir[2..];
-            }
-
             profile.LastLaunchedAt = DateTime.UtcNow;
             return Process.Start(psi);
         });

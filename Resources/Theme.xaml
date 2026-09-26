@@ -36,6 +36,41 @@
     <FontFamily x:Key="FontMain">Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
     <FontFamily x:Key="FontMono">Cascadia Code, Consolas, Courier New</FontFamily>
 
+    <!-- Sidebar Navigation Button Style -->
+    <Style x:Key="SidebarButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource FontMain}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushSurfaceHover}" />
+                            <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#252936" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Modern Button Style -->
     <Style x:Key="ModernButton" TargetType="Button">
         <Setter Property="FontFamily" Value="{StaticResource FontMain}" />

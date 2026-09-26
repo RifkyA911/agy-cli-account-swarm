@@ -27,9 +27,10 @@ public partial class App : System.Windows.Application
             IProfileStorageService storageService = new ProfileStorageService();
             ITerminalLauncherService launcherService = new TerminalLauncherService();
             IAuthDetectorService authDetector = new AuthDetectorService();
+            IAudioService audioService = new AudioService();
 
             // 3. Setup MainViewModel
-            var mainViewModel = new MainViewModel(storageService, launcherService, authDetector);
+            var mainViewModel = new MainViewModel(storageService, launcherService, authDetector, audioService);
 
             // 4. Show MainWindow
             var mainWindow = new MainWindow(mainViewModel);

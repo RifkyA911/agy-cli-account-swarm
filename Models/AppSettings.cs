@@ -9,4 +9,5 @@ public class AppSettings
     public string Theme { get; set; } = "Dark";
     public bool CloseToTray { get; set; } = true;
     public bool MinimizeToTray { get; set; } = true;
+    public bool SoundEnabled { get; set; } = true;
 }

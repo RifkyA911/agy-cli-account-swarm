@@ -1,0 +1,136 @@
+using System;
+using System.IO;
+using System.Media;
+using System.Threading.Tasks;
+
+namespace AgyAccountSwarm.Services;
+
+public interface IAudioService
+{
+    bool IsEnabled { get; set; }
+    void PlayLaunch();
+    void PlaySuccess();
+    void PlayClick();
+    void PlayDelete();
+}
+
+public class AudioService : IAudioService
+{
+    public bool IsEnabled { get; set; } = true;
+
+    public void PlayLaunch()
+    {
+        if (!IsEnabled) return;
+        Task.Run(() =>
+        {
+            try
+            {
+                // Upward tone: 550Hz then 880Hz
+                PlayTone(550, 60);
+                PlayTone(880, 80);
+            }
+            catch
+            {
+                SystemSounds.Asterisk.Play();
+            }
+        });
+    }
+
+    public void PlaySuccess()
+    {
+        if (!IsEnabled) return;
+        Task.Run(() =>
+        {
+            try
+            {
+                // Cheerful chime: 659Hz (E5) then 987Hz (B5)
+                PlayTone(659, 70);
+                PlayTone(987, 100);
+            }
+            catch
+            {
+                SystemSounds.Beep.Play();
+            }
+        });
+    }
+
+    public void PlayClick()
+    {
+        if (!IsEnabled) return;
+        Task.Run(() =>
+        {
+            try
+            {
+                PlayTone(1200, 25);
+            }
+            catch
+            {
+                SystemSounds.Asterisk.Play();
+            }
+        });
+    }
+
+    public void PlayDelete()
+    {
+        if (!IsEnabled) return;
+        Task.Run(() =>
+        {
+            try
+            {
+                PlayTone(380, 90);
+                PlayTone(260, 110);
+            }
+            catch
+            {
+                SystemSounds.Hand.Play();
+            }
+        });
+    }
+
+    private static void PlayTone(int frequency, int durationMs)
+    {
+        try
+        {
+            var sampleRate = 8000;
+            var numSamples = (sampleRate * durationMs) / 1000;
+            using var stream = new MemoryStream();
+            using var writer = new BinaryWriter(stream);
+
+            // WAV header
+            writer.Write("RIFF"u8.ToArray());
+            writer.Write(36 + numSamples);
+            writer.Write("WAVE"u8.ToArray());
+            writer.Write("fmt "u8.ToArray());
+            writer.Write(16); // Subchunk1Size
+            writer.Write((short)1); // AudioFormat PCM
+            writer.Write((short)1); // NumChannels Mono
+            writer.Write(sampleRate);
+            writer.Write(sampleRate); // ByteRate
+            writer.Write((short)1); // BlockAlign
+            writer.Write((short)8); // BitsPerSample
+            writer.Write("data"u8.ToArray());
+            writer.Write(numSamples);
+
+            // Generate sine wave samples with gentle attack and decay
+            for (int i = 0; i < numSamples; i++)
+            {
+                double t = (double)i / sampleRate;
+                double envelope = 1.0;
+                if (i < 80) envelope = (double)i / 80;
+                else if (i > numSamples - 120) envelope = (double)(numSamples - i) / 120;
+
+                double angle = 2.0 * Math.PI * frequency * t;
+                byte sample = (byte)(128 + 60 * Math.Sin(angle) * envelope);
+                writer.Write(sample);
+            }
+
+            stream.Position = 0;
+            using var player = new SoundPlayer(stream);
+            player.PlaySync();
+        }
+        catch
+        {
+            // Silently fail if audio device is unavailable
+        }
+    }
+}

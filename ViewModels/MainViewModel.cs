@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -13,14 +14,25 @@ using AgyAccountSwarm.Services;
 
 namespace AgyAccountSwarm.ViewModels;
 
+public class ModelDistributionItem
+{
+    public string ModelName { get; set; } = string.Empty;
+    public int AccountCount { get; set; }
+    public string PercentageLabel { get; set; } = "0%";
+}
+
 public partial class MainViewModel : ObservableObject
 {
     private readonly IProfileStorageService _storageService;
     private readonly ITerminalLauncherService _launcherService;
     private readonly IAuthDetectorService _authDetector;
+    private readonly IAudioService _audioService;
 
     public ObservableCollection<ProfileItemViewModel> Profiles { get; } = [];
     public ICollectionView FilteredProfiles { get; }
+
+    [ObservableProperty]
+    private string _currentPage = "Dashboard";
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
@@ -39,6 +51,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _minimizeToTray = true;
+
+    [ObservableProperty]
+    private bool _soundEnabled = true;
 
     [ObservableProperty]
     private bool _isWindowsTerminalAvailable;
@@ -68,17 +83,36 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private int _selectedSwarmCount;
 
+    [ObservableProperty]
+    private int _totalInteractionsCount;
+
+    // Analytics properties
+    [ObservableProperty]
+    private ObservableCollection<ModelDistributionItem> _modelDistributions = [];
+
+    // Logs properties
+    [ObservableProperty]
+    private string _logContent = "No logs yet.";
+
+    [ObservableProperty]
+    private string _selectedLogLevel = "ALL";
+
+    [ObservableProperty]
+    private string _logSearchQuery = string.Empty;
+
     public event Func<AccountProfile?, Task<AccountProfile?>>? ShowEditDialogRequested;
     public event Func<string, string, Task<bool>>? ConfirmDeleteRequested;
 
     public MainViewModel(
         IProfileStorageService storageService,
         ITerminalLauncherService launcherService,
-        IAuthDetectorService authDetector)
+        IAuthDetectorService authDetector,
+        IAudioService audioService)
     {
         _storageService = storageService;
         _launcherService = launcherService;
         _authDetector = authDetector;
+        _audioService = audioService;
 
         FilteredProfiles = CollectionViewSource.GetDefaultView(Profiles);
         FilteredProfiles.Filter = FilterProfile;
@@ -103,11 +137,18 @@ public partial class MainViewModel : ObservableObject
             CurrentTheme = settings.Theme;
             CloseToTray = settings.CloseToTray;
             MinimizeToTray = settings.MinimizeToTray;
+            SoundEnabled = settings.SoundEnabled;
+            _audioService.IsEnabled = SoundEnabled;
+
+            if (!string.IsNullOrWhiteSpace(settings.CustomAgyExecutablePath) && File.Exists(settings.CustomAgyExecutablePath))
+            {
+                DetectedAgyPath = settings.CustomAgyExecutablePath;
+                IsAgyInstalled = true;
+            }
 
             // Apply loaded theme
             ThemeManager.ApplyTheme(CurrentTheme);
 
-            // If WT not available, fallback to PowerShell or CMD
             if (SelectedTerminal == TerminalType.WindowsTerminal && !IsWindowsTerminalAvailable)
             {
                 SelectedTerminal = TerminalType.PowerShell;
@@ -126,6 +167,8 @@ public partial class MainViewModel : ObservableObject
 
             // Trigger auth check for all profiles in background
             _ = RefreshAllAuthAsync();
+
+            LoadLogs();
         }
         finally
         {
@@ -133,9 +176,20 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    public void Navigate(string page)
+    {
+        CurrentPage = page;
+        _audioService.PlayClick();
+        if (page == "Logs")
+        {
+            LoadLogs();
+        }
+    }
+
     private ProfileItemViewModel CreateItemViewModel(AccountProfile profile)
     {
-        var vm = new ProfileItemViewModel(profile, _launcherService, _authDetector);
+        var vm = new ProfileItemViewModel(profile, _launcherService, _authDetector, _audioService);
         vm.OnEditRequested += async item => await EditProfileAsync(item);
         vm.OnDeleteRequested += async item => await DeleteProfileAsync(item);
         vm.OnNotificationRequested += ShowNotification;
@@ -187,9 +241,24 @@ public partial class MainViewModel : ObservableObject
         _ = SaveSettingsAsync();
     }
 
+    partial void OnSoundEnabledChanged(bool value)
+    {
+        _audioService.IsEnabled = value;
+        _ = SaveSettingsAsync();
+        ShowNotification(value ? "Sound effects enabled" : "Sound effects muted");
+    }
+
+    [RelayCommand]
+    public void ToggleSound()
+    {
+        SoundEnabled = !SoundEnabled;
+        if (SoundEnabled) _audioService.PlayClick();
+    }
+
     [RelayCommand]
     public void ToggleTheme()
     {
+        _audioService.PlayClick();
         CurrentTheme = CurrentTheme == "Dark" ? "Light" : "Dark";
         ThemeManager.ApplyTheme(CurrentTheme);
         _ = SaveSettingsAsync();
@@ -215,6 +284,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public async Task AddProfileAsync()
     {
+        _audioService.PlayClick();
         if (ShowEditDialogRequested == null) return;
 
         var result = await ShowEditDialogRequested(null);
@@ -224,6 +294,7 @@ public partial class MainViewModel : ObservableObject
             Profiles.Add(itemVm);
             await SaveProfilesAsync();
             await itemVm.RefreshAuthStatusAsync();
+            _audioService.PlaySuccess();
             ShowNotification($"Added new profile '{result.Name}'");
         }
     }
@@ -247,6 +318,7 @@ public partial class MainViewModel : ObservableObject
             await SaveProfilesAsync();
             await item.RefreshAuthStatusAsync();
             FilteredProfiles.Refresh();
+            _audioService.PlaySuccess();
             ShowNotification($"Updated profile '{item.Name}'");
         }
     }
@@ -264,6 +336,7 @@ public partial class MainViewModel : ObservableObject
         Profiles.Remove(item);
         await SaveProfilesAsync();
         UpdateStats();
+        _audioService.PlayDelete();
         ShowNotification($"Removed profile '{item.Name}'");
     }
 
@@ -279,6 +352,7 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
+            _audioService.PlayLaunch();
             var procs = await _launcherService.LaunchSwarmAsync(
                 targets.Select(t => t.Profile),
                 SelectedTerminal,
@@ -288,6 +362,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            Logger.Error("Failed to launch swarm", ex);
             ShowNotification($"Failed to launch swarm: {ex.Message}");
         }
     }
@@ -295,6 +370,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void ToggleSelectAllSwarm()
     {
+        _audioService.PlayClick();
         var allSelected = Profiles.All(p => p.IsSelectedForSwarm);
         foreach (var p in Profiles)
         {
@@ -303,9 +379,83 @@ public partial class MainViewModel : ObservableObject
         UpdateStats();
     }
 
+    // --- Logs view commands ---
+
+    [RelayCommand]
+    public void LoadLogs()
+    {
+        try
+        {
+            if (File.Exists(Logger.LogPath))
+            {
+                var lines = File.ReadAllLines(Logger.LogPath);
+                var filtered = lines.AsEnumerable();
+
+                if (SelectedLogLevel != "ALL")
+                {
+                    filtered = filtered.Where(l => l.Contains($"[{SelectedLogLevel}]"));
+                }
+
+                if (!string.IsNullOrWhiteSpace(LogSearchQuery))
+                {
+                    filtered = filtered.Where(l => l.Contains(LogSearchQuery, StringComparison.OrdinalIgnoreCase));
+                }
+
+                LogContent = string.Join(Environment.NewLine, filtered);
+            }
+            else
+            {
+                LogContent = "No log entries found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            LogContent = $"Error reading log file: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    public void CopyLogs()
+    {
+        _audioService.PlayClick();
+        System.Windows.Clipboard.SetText(LogContent);
+        ShowNotification("Logs copied to clipboard");
+    }
+
+    [RelayCommand]
+    public void ClearLogs()
+    {
+        _audioService.PlayClick();
+        try
+        {
+            File.WriteAllText(Logger.LogPath, string.Empty);
+            LogContent = string.Empty;
+            ShowNotification("Logs cleared");
+        }
+        catch (Exception ex)
+        {
+            ShowNotification($"Failed to clear logs: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public void OpenLogFile()
+    {
+        _audioService.PlayClick();
+        if (File.Exists(Logger.LogPath))
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = Logger.LogPath,
+                UseShellExecute = true
+            });
+        }
+    }
+
     [RelayCommand]
     public void OpenAppDataFolder()
     {
+        _audioService.PlayClick();
         var path = _storageService.GetAppDataPath();
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
         {
@@ -339,6 +489,24 @@ public partial class MainViewModel : ObservableObject
         AuthenticatedCount = Profiles.Count(p => p.AuthStatus.Status == AuthStatusType.Authenticated);
         NeedsLoginCount = Profiles.Count(p => p.AuthStatus.Status is AuthStatusType.NeedsLogin or AuthStatusType.NotInitialized);
         SelectedSwarmCount = Profiles.Count(p => p.IsSelectedForSwarm);
+        TotalInteractionsCount = Profiles.Sum(p => p.AuthStatus.TotalTurnsCount);
+
+        // Update model distributions for Analytics
+        var groups = Profiles
+            .GroupBy(p => p.CurrentModel)
+            .Select(g => new ModelDistributionItem
+            {
+                ModelName = g.Key,
+                AccountCount = g.Count(),
+                PercentageLabel = TotalCount > 0 ? $"{(g.Count() * 100 / TotalCount)}%" : "0%"
+            })
+            .ToList();
+
+        ModelDistributions.Clear();
+        foreach (var item in groups)
+        {
+            ModelDistributions.Add(item);
+        }
     }
 
     private async Task SaveProfilesAsync()
@@ -356,7 +524,9 @@ public partial class MainViewModel : ObservableObject
             SwarmMode = SelectedSwarmMode,
             Theme = CurrentTheme,
             CloseToTray = CloseToTray,
-            MinimizeToTray = MinimizeToTray
+            MinimizeToTray = MinimizeToTray,
+            SoundEnabled = SoundEnabled,
+            CustomAgyExecutablePath = DetectedAgyPath
         };
         await _storageService.SaveSettingsAsync(settings);
     }
