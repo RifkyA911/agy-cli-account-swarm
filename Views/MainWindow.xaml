@@ -308,7 +308,7 @@
                                                 <TextBlock Text="{Binding UsageLabel}" FontSize="10" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
                                             </Grid>
                                             <!-- Mini Progress Gauge -->
-                                            <ProgressBar Value="{Binding UsagePercentage}"
+                                            <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
                                                          Height="5"
                                                          Minimum="0" Maximum="100"
                                                          Background="{DynamicResource BrushSurface}"

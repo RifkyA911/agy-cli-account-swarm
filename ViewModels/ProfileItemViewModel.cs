@@ -74,7 +74,15 @@ public partial class ProfileItemViewModel : ObservableObject
 
     public string CurrentModel => AuthStatus.CurrentModel ?? "Gemini 3.8 Flash";
     public string UsageLabel => AuthStatus.UsageLabel;
-    public double UsagePercentage => AuthStatus.UsagePercentage;
+    public double UsagePercentage
+    {
+        get => AuthStatus.UsagePercentage;
+        set
+        {
+            AuthStatus.UsagePercentage = value;
+            OnPropertyChanged();
+        }
+    }
 
     public string StatusBadgeColor => AuthStatus.Status switch
     {
