@@ -48,7 +48,7 @@ public partial class ProfileEditViewModel : ObservableObject
     ];
 
     [ObservableProperty]
-    private string _tier = "Pro";
+    private string _tier = "Basic";
 
     [ObservableProperty]
     private string _preferredModel = "gemini-2.5-flash";
@@ -60,7 +60,8 @@ public partial class ProfileEditViewModel : ObservableObject
     private bool _isQuotaExhausted = false;
 
     public ObservableCollection<string> TierOptions { get; } = ["Basic", "Plus", "Pro", "Ultra"];
-    public ObservableCollection<string> ModelOptions { get; } = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.8-flash", "claude-3.7-sonnet", "gpt-4o"];
+    public ObservableCollection<string> ModelOptions { get; } =
+        ["gemini-2.5-flash", "gemini-2.5-pro", "claude-3-opus", "claude-3.5-sonnet", "claude-3.7-sonnet", "gpt-4o", "gemini-1.5-pro"];
 
     public bool IsEditMode { get; private set; }
     public AccountProfile ResultProfile { get; private set; } = new();
@@ -71,7 +72,7 @@ public partial class ProfileEditViewModel : ObservableObject
     {
         _dialogTitle = "Add Account Profile";
         IsEditMode = false;
-        _tier = "Pro";
+        _tier = "Basic";
         _preferredModel = "gemini-2.5-flash";
         _quotaLimit = 500;
     }
