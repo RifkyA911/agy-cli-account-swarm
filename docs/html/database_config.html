@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Schemas & Configuration Reference - Agy Account Swarm</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #38bdf8;
+      --amber: #f59e0b;
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container { max-width: 1060px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber);
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    p.lead { color: var(--muted); font-size: 15px; }
+    h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 30px 0 14px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+    p { margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    td { color: #e2e8f0; }
+    code {
+      font-family: 'Cascadia Code', Consolas, Monaco, monospace;
+      font-size: 12.5px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #38bdf8;
+    }
+    pre {
+      background: #06090e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+    pre code { background: transparent; padding: 0; color: #e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Reference Manual</span>
+      <h1>Database Schemas & Configuration Reference</h1>
+      <p class="lead">Complete DDL/DML specifications, JSON layout, and configuration parameters.</p>
+    </header>
+
+    <div class="card">
+      <h2>1. SQLite Database Schema (conversation_summaries.db)</h2>
+      <p>
+        Located at <code>~/.gemini/antigravity-cli/conversation_summaries.db</code> inside each profile directory:
+      </p>
+      <pre><code>-- SQLite Schema: DDL
+CREATE TABLE IF NOT EXISTS conversation_summaries (
+    conversation_id TEXT PRIMARY KEY,
+    workspace_path  TEXT NOT NULL,
+    summary_text    TEXT,
+    model_name      TEXT NOT NULL DEFAULT 'gemini-3.8-flash',
+    total_tokens    INTEGER DEFAULT 0,
+    created_at_ms   INTEGER NOT NULL,
+    updated_at_ms   INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS annotations (
+    annotation_id   TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL,
+    snippet_content TEXT,
+    created_at_ms   INTEGER NOT NULL,
+    FOREIGN KEY(conversation_id) REFERENCES conversation_summaries(conversation_id)
+);</code></pre>
+    </div>
+
+    <div class="card">
+      <h2>2. JSON Schema: settings.json</h2>
+      <p>
+        The orchestrator persists user choices in <code>%APPDATA%\AgyAccountSwarm\settings.json</code>:
+      </p>
+      <pre><code>{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AppSettings",
+  "type": "object",
+  "properties": {
+    "PreferredTerminal": { "type": "string", "enum": ["WindowsTerminal", "PowerShell", "CommandPrompt"] },
+    "SwarmMode": { "type": "string", "enum": ["SplitPanes", "SeparateTabs", "SeparateWindows"] },
+    "Theme": { "type": "string", "enum": ["Dark", "Light"] },
+    "Language": { "type": "string", "enum": ["en", "id"] },
+    "PreferredChartMode": { "type": "string", "enum": ["Bar", "Line", "Area"] },
+    "AutoSyncInterval": { "type": "string", "enum": ["Manual", "1 Minute", "5 Minutes", "15 Minutes", "30 Minutes"] },
+    "SoundEnabled": { "type": "boolean" },
+    "CloseToTray": { "type": "boolean" },
+    "MinimizeToTray": { "type": "boolean" }
+  }
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h2>3. Configuration Keys & Defaults</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Language</code></td>
+            <td>string</td>
+            <td><code>"en"</code></td>
+            <td>Active UI language (<code>"en"</code> for English, <code>"id"</code> for Bahasa Indonesia).</td>
+          </tr>
+          <tr>
+            <td><code>PreferredChartMode</code></td>
+            <td>string</td>
+            <td><code>"Bar"</code></td>
+            <td>Coordinate rendering style for vector telemetry graphs (<code>"Bar"</code>, <code>"Line"</code>, <code>"Area"</code>).</td>
+          </tr>
+          <tr>
+            <td><code>AutoSyncInterval</code></td>
+            <td>string</td>
+            <td><code>"5 Minutes"</code></td>
+            <td>Periodic timer interval for refreshing telemetry and checking MCP tool availability.</td>
+          </tr>
+          <tr>
+            <td><code>SoundEnabled</code></td>
+            <td>boolean</td>
+            <td><code>true</code></td>
+            <td>Enables synthesized acoustic feedback for transactions, launches, and quota alarms.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

@@ -34,6 +34,7 @@ public class ProfileAuthStatus
     public int TotalTurnsCount { get; set; } = 0;
     public double UsagePercentage { get; set; } = 0; // 0 to 100
     public string UsageLabel { get; set; } = "0 turns";
+    public string DetectedTier { get; set; } = "Pro";
     public DateTime? TokenModifiedAt { get; set; }
     public bool IsExhausted => Status == AuthStatusType.QuotaExhausted || UsagePercentage >= 100.0;
 }

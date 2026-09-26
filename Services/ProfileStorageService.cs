@@ -47,8 +47,20 @@ public class ProfileStorageService : IProfileStorageService
         try
         {
             var json = await File.ReadAllTextAsync(_profilesFile);
-            var profiles = JsonSerializer.Deserialize<List<AccountProfile>>(json, JsonOptions);
-            return profiles ?? CreateInitialProfiles();
+            var profiles = JsonSerializer.Deserialize<List<AccountProfile>>(json, JsonOptions) ?? CreateInitialProfiles();
+            foreach (var p in profiles)
+            {
+                if (p.Name.Contains("Default", StringComparison.OrdinalIgnoreCase) || 
+                    p.Name.Contains("Main", StringComparison.OrdinalIgnoreCase) ||
+                    (p.CustomProfilePath != null && p.CustomProfilePath.Equals("C:\\Users\\rifky", StringComparison.OrdinalIgnoreCase)))
+                {
+                    if (string.IsNullOrWhiteSpace(p.Tier) || p.Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase) || p.Tier.Equals("Basic", StringComparison.OrdinalIgnoreCase))
+                    {
+                        p.Tier = "Pro";
+                    }
+                }
+            }
+            return profiles;
         }
         catch
         {

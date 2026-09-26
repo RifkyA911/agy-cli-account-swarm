@@ -17,6 +17,9 @@
   <ItemGroup>
     <Resource Include="Resources\favicon.ico" />
     <Resource Include="Resources\cat.ico" />
+    <None Update="docs\html\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

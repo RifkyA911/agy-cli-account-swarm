@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Context Protocol (MCP) Guide - Agy Account Swarm</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #38bdf8;
+      --purple: #8b5cf6;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container { max-width: 1060px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--purple);
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    p.lead { color: var(--muted); font-size: 15px; }
+    h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 30px 0 14px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+    p { margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    td { color: #e2e8f0; }
+    code {
+      font-family: 'Cascadia Code', Consolas, Monaco, monospace;
+      font-size: 12.5px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #38bdf8;
+    }
+    pre {
+      background: #06090e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+    pre code { background: transparent; padding: 0; color: #e2e8f0; }
+    .mermaid {
+      background: #06090e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      margin: 16px 0;
+    }
+  </style>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Protocol Standard</span>
+      <h1>Model Context Protocol (MCP) Guide</h1>
+      <p class="lead">Extending Antigravity CLI agents with structured tool servers and schema reflection.</p>
+    </header>
+
+    <div class="card">
+      <h2>1. MCP Architecture Overview</h2>
+      <p>
+        The Model Context Protocol (MCP) is an open specification enabling AI models to interact with external tools, APIs, and file systems over standard input/output (<code>stdio</code>) using JSON-RPC 2.0.
+      </p>
+      <div class="mermaid">
+flowchart LR
+    LLM["Antigravity CLI Agent (agy)"]
+    Protocol["JSON-RPC 2.0 (stdio)"]
+    Server["MCP Server (e.g. context7)"]
+    Tools["Discovered Tools\n(query-docs, resolve-library-id)"]
+
+    LLM <-->|Request / Response| Protocol
+    Protocol <--> Server
+    Server --> Tools
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Discovered Local Servers (Example: Context7)</h2>
+      <p>
+        Agy Account Swarm scans <code>%USERPROFILE%\.gemini\antigravity-cli\mcp\</code> for tool schemas:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Tool Name</th>
+            <th>Parameters</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>query-docs</code></td>
+            <td><code>libraryId (string)</code>, <code>query (string)</code></td>
+            <td>Queries indexed documentation libraries for code patterns and API references.</td>
+          </tr>
+          <tr>
+            <td><code>resolve-library-id</code></td>
+            <td><code>libraryName (string)</code></td>
+            <td>Resolves package or library names to their canonical Context7 library IDs.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>3. Tool Schema Example</h2>
+      <pre><code>{
+  "name": "query-docs",
+  "description": "Searches Context7 documentation index for API usage",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string", "description": "The search query" },
+      "libraryId": { "type": "string", "description": "Canonical library ID" }
+    },
+    "required": ["query", "libraryId"]
+  }
+}</code></pre>
+    </div>
+  </div>
+</body>
+</html>

@@ -14,7 +14,9 @@ public class RealHistoryEntry
     public string Display { get; set; } = string.Empty;
     public string Workspace { get; set; } = string.Empty;
     public string ConversationId { get; set; } = string.Empty;
+    public string ProfileId { get; set; } = string.Empty;
     public string ProfileName { get; set; } = string.Empty;
+    public string ModelName { get; set; } = string.Empty;
 }
 
 public interface ITelemetryService
@@ -33,7 +35,28 @@ public class TelemetryService : ITelemetryService
             foreach (var profile in profiles)
             {
                 var profileDir = profile.GetEffectiveProfileDirectory();
-                var historyFile = Path.Combine(profileDir, ".gemini", "antigravity-cli", "history.jsonl");
+                var geminiDir = Path.Combine(profileDir, ".gemini", "antigravity-cli");
+                var historyFile = Path.Combine(geminiDir, "history.jsonl");
+
+                // Determine active model for this profile
+                string detectedModel = !string.IsNullOrWhiteSpace(profile.PreferredModel) ? profile.PreferredModel : "gemini-3.8-flash";
+                var settingsFile = Path.Combine(geminiDir, "settings.json");
+                if (File.Exists(settingsFile))
+                {
+                    try
+                    {
+                        var sJson = File.ReadAllText(settingsFile);
+                        using var sDoc = JsonDocument.Parse(sJson);
+                        if (sDoc.RootElement.TryGetProperty("model", out var mProp) && mProp.GetString() is { Length: > 0 } mStr)
+                        {
+                            detectedModel = mStr;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore and use detectedModel
+                    }
+                }
 
                 if (!File.Exists(historyFile))
                 {
@@ -82,7 +105,9 @@ public class TelemetryService : ITelemetryService
                                 Display = display,
                                 Workspace = ws,
                                 ConversationId = conv,
-                                ProfileName = profile.Name
+                                ProfileId = profile.Id,
+                                ProfileName = profile.Name,
+                                ModelName = detectedModel
                             });
                         }
                         catch

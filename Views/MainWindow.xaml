@@ -444,6 +444,14 @@
                                             </StackPanel>
                                         </Border>
 
+                                        <!-- Account Filter -->
+                                        <TextBlock Text="Account:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                        <ComboBox ItemsSource="{Binding AccountFilterOptions}"
+                                                  SelectedItem="{Binding SelectedAccountFilter}"
+                                                  Style="{StaticResource ModernComboBox}"
+                                                  Width="130"
+                                                  Margin="0,0,8,0" />
+
                                         <!-- Period Filter -->
                                         <TextBlock Text="{Binding Strings[Chart_Filter_Period]}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
                                         <ComboBox ItemsSource="{Binding TimeframeOptions}"
@@ -470,7 +478,7 @@
                                 </Grid>
 
                                 <!-- Visual Chart Canvas Area -->
-                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="20,16,20,12" Height="210">
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="20,16,20,12" Height="290">
                                     <Grid>
                                         <!-- No Data Placeholder (When genuinely 0 prompts) -->
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding HasChartData, Converter={StaticResource InverseBoolToVisConverter}}">
@@ -501,9 +509,9 @@
                                         </ItemsControl>
 
                                         <!-- 2. LINE CHART MODE -->
-                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="560" Height="170"
+                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="620" Height="250"
                                               Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Line}">
-                                            <Canvas Width="560" Height="140" VerticalAlignment="Top">
+                                            <Canvas Width="620" Height="240" VerticalAlignment="Top">
                                                 <Polyline Points="{Binding LinePoints}" Stroke="#3B82F6" StrokeThickness="3" StrokeLineJoin="Round" />
                                             </Canvas>
                                             <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom">
@@ -515,9 +523,9 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <StackPanel HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
-                                                            <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
-                                                            <Ellipse Width="10" Height="10" Fill="#3B82F6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" />
-                                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                             <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                                             <Ellipse Width="10" Height="10" Fill="#3B82F6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" />
+                                                             <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
                                                         </StackPanel>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
@@ -525,9 +533,9 @@
                                         </Grid>
 
                                         <!-- 3. AREA CHART MODE -->
-                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="560" Height="170"
+                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="620" Height="250"
                                               Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Area}">
-                                            <Canvas Width="560" Height="140" VerticalAlignment="Top">
+                                            <Canvas Width="620" Height="240" VerticalAlignment="Top">
                                                 <Polygon Points="{Binding AreaPoints}" Fill="{StaticResource AreaChartGradient}" />
                                                 <Polyline Points="{Binding LinePoints}" Stroke="#8B5CF6" StrokeThickness="3" StrokeLineJoin="Round" />
                                             </Canvas>
@@ -856,12 +864,20 @@
                                 <TextBlock Text="{Binding Strings[Analytics_Title]}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
                                 <TextBlock Text="{Binding Strings[Analytics_Subtitle]}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
                             </StackPanel>
-                            <Button Command="{Binding SyncSwarmCommand}" Style="{StaticResource ModernButton}" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="🔄 " />
-                                    <TextBlock Text="{Binding Strings[Analytics_Recalculate]}" FontWeight="SemiBold" />
-                                </StackPanel>
-                            </Button>
+                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Command="{Binding ExportPdfReportCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Padding="14,6">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📥 " />
+                                        <TextBlock Text="Download PDF Report" FontWeight="Bold" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding SyncSwarmCommand}" Style="{StaticResource ModernButton}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="🔄 " />
+                                        <TextBlock Text="{Binding Strings[Analytics_Recalculate]}" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </Grid>
 
                         <!-- Telemetry KPI Summary Row -->
@@ -920,6 +936,155 @@
                                 </StackPanel>
                             </Border>
                         </UniformGrid>
+
+                        <!-- ============================================================== -->
+                        <!-- TALL EXPANSIVE ANALYTICS TELEMETRY CHART                      -->
+                        <!-- ============================================================== -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,20">
+                            <StackPanel>
+                                <!-- Header & Multi-Dimensional Filters -->
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="📈 Real Telemetry Trends &amp; Consumption" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Multi-dimensional filtering across account sandboxes, LLM models, and authentic prompt activity" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Chart Mode + Filters -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- Chart Mode Switcher -->
+                                        <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="3" Margin="0,0,12,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="📊 Bar" Command="{Binding SetChartModeCommand}" CommandParameter="Bar"
+                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" Margin="0,0,2,0" />
+                                                <Button Content="📈 Line" Command="{Binding SetChartModeCommand}" CommandParameter="Line"
+                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" Margin="0,0,2,0" />
+                                                <Button Content="🏔️ Area" Command="{Binding SetChartModeCommand}" CommandParameter="Area"
+                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Account Filter -->
+                                        <TextBlock Text="Account:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                        <ComboBox ItemsSource="{Binding AccountFilterOptions}"
+                                                  SelectedItem="{Binding SelectedAccountFilter}"
+                                                  Style="{StaticResource ModernComboBox}"
+                                                  Width="130"
+                                                  Margin="0,0,8,0" />
+
+                                        <!-- Period Filter -->
+                                        <TextBlock Text="Period:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                        <ComboBox ItemsSource="{Binding TimeframeOptions}"
+                                                  SelectedItem="{Binding SelectedTimeframe}"
+                                                  Style="{StaticResource ModernComboBox}"
+                                                  Width="120"
+                                                  Margin="0,0,8,0" />
+
+                                        <!-- Model Filter -->
+                                        <TextBlock Text="Model:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                        <ComboBox ItemsSource="{Binding ModelFilterOptions}"
+                                                  SelectedItem="{Binding SelectedModelFilter}"
+                                                  Style="{StaticResource ModernComboBox}"
+                                                  Width="140"
+                                                  Margin="0,0,8,0" />
+
+                                        <!-- Tier Filter -->
+                                        <TextBlock Text="Tier:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                        <ComboBox ItemsSource="{Binding TierFilterOptions}"
+                                                  SelectedItem="{Binding SelectedTierFilter}"
+                                                  Style="{StaticResource ModernComboBox}"
+                                                  Width="90" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Visual Tall Canvas Area (Height 340) -->
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="20,16,20,12" Height="340">
+                                    <Grid>
+                                        <!-- No Data Placeholder (When genuinely 0 prompts) -->
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding HasChartData, Converter={StaticResource InverseBoolToVisConverter}}">
+                                            <TextBlock Text="📭" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,6" />
+                                            <TextBlock Text="No Telemetry Activity Recorded" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                            <TextBlock Text="There are 0 prompt executions matching the selected account sandbox, model, and timeframe." FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                                        </StackPanel>
+
+                                        <!-- 1. BAR CHART MODE (TALL) -->
+                                        <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                                                      Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Bar}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Width="75" Margin="10,0" VerticalAlignment="Bottom" HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
+                                                        <TextBlock Text="{Binding Value}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" Margin="0,0,0,2" />
+                                                        <TextBlock Text="{Binding TokensLabel}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                                        <Border Height="{Binding Height}" Width="32" CornerRadius="5,5,0,0"
+                                                                Background="{Binding BarColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                HorizontalAlignment="Center" />
+                                                        <TextBlock Text="{Binding Label}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <!-- 2. LINE CHART MODE (TALL) -->
+                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="640" Height="290"
+                                              Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Line}">
+                                            <Canvas Width="640" Height="250" VerticalAlignment="Top">
+                                                <Polyline Points="{Binding LinePoints}" Stroke="#3B82F6" StrokeThickness="3.5" StrokeLineJoin="Round" />
+                                            </Canvas>
+                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <UniformGrid Rows="1" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
+                                                            <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                                            <Ellipse Width="10" Height="10" Fill="#3B82F6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" />
+                                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
+
+                                        <!-- 3. AREA CHART MODE (TALL) -->
+                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="640" Height="290"
+                                              Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Area}">
+                                            <Canvas Width="640" Height="250" VerticalAlignment="Top">
+                                                <Polygon Points="{Binding AreaPoints}" Fill="{StaticResource AreaChartGradient}" />
+                                                <Polyline Points="{Binding LinePoints}" Stroke="#8B5CF6" StrokeThickness="3.5" StrokeLineJoin="Round" />
+                                            </Canvas>
+                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <UniformGrid Rows="1" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
+                                                            <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                                            <Ellipse Width="8" Height="8" Fill="#8B5CF6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" />
+                                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
 
                         <!-- Section 1: Model Efficiency Comparison Matrix (Opus & All Models) -->
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,20">
@@ -1139,7 +1304,7 @@
 
                     <!-- Docs Content Area -->
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24">
-                        <StackPanel MaxWidth="880" HorizontalAlignment="Left">
+                        <StackPanel MaxWidth="920" HorizontalAlignment="Center">
                             <!-- TAB 1: Architecture -->
                             <StackPanel Visibility="{Binding SelectedDocTab, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Architecture}">
                                 <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,16">
@@ -1157,6 +1322,8 @@
                                                 <TextBlock Text="• Model Context Protocol (MCP) Tool Bridge communicating via stdio IPC" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
                                             </StackPanel>
                                         </Border>
+
+                                        <Button Content="🌐 Open Interactive Architecture Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="Architecture" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -1167,7 +1334,7 @@
                                     <StackPanel>
                                         <TextBlock Text="Parallel Swarm Launch Workflow" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
                                         <TextBlock Text="When you trigger '⚡ Launch Swarm', the application executes the following deterministic lifecycle:" FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="20" TextWrapping="Wrap" Margin="0,0,0,14" />
-                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="16">
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="16" Margin="0,0,0,14">
                                             <StackPanel>
                                                 <TextBlock Text="1. Directory Preparation: Creates isolated profile folder if non-existent." FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,4" />
                                                 <TextBlock Text="2. Script Injection: Writes isolated 'run-agy.cmd' configuring clean USERPROFILE environment variables." FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,4" />
@@ -1175,6 +1342,8 @@
                                                 <TextBlock Text="4. Telemetry Loop: Polls real history.jsonl updates and refreshes active model session telemetry." FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,4" />
                                             </StackPanel>
                                         </Border>
+
+                                        <Button Content="🌐 Open Interactive Swarm Lifecycle in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="SwarmWorkflow" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -1185,7 +1354,7 @@
                                     <StackPanel>
                                         <TextBlock Text="Local Storage &amp; Database Layout" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
                                         <TextBlock Text="No external cloud database is required. All state is maintained locally in human-readable JSON files:" FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,14" />
-                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14">
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,14">
                                             <StackPanel>
                                                 <TextBlock Text="%APPDATA%\AgyAccountSwarm\profiles.json -> List of account profiles &amp; tiers" FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{DynamicResource BrushMonoPath}" Margin="0,3" />
                                                 <TextBlock Text="%APPDATA%\AgyAccountSwarm\settings.json -> Terminal &amp; language preferences" FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{DynamicResource BrushMonoPath}" Margin="0,3" />
@@ -1193,6 +1362,8 @@
                                                 <TextBlock Text="~/.gemini-profiles/{id}/.gemini/ -> Isolated Google auth tokens &amp; history.jsonl" FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{DynamicResource BrushMonoPath}" Margin="0,3" />
                                             </StackPanel>
                                         </Border>
+
+                                        <Button Content="🌐 Open Database Schemas &amp; DDL/DML Reference in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="DataStorage" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -1202,7 +1373,9 @@
                                 <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
                                     <StackPanel>
                                         <TextBlock Text="Model Context Protocol (MCP) Guide" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
-                                        <TextBlock Text="Antigravity AI utilizes the open Model Context Protocol to dynamically discover tools from external language servers, database connectors, and web services. MCP servers run via standard IO (stdio) and expose callable JSON schemas." FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="20" TextWrapping="Wrap" />
+                                        <TextBlock Text="Antigravity AI utilizes the open Model Context Protocol to dynamically discover tools from external language servers, database connectors, and web services. MCP servers run via standard IO (stdio) and expose callable JSON schemas." FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="20" TextWrapping="Wrap" Margin="0,0,0,14" />
+
+                                        <Button Content="🌐 Open Complete MCP Protocol Specification in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="McpGuide" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -1388,7 +1561,23 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Group 6: Storage & Diagnostics -->
+                        <!-- Group 6: Periodic Auto-Sync & Diagnostics Loop -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,16">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                    <TextBlock Text="🔄 " FontSize="16" VerticalAlignment="Center" />
+                                    <TextBlock Text="Periodic Swarm &amp; MCP Auto-Sync" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="Automatically recalculate real token consumption, probe active model presence, and scan MCP tool servers in the background."
+                                           FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,10" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Auto-Sync Interval:" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    <ComboBox ItemsSource="{Binding AutoSyncOptions}" SelectedItem="{Binding AutoSyncInterval}" Style="{StaticResource ModernComboBox}" Width="180" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Group 7: Storage & Diagnostics -->
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,14">

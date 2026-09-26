@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture & Directory Isolation Matrix - Agy Account Swarm</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #38bdf8;
+      --success: #10b981;
+      --purple: #8b5cf6;
+      --accent: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container { max-width: 1060px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    p.lead { color: var(--muted); font-size: 15px; }
+    h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 30px 0 14px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+    h3 { font-size: 16px; font-weight: 600; color: #e2e8f0; margin: 20px 0 10px 0; }
+    p { margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    td { color: #e2e8f0; }
+    code {
+      font-family: 'Cascadia Code', Consolas, Monaco, monospace;
+      font-size: 12.5px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #38bdf8;
+    }
+    pre {
+      background: #06090e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+    pre code { background: transparent; padding: 0; color: #e2e8f0; }
+    .mermaid {
+      background: #06090e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      margin: 16px 0;
+    }
+    @media print {
+      body { background: #fff; color: #000; }
+      .card { border: 1px solid #ccc; background: #fff; }
+      th, td { border-color: #ddd; color: #000; }
+      pre { background: #f8f9fa; border: 1px solid #ccc; }
+      pre code { color: #000; }
+    }
+  </style>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Architecture Whitepaper</span>
+      <h1>System Architecture & Directory Isolation Matrix</h1>
+      <p class="lead">How Agy Account Swarm eliminates credential collisions and enables multi-tenant Antigravity CLI execution.</p>
+    </header>
+
+    <div class="card">
+      <h2>1. The Multi-Account Concurrency Problem</h2>
+      <p>
+        The official Google Antigravity CLI (<code>agy</code>) is architecturally designed around a single-user model. By default, it persists OAuth refresh tokens, session state, lock files, and conversation databases exclusively within:
+      </p>
+      <pre><code>%USERPROFILE%\.gemini\antigravity-cli\</code></pre>
+      <p>
+        When developers attempt to execute two concurrent instances in separate command prompts on different Google accounts, collisions occur immediately:
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Collision Type</th>
+            <th>Default Mechanism</th>
+            <th>Observed Failure</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Token Overwrite</strong></td>
+            <td>Single <code>google_accounts.json</code> file</td>
+            <td>Account B login immediately revokes Account A's session in mid-flight.</td>
+          </tr>
+          <tr>
+            <td><strong>Lock Contention</strong></td>
+            <td><code>presence/*.lock</code> and SQLite WAL locks</td>
+            <td>Database locked error (<code>SQLITE_BUSY</code>) causing CLI process crash.</td>
+          </tr>
+          <tr>
+            <td><strong>Directory Whitespace</strong></td>
+            <td>Unquoted <code>mkdir C:\Users\user \.gemini</code></td>
+            <td><code>The system cannot find the path specified</code> (PathError syscall).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>2. Process Sandboxing Architecture</h2>
+      <p>
+        Agy Account Swarm solves this by intercepting and redirecting environment variables before spawning each terminal process. Using <code>ProcessStartInfo</code> with <code>UseShellExecute = false</code>, each child process receives a virtualized root sandbox:
+      </p>
+      <div class="mermaid">
+graph TD
+    Host["Host Windows OS (C:\\Users\\rifky)"]
+    SwarmApp["Agy Account Swarm Orchestrator"]
+    
+    subgraph SandboxA ["Worker 1: Main Account (Pro Tier)"]
+        EnvA["USERPROFILE = C:\\Users\\rifky"]
+        DirA["~/.gemini/antigravity-cli"]
+        DbA["conversation_summaries.db"]
+        HistA["history.jsonl (Real Telemetry)"]
+    end
+    
+    subgraph SandboxB ["Worker 2: Worker Alpha (Isolated)"]
+        EnvB["USERPROFILE = C:\\Users\\rifky\\.gemini-profiles\\worker-alpha"]
+        DirB["worker-alpha/.gemini/antigravity-cli"]
+        DbB["conversation_summaries.db"]
+        HistB["history.jsonl (Zero Baseline)"]
+    end
+
+    SwarmApp --> SandboxA
+    SwarmApp --> SandboxB
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>3. Environment Variable Redirection Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Environment Variable</th>
+            <th>Injected Sandbox Target</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>USERPROFILE</code></td>
+            <td><code>&lt;ProfileDirectory&gt;</code> (Sanitized via <code>.Trim()</code>)</td>
+            <td>Forces CLI to place <code>.gemini/</code> inside the profile sandbox.</td>
+          </tr>
+          <tr>
+            <td><code>HOME</code></td>
+            <td><code>&lt;ProfileDirectory&gt;</code></td>
+            <td>Ensures cross-platform Go runtime uses the isolated home folder.</td>
+          </tr>
+          <tr>
+            <td><code>APPDATA</code></td>
+            <td><code>&lt;ProfileDirectory&gt;\AppData\Roaming</code></td>
+            <td>Isolates any roaming application caches.</td>
+          </tr>
+          <tr>
+            <td><code>LOCALAPPDATA</code></td>
+            <td><code>&lt;ProfileDirectory&gt;\AppData\Local</code></td>
+            <td>Isolates crash reports and temporary crash dumps.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>4. Database Schema (SQLite DDL & DML)</h2>
+      <p>
+        Inside each sandboxed profile's <code>.gemini\antigravity-cli\conversation_summaries.db</code>, SQLite stores session threads:
+      </p>
+      <pre><code>-- SQLite DDL Schema Definition
+CREATE TABLE IF NOT EXISTS conversation_summaries (
+    conversation_id TEXT PRIMARY KEY,
+    workspace_path  TEXT NOT NULL,
+    summary_text    TEXT,
+    model_name      TEXT NOT NULL DEFAULT 'gemini-3.8-flash',
+    total_tokens    INTEGER DEFAULT 0,
+    created_at_ms   INTEGER NOT NULL,
+    updated_at_ms   INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_summaries_workspace 
+ON conversation_summaries (workspace_path);
+
+CREATE INDEX IF NOT EXISTS idx_summaries_updated 
+ON conversation_summaries (updated_at_ms DESC);
+
+-- Real-time Audit DML Query
+SELECT 
+    conversation_id, 
+    workspace_path, 
+    model_name, 
+    datetime(updated_at_ms / 1000, 'unixepoch', 'localtime') AS last_active
+FROM conversation_summaries
+ORDER BY updated_at_ms DESC
+LIMIT 50;</code></pre>
+    </div>
+  </div>
+</body>
+</html>

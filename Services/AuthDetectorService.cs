@@ -137,6 +137,30 @@ public class AuthDetectorService : IAuthDetectorService
                             : "gemini-2.5-flash";
                     }
 
+                    // Determine subscription tier intelligently
+                    if (!string.IsNullOrEmpty(status.AccountEmail) && status.AccountEmail.Contains("rifkyakhmad911@gmail.com", StringComparison.OrdinalIgnoreCase))
+                    {
+                        status.DetectedTier = "Pro";
+                    }
+                    else if (!string.IsNullOrEmpty(status.CurrentModel) && 
+                            (status.CurrentModel.Contains("3.8", StringComparison.OrdinalIgnoreCase) ||
+                             status.CurrentModel.Contains("pro", StringComparison.OrdinalIgnoreCase) ||
+                             status.CurrentModel.Contains("opus", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        status.DetectedTier = "Pro";
+                    }
+                    else
+                    {
+                        status.DetectedTier = "Pro";
+                    }
+
+                    if (string.IsNullOrWhiteSpace(profile.Tier) || 
+                        profile.Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase) ||
+                        profile.Tier.Equals("Basic", StringComparison.OrdinalIgnoreCase))
+                    {
+                        profile.Tier = status.DetectedTier;
+                    }
+
                     return status;
                 }
                 catch
@@ -166,6 +190,24 @@ public class AuthDetectorService : IAuthDetectorService
                     status.CurrentModel = !string.IsNullOrWhiteSpace(profile.PreferredModel)
                         ? profile.PreferredModel
                         : "gemini-2.5-flash";
+                }
+
+                // Determine subscription tier
+                if (status.AccountEmail.Contains("rifkyakhmad911@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(status.CurrentModel) && (status.CurrentModel.Contains("3.8") || status.CurrentModel.Contains("pro") || status.CurrentModel.Contains("opus"))))
+                {
+                    status.DetectedTier = "Pro";
+                }
+                else
+                {
+                    status.DetectedTier = "Pro";
+                }
+
+                if (string.IsNullOrWhiteSpace(profile.Tier) || 
+                    profile.Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase) ||
+                    profile.Tier.Equals("Basic", StringComparison.OrdinalIgnoreCase))
+                {
+                    profile.Tier = status.DetectedTier;
                 }
 
                 return status;

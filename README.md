@@ -28,14 +28,21 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth tokens, history, and confi
 
 - **🛡️ Strict Environment Isolation**: Each profile points to its own sandbox (`~/.gemini-profiles/{id}`) with independent tokens, brain logs, and history files.
 - **🌐 Bilingual Multi-Language Support**: Seamless instant switching between **English (EN - Default)** and **Bahasa Indonesia (ID)**.
-- **📊 Real Telemetry & Multi-Mode Charts**:
-  - Direct timestamp parsing from local `history.jsonl` (no synthetic dummy data).
+- **📊 Real Telemetry & Tall Multi-Mode Charts**:
+  - Direct timestamp parsing from local `history.jsonl` (no synthetic dummy data, authentic zero-baselines).
   - Multi-mode rendering: **Bar Chart**, **Line Chart**, and **Area Chart** with gradient fills.
-  - Interactive filters: Timeframe (*24h*, *7d*, *30d*, *All Time*), Model, and Tier.
+  - Interactive multi-dimensional filters: **Account Selector**, Timeframe (*24h*, *3d*, *7d*, *14d*, *30d*, *90d*, *All Time*), Model, and Tier.
+  - Expanded 340px tall telemetry canvas in `/analytics`.
+- **📥 Native PDF Report Download**:
+  - One-click PDF export using Microsoft Edge headless vector rendering engine.
+  - Generates comprehensive executive summaries with metrics, inline SVG charts, and per-profile activity breakdowns.
+- **⏱️ Configurable Auto-Sync Telemetry**:
+  - Periodic background telemetry and MCP polling (1 min, 5 min, 15 min, 30 min, or manual).
 - **🧩 Model Context Protocol (MCP) Manager**:
   - Live inspection and management of local MCP tool servers (`context7`, `filesystem`, etc.).
   - Automatic tool discovery and schema inspection.
-- **🧠 Full Model Support (Including Claude Opus)**:
+- **🧠 Full Model Support & Pro Tier Detection**:
+  - Automatic Pro badge assignment for authenticated Google accounts (e.g. `rifkyakhmad911@gmail.com`).
   - Supports `claude-3-opus`, `claude-3.5-sonnet`, `claude-3.7-sonnet`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-1.5-pro`, and `gpt-4o`.
 - **🚨 Quota Exhaustion Alerts & Audio Synthesizer**:
   - High-visibility warning banner and synthesized acoustic alarm when an account reaches 100% daily quota.
@@ -46,8 +53,9 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth tokens, history, and confi
   - **Split Panes**: Auto-arranges parallel workers into a tiled matrix inside a single Windows Terminal.
   - **Separate Tabs**: Spawns workers as distinct tabs in Windows Terminal.
   - **Separate Windows**: Spawns decoupled windows for multi-monitor setups.
-- **📖 Comprehensive In-App Documentation (`/docs`)**:
-  - Built-in guides covering Architecture, Swarm Workflow, Data Storage schemas, and MCP integration.
+- **📖 Interactive In-App & Browser Documentation (`/docs`)**:
+  - Centered cards with built-in guides covering Architecture, Swarm Workflow, Database DDL/DML, and MCP integration.
+  - "🌐 Open Interactive Spec in Browser" opens rich dark-themed HTML documents with client-rendered Mermaid.js flowcharts and SQL schemas.
 - **🌓 Theme & System Tray**:
   - Instant toggle between Dark Mode and high-contrast Light Mode.
   - Background tray integration (Minimize to Tray and Close to Tray).
@@ -113,9 +121,10 @@ dotnet run --project AgyAccountSwarm.csproj
 
 ## 📖 In-App Documentation
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Deep-dive into process isolation and environment virtualization.
-- [`docs/SWARM_WORKFLOW.md`](docs/SWARM_WORKFLOW.md): Step-by-step launch state machine and terminal tiling.
-- [`docs/MCP_GUIDE.md`](docs/MCP_GUIDE.md): Model Context Protocol configuration and tool discovery.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) / [`docs/html/architecture.html`](docs/html/architecture.html): Deep-dive into process isolation and environment virtualization.
+- [`docs/SWARM_WORKFLOW.md`](docs/SWARM_WORKFLOW.md) / [`docs/html/swarm_workflow.html`](docs/html/swarm_workflow.html): Step-by-step launch state machine and terminal tiling.
+- [`docs/MCP_GUIDE.md`](docs/MCP_GUIDE.md) / [`docs/html/mcp_guide.html`](docs/html/mcp_guide.html): Model Context Protocol configuration and tool discovery.
+- [`docs/DATABASE_CONFIG.md`](docs/DATABASE_CONFIG.md) / [`docs/html/database_config.html`](docs/html/database_config.html): SQLite database DDL/DML schemas, telemetry tables, and configuration options.
 
 ---
 

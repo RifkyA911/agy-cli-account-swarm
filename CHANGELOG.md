@@ -2,6 +2,35 @@
 
 All notable changes to the **Agy Account Swarm** project are documented here.
 
+## [v1.3.1] - 2026-09-26
+### Added
+- **Tall Analytics Telemetry Chart (`/analytics`)**:
+  - Expanded chart canvas height (340px) with rich telemetry cards.
+  - Multi-dimensional filtering: Account selector (`All Accounts` or specific profile), Timeframe (`Last 24 Hours`, `3 Days`, `7 Days`, `14 Days`, `30 Days`, `90 Days`, `All Time`), Model, and Tier.
+  - Dynamic chart rendering modes: **Bar**, **Line**, and **Area** chart.
+- **Native PDF Report Download (`📥 Download PDF Report`)**:
+  - Zero-dependency vector PDF generation powered by Microsoft Edge headless print engine (`--headless --print-to-pdf`).
+  - Executive layout containing system summary, real telemetry metrics, account breakdown table, and inline SVG charts.
+- **Account-Specific Telemetry Isolation**:
+  - Added Account Filter to both `/dashboard` and `/analytics`.
+  - Chart strictly computes real conversation prompts per selected account.
+  - Guaranteed authentic zero-baseline display: unused models render empty without synthetic data spreading.
+- **Interactive In-Browser Documentation**:
+  - Added dedicated "🌐 Open Interactive Spec in Browser" actions for Architecture, Swarm Workflow, MCP Integration, and Database/Config schemas.
+  - Generates standalone, dark-themed responsive HTML files with live client-rendered Mermaid.js diagrams, SQLite DDL/DML code, and detailed tables.
+- **Configurable Auto-Sync Telemetry Interval**:
+  - Added setting in `/settings` to automate telemetry and MCP refresh: `1 Minute`, `5 Minutes`, `15 Minutes`, `30 Minutes`, or `Manual Only`.
+  - Built-in `DispatcherTimer` periodically refreshes conversation history and quota status without UI stutter.
+
+### Fixed
+- **Pro Tier Detection for Authenticated Accounts**:
+  - Fixed account tier misclassification where `rifkyakhmad911@gmail.com` was defaulted to "Basic".
+  - Implemented intelligent Google Pro tier detection in `AuthDetectorService` and `ProfileStorageService` for active Google-authenticated users.
+- **Chart Empty Baseline Accuracy**:
+  - Removed artificial synthetic number injection when switching between models, accurately displaying 0 prompts when an account has not used a specific model.
+
+---
+
 ## [v1.3.0] - 2026-09-26
 ### Added
 - **Multi-Language Support**: Complete English (Primary) and Bahasa Indonesia (ID) runtime localization.

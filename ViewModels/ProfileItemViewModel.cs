@@ -119,11 +119,13 @@ public partial class ProfileItemViewModel : ObservableObject
             {
                 return "Pending Login";
             }
-            if (string.IsNullOrWhiteSpace(Tier) || Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(Tier) && 
+                !Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase) && 
+                !Tier.Equals("Basic", StringComparison.OrdinalIgnoreCase))
             {
-                return "Basic";
+                return Tier;
             }
-            return Tier;
+            return !string.IsNullOrWhiteSpace(AuthStatus.DetectedTier) ? AuthStatus.DetectedTier : "Pro";
         }
     }
 

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swarm Execution & Window Tiling Workflow - Agy Account Swarm</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #38bdf8;
+      --success: #10b981;
+      --purple: #8b5cf6;
+      --amber: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container { max-width: 1060px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    p.lead { color: var(--muted); font-size: 15px; }
+    h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 30px 0 14px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+    p { margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    td { color: #e2e8f0; }
+    code {
+      font-family: 'Cascadia Code', Consolas, Monaco, monospace;
+      font-size: 12.5px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #38bdf8;
+    }
+    pre {
+      background: #06090e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+    pre code { background: transparent; padding: 0; color: #e2e8f0; }
+    .mermaid {
+      background: #06090e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      margin: 16px 0;
+    }
+  </style>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Workflow Specification</span>
+      <h1>Swarm Execution & Window Tiling Workflow</h1>
+      <p class="lead">Lifecycle of parallel agent initialization, terminal multiplexing, and process cleanup.</p>
+    </header>
+
+    <div class="card">
+      <h2>1. Swarm Lifecycle State Machine</h2>
+      <p>
+        The diagram below illustrates the exact sequence when a user triggers <strong>Launch Swarm</strong> from the dashboard:
+      </p>
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User
+    participant VM as MainViewModel
+    participant Audio as AudioService
+    participant Launcher as TerminalLauncherService
+    participant WT as Windows Terminal (wt.exe)
+    participant Worker as CLI Process (agy)
+
+    User->>VM: Click "Launch Swarm"
+    VM->>Audio: PlayLaunch() [Chirp synthesizer]
+    VM->>Launcher: LaunchSwarmAsync(profiles, SplitPanes)
+    loop For each selected profile
+        Launcher->>Launcher: Sanitize path with .Trim()
+        Launcher->>Launcher: Inject USERPROFILE, HOME, APPDATA
+        Launcher->>Launcher: Construct split-pane argument matrix
+    end
+    Launcher->>WT: Spawn wt.exe with chained split-pane arguments
+    WT->>Worker: Spawn Account 1 (Main Profile)
+    WT->>Worker: Spawn Account 2 (Worker Alpha)
+    VM->>User: Toast notification "Swarm launched: 2 sessions"
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Terminal Layout Modes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>Terminal Target</th>
+            <th>Execution Command Pattern</th>
+            <th>Best Suited For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Split Panes</strong></td>
+            <td>Windows Terminal (<code>wt.exe</code>)</td>
+            <td><code>wt.exe -p "PowerShell" -d "..." ; split-pane -H -d "..." ; split-pane -V ...</code></td>
+            <td>Single monitor, high-density matrix monitoring.</td>
+          </tr>
+          <tr>
+            <td><strong>Separate Tabs</strong></td>
+            <td>Windows Terminal (<code>wt.exe</code>)</td>
+            <td><code>wt.exe -p "PowerShell" -d "..." ; new-tab -p "PowerShell" -d "..."</code></td>
+            <td>Full screen per worker with tab switching.</td>
+          </tr>
+          <tr>
+            <td><strong>Separate Windows</strong></td>
+            <td>PowerShell / Windows Terminal</td>
+            <td>Independent <code>Process.Start</code> invocations per profile.</td>
+            <td>Multi-monitor setups or detached background runners.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>3. Process Signal Handling & Safe Exit</h2>
+      <p>
+        When closing a session, the child process sends a graceful cancellation to the language server. Because each profile runs in its own process tree, closing or crashing one worker never impacts the active state of another worker.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

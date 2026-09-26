@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgyAccountSwarm.Models;
@@ -149,7 +150,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasChartData = false;
 
-    // Dashboard chart filters
+    // Dashboard & Analytics chart filters
+    [ObservableProperty]
+    private string _selectedAccountFilter = "All Accounts";
+
     [ObservableProperty]
     private string _selectedTimeframe = "Last 7 Days";
 
@@ -159,14 +163,24 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _selectedTierFilter = "All Tiers";
 
+    public ObservableCollection<string> AccountFilterOptions { get; } =
+        ["All Accounts"];
+
     public ObservableCollection<string> TimeframeOptions { get; } =
-        ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"];
+        ["Last 24 Hours", "Last 3 Days", "Last 7 Days", "Last 14 Days", "Last 30 Days", "Last 90 Days", "All Time"];
 
     public ObservableCollection<string> ModelFilterOptions { get; } =
-        ["All Models", "gemini-2.5-flash", "gemini-2.5-pro", "claude-3-opus", "claude-3.5-sonnet", "claude-3.7-sonnet", "gpt-4o", "gemini-1.5-pro"];
+        ["All Models", "gemini-3.8-flash", "gemini-2.5-flash", "gemini-2.5-pro", "claude-3-opus", "claude-3.5-sonnet", "claude-3.7-sonnet", "gpt-4o", "gemini-1.5-pro"];
 
     public ObservableCollection<string> TierFilterOptions { get; } =
         ["All Tiers", "Basic", "Plus", "Pro", "Ultra"];
+
+    // Auto-Sync settings
+    [ObservableProperty]
+    private string _autoSyncInterval = "5 Minutes";
+
+    public ObservableCollection<string> AutoSyncOptions { get; } =
+        ["Manual", "1 Minute", "5 Minutes", "15 Minutes", "30 Minutes"];
 
     // Dynamic Chart Points
     public ObservableCollection<ChartDataPoint> DashboardChartPoints { get; } = [];
@@ -245,6 +259,7 @@ public partial class MainViewModel : ObservableObject
 
     // Raw real history cache
     private List<RealHistoryEntry> _cachedRealHistory = [];
+    private readonly DispatcherTimer _autoSyncTimer = new();
 
     public event Func<AccountProfile?, Task<AccountProfile?>>? ShowEditDialogRequested;
     public event Func<string, string, Task<bool>>? ConfirmDeleteRequested;
@@ -265,6 +280,8 @@ public partial class MainViewModel : ObservableObject
         Strings = localizationService;
         _mcpService = mcpService;
         _telemetryService = telemetryService;
+
+        _autoSyncTimer.Tick += OnAutoSyncTimerTick;
 
         FilteredProfiles = CollectionViewSource.GetDefaultView(Profiles);
         FilteredProfiles.Filter = FilterProfile;
@@ -294,6 +311,8 @@ public partial class MainViewModel : ObservableObject
             CurrentLanguage = settings.Language ?? "en";
             Strings.SetLanguage(CurrentLanguage);
             SelectedChartMode = settings.PreferredChartMode ?? "Bar";
+            AutoSyncInterval = settings.AutoSyncInterval ?? "5 Minutes";
+            ConfigureAutoSyncTimer();
 
             if (!string.IsNullOrWhiteSpace(settings.CustomAgyExecutablePath) && File.Exists(settings.CustomAgyExecutablePath))
             {
@@ -317,6 +336,7 @@ public partial class MainViewModel : ObservableObject
                 var itemVm = CreateItemViewModel(p);
                 Profiles.Add(itemVm);
             }
+            RefreshAccountFilterOptions();
 
             // Load MCP servers
             await LoadMcpServersAsync();
@@ -501,6 +521,11 @@ public partial class MainViewModel : ObservableObject
         FilteredProfiles.Refresh();
     }
 
+    partial void OnSelectedAccountFilterChanged(string value)
+    {
+        UpdateChartPoints();
+    }
+
     partial void OnSelectedTimeframeChanged(string value)
     {
         UpdateChartPoints();
@@ -514,6 +539,12 @@ public partial class MainViewModel : ObservableObject
     partial void OnSelectedTierFilterChanged(string value)
     {
         UpdateChartPoints();
+    }
+
+    partial void OnAutoSyncIntervalChanged(string value)
+    {
+        ConfigureAutoSyncTimer();
+        _ = SaveSettingsAsync();
     }
 
     partial void OnSelectedTerminalChanged(TerminalType value)
@@ -806,6 +837,7 @@ public partial class MainViewModel : ObservableObject
 
     private void OnProfilesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        RefreshAccountFilterOptions();
         UpdateStats();
     }
 
@@ -878,14 +910,14 @@ public partial class MainViewModel : ObservableObject
         // 1. Filter real history records
         var entries = _cachedRealHistory.AsEnumerable();
 
+        if (!string.IsNullOrWhiteSpace(SelectedAccountFilter) && SelectedAccountFilter != "All Accounts")
+        {
+            entries = entries.Where(e => e.ProfileName.Equals(SelectedAccountFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
         if (SelectedModelFilter != "All Models")
         {
-            // If model filter applied, only count profiles using that model
-            var targetProfiles = Profiles
-                .Where(p => p.CurrentModel.Contains(SelectedModelFilter, StringComparison.OrdinalIgnoreCase))
-                .Select(p => p.Name)
-                .ToHashSet();
-            entries = entries.Where(e => targetProfiles.Contains(e.ProfileName));
+            entries = entries.Where(e => e.ModelName.Contains(SelectedModelFilter, StringComparison.OrdinalIgnoreCase));
         }
 
         if (SelectedTierFilter != "All Tiers")
@@ -898,7 +930,6 @@ public partial class MainViewModel : ObservableObject
         }
 
         var entryList = entries.ToList();
-        HasChartData = entryList.Count > 0 || TotalInteractionsCount > 0;
 
         DateTime now = DateTime.Now;
         List<(string label, int count)> buckets = [];
@@ -916,6 +947,25 @@ public partial class MainViewModel : ObservableObject
                 buckets.Add(($"{blockEnd:HH}:00", count));
             }
         }
+        else if (SelectedTimeframe == "Last 3 Days")
+        {
+            for (int i = 5; i >= 0; i--)
+            {
+                var bStart = now.AddHours(-(i + 1) * 12);
+                var bEnd = now.AddHours(-i * 12);
+                int count = entryList.Count(e => e.Timestamp >= bStart && e.Timestamp < bEnd);
+                buckets.Add(($"{bEnd:MM/dd HH}h", count));
+            }
+        }
+        else if (SelectedTimeframe == "Last 14 Days")
+        {
+            for (int d = 13; d >= 0; d--)
+            {
+                var day = now.AddDays(-d);
+                int count = entryList.Count(e => e.Timestamp.Date == day.Date);
+                buckets.Add((day.ToString("MM/dd"), count));
+            }
+        }
         else if (SelectedTimeframe == "Last 30 Days")
         {
             for (int w = 3; w >= 0; w--)
@@ -924,6 +974,30 @@ public partial class MainViewModel : ObservableObject
                 var wEnd = now.AddDays(-w * 7);
                 int count = entryList.Count(e => e.Timestamp >= wStart && e.Timestamp < wEnd);
                 buckets.Add(($"W{4 - w}", count));
+            }
+        }
+        else if (SelectedTimeframe == "Last 90 Days")
+        {
+            for (int m = 2; m >= 0; m--)
+            {
+                var mStart = now.AddDays(-(m + 1) * 30);
+                var mEnd = now.AddDays(-m * 30);
+                int count = entryList.Count(e => e.Timestamp >= mStart && e.Timestamp < mEnd);
+                buckets.Add((now.AddMonths(-m).ToString("MMM"), count));
+            }
+        }
+        else if (SelectedTimeframe == "All Time")
+        {
+            DateTime earliest = entryList.Count > 0 ? entryList.Min(e => e.Timestamp) : now.AddDays(-30);
+            TimeSpan span = now - earliest;
+            if (span.TotalDays < 6) span = TimeSpan.FromDays(6);
+            double blockMs = span.TotalMilliseconds / 6.0;
+            for (int i = 0; i < 6; i++)
+            {
+                var bStart = earliest.AddMilliseconds(i * blockMs);
+                var bEnd = earliest.AddMilliseconds((i + 1) * blockMs);
+                int count = entryList.Count(e => e.Timestamp >= bStart && e.Timestamp < bEnd);
+                buckets.Add((bEnd.ToString("MM/dd"), count));
             }
         }
         else // Last 7 Days (Default)
@@ -936,27 +1010,16 @@ public partial class MainViewModel : ObservableObject
             }
         }
 
-        // If history entries exist on disk, use real counts!
-        // If not enough entries in historical window, calibrate with real TotalInteractionsCount
-        int maxVal = buckets.Max(b => b.count);
-        if (maxVal == 0 && TotalInteractionsCount > 0)
-        {
-            // Evenly spread genuine TotalInteractionsCount across real days
-            int perDay = TotalInteractionsCount / buckets.Count;
-            for (int i = 0; i < buckets.Count; i++)
-            {
-                buckets[i] = (buckets[i].label, Math.Max(1, perDay + (i % 2 == 0 ? 2 : -1)));
-            }
-            maxVal = buckets.Max(b => b.count);
-        }
-
-        maxVal = Math.Max(1, maxVal);
+        // True authentic telemetry calculation - NO synthetic fallback injection!
+        int maxVal = buckets.Count > 0 ? buckets.Max(b => b.count) : 0;
+        HasChartData = maxVal > 0;
+        int safeMax = Math.Max(1, maxVal);
 
         var linePts = new PointCollection();
         var areaPts = new PointCollection();
 
-        double canvasWidth = 560.0;
-        double canvasHeight = 130.0;
+        double canvasWidth = 620.0;
+        double canvasHeight = 240.0;
         double stepX = buckets.Count > 1 ? canvasWidth / (buckets.Count - 1) : canvasWidth;
 
         // Bottom left point for Area polygon
@@ -965,14 +1028,16 @@ public partial class MainViewModel : ObservableObject
         for (int i = 0; i < buckets.Count; i++)
         {
             var (lbl, count) = buckets[i];
-            double height = Math.Clamp(14 + ((double)count / maxVal) * 110, 14, 130);
+            double height = count == 0 ? 4.0 : Math.Clamp(14 + ((double)count / safeMax) * (canvasHeight - 40), 14, canvasHeight);
             long estTok = (long)count * 1850L;
-            string tokLabel = estTok >= 1000 ? $"{estTok / 1000}K tok" : $"{estTok} tok";
+            string tokLabel = count == 0 ? "0 tok" : (estTok >= 1000 ? $"{estTok / 1000}K tok" : $"{estTok} tok");
 
-            string barColor = count > maxVal * 0.75 ? "#8B5CF6" : (count > maxVal * 0.4 ? "#3B82F6" : "#06B6D4");
+            string barColor = count == 0 
+                ? "#334155" 
+                : (count > safeMax * 0.75 ? "#8B5CF6" : (count > safeMax * 0.4 ? "#3B82F6" : "#06B6D4"));
 
             double ptX = i * stepX;
-            double ptY = canvasHeight - ((double)count / maxVal) * (canvasHeight - 20);
+            double ptY = count == 0 ? (canvasHeight - 4) : canvasHeight - ((double)count / safeMax) * (canvasHeight - 30);
 
             linePts.Add(new WpfPoint(ptX, ptY));
             areaPts.Add(new WpfPoint(ptX, ptY));
@@ -1077,10 +1142,247 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    private void ConfigureAutoSyncTimer()
+    {
+        _autoSyncTimer.Stop();
+        if (AutoSyncInterval == "Manual") return;
+
+        int minutes = AutoSyncInterval switch
+        {
+            "1 Minute" => 1,
+            "15 Minutes" => 15,
+            "30 Minutes" => 30,
+            _ => 5
+        };
+
+        _autoSyncTimer.Interval = TimeSpan.FromMinutes(minutes);
+        _autoSyncTimer.Start();
+    }
+
+    private async void OnAutoSyncTimerTick(object? sender, EventArgs e)
+    {
+        await SyncSwarmAsync();
+        await LoadMcpServersAsync();
+    }
+
+    private void RefreshAccountFilterOptions()
+    {
+        var current = SelectedAccountFilter;
+        AccountFilterOptions.Clear();
+        AccountFilterOptions.Add("All Accounts");
+        foreach (var p in Profiles)
+        {
+            if (!AccountFilterOptions.Contains(p.Name))
+            {
+                AccountFilterOptions.Add(p.Name);
+            }
+        }
+        if (AccountFilterOptions.Contains(current))
+        {
+            SelectedAccountFilter = current;
+        }
+        else
+        {
+            SelectedAccountFilter = "All Accounts";
+        }
+    }
+
+    [RelayCommand]
+    public void OpenDocInBrowser(string section)
+    {
+        _audioService.PlayClick();
+        try
+        {
+            string fileName = section.ToLowerInvariant() switch
+            {
+                "architecture" => "architecture.html",
+                "swarmworkflow" => "swarm_workflow.html",
+                "mcpguide" => "mcp_guide.html",
+                "datastorage" => "database_config.html",
+                _ => "architecture.html"
+            };
+
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string docPath = Path.Combine(baseDir, "docs", "html", fileName);
+
+            // Fallback to project relative path if running from debug/build
+            if (!File.Exists(docPath))
+            {
+                docPath = Path.Combine(baseDir, "..", "..", "..", "docs", "html", fileName);
+            }
+
+            if (File.Exists(docPath))
+            {
+                Process.Start(new ProcessStartInfo(Path.GetFullPath(docPath)) { UseShellExecute = true });
+                ShowNotification($"Opened {section} documentation in browser.");
+            }
+            else
+            {
+                ShowNotification($"Documentation file not found: {fileName}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Failed to open doc {section}", ex);
+            ShowNotification($"Could not open documentation: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task ExportPdfReportAsync()
+    {
+        _audioService.PlayClick();
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Save Swarm Telemetry & Audit Report",
+            Filter = "PDF Document (*.pdf)|*.pdf|HTML Report (*.html)|*.html",
+            FileName = $"AgySwarm_Telemetry_Report_{DateTime.Now:yyyyMMdd_HHmm}.pdf"
+        };
+
+        if (dlg.ShowDialog() != true) return;
+
+        IsLoading = true;
+        try
+        {
+            string targetPath = dlg.FileName;
+            string tempHtml = Path.Combine(Path.GetTempPath(), $"agyswarm_report_{Guid.NewGuid():N}.html");
+
+            string htmlContent = GenerateExecutiveReportHtml();
+            await File.WriteAllTextAsync(tempHtml, htmlContent, System.Text.Encoding.UTF8);
+
+            if (targetPath.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+            {
+                File.Copy(tempHtml, targetPath, true);
+            }
+            else
+            {
+                // Search standard Windows Edge installations
+                string edgePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe";
+                if (!File.Exists(edgePath))
+                {
+                    edgePath = @"C:\Program Files\Microsoft\Edge\Application\msedge.exe";
+                }
+
+                if (File.Exists(edgePath))
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = edgePath,
+                        Arguments = $"--headless --disable-gpu --run-all-compositor-stages-before-draw --print-to-pdf=\"{targetPath}\" \"{tempHtml}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var proc = Process.Start(psi);
+                    if (proc != null)
+                    {
+                        await proc.WaitForExitAsync();
+                    }
+                }
+                else
+                {
+                    // Fallback to HTML if Edge is not found
+                    targetPath = Path.ChangeExtension(targetPath, ".html");
+                    File.Copy(tempHtml, targetPath, true);
+                }
+            }
+
+            _audioService.PlaySuccess();
+            ShowNotification($"PDF Report exported to: {Path.GetFileName(targetPath)}");
+
+            if (File.Exists(targetPath))
+            {
+                Process.Start(new ProcessStartInfo(targetPath) { UseShellExecute = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Failed to export report", ex);
+            ShowNotification($"Export failed: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private string GenerateExecutiveReportHtml()
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Agy Account Swarm - Telemetry Report</title>");
+        sb.AppendLine("<style>");
+        sb.AppendLine("body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; line-height: 1.5; }");
+        sb.AppendLine(".card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 18px; margin-bottom: 20px; }");
+        sb.AppendLine(".header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #38bdf8; padding-bottom: 12px; margin-bottom: 20px; }");
+        sb.AppendLine(".title { font-size: 22px; font-weight: 800; color: #38bdf8; }");
+        sb.AppendLine(".kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }");
+        sb.AppendLine(".kpi { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; text-align: center; }");
+        sb.AppendLine(".kpi-val { font-size: 20px; font-weight: 800; color: #38bdf8; }");
+        sb.AppendLine(".kpi-lbl { font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-top: 4px; }");
+        sb.AppendLine("table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }");
+        sb.AppendLine("th, td { border: 1px solid #334155; padding: 9px 12px; text-align: left; }");
+        sb.AppendLine("th { background: #0f172a; color: #94a3b8; }");
+        sb.AppendLine(".badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; }");
+        sb.AppendLine("@media print { body { background: #fff; color: #000; padding: 0; } .card { border: 1px solid #ccc; background: #fff; } th, td { border-color: #ddd; color: #000; } .kpi { background: #f8f9fa; border-color: #ccc; } .kpi-val { color: #0284c7; } .header { border-color: #0284c7; } .title { color: #0284c7; } }");
+        sb.AppendLine("</style></head><body>");
+
+        sb.AppendLine("<div class='header'>");
+        sb.AppendLine("  <div><div class='title'>⚡ Agy Account Swarm - Executive Telemetry Report</div><div style='color:#94a3b8; font-size:12px; margin-top:4px;'>Google Antigravity Multi-Account Orchestration & Telemetry Audit</div></div>");
+        sb.AppendLine($"  <div style='text-align:right; font-size:12px; color:#94a3b8;'>Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}<br>Primary Operator: rifkyakhmad911@gmail.com</div>");
+        sb.AppendLine("</div>");
+
+        // KPI Row
+        sb.AppendLine("<div class='kpi-row'>");
+        sb.AppendLine($"  <div class='kpi'><div class='kpi-val'>{TotalCount}</div><div class='kpi-lbl'>Total Accounts</div></div>");
+        sb.AppendLine($"  <div class='kpi'><div class='kpi-val'>{AuthenticatedCount}</div><div class='kpi-lbl'>Authenticated</div></div>");
+        sb.AppendLine($"  <div class='kpi'><div class='kpi-val'>{TotalInteractionsCount}</div><div class='kpi-lbl'>Real Prompts</div></div>");
+        sb.AppendLine($"  <div class='kpi'><div class='kpi-val'>{TotalEstimatedTokens}</div><div class='kpi-lbl'>Est. Tokens</div></div>");
+        sb.AppendLine("</div>");
+
+        // Accounts Table
+        sb.AppendLine("<div class='card'>");
+        sb.AppendLine("  <h3 style='margin:0 0 10px 0; font-size:15px; color:#f8fafc;'>Swarm Account Sandboxes & Subscription Status</h3>");
+        sb.AppendLine("  <table><thead><tr><th>Account Name</th><th>Status</th><th>Email</th><th>Tier</th><th>Current Model</th><th>Prompts</th><th>Daily Quota</th></tr></thead><tbody>");
+        foreach (var p in Profiles)
+        {
+            string tierBg = p.TierBadgeBackground;
+            sb.AppendLine($"<tr><td><strong>{p.Name}</strong></td><td>{p.AuthStatus.StatusMessage}</td><td>{p.AuthStatus.AccountEmail ?? "Pending Auth"}</td><td><span class='badge' style='background:{tierBg}'>{p.TierBadgeText}</span></td><td>{p.CurrentModel}</td><td>{p.UsageLabel}</td><td>{p.QuotaLimit:N0}</td></tr>");
+        }
+        sb.AppendLine("  </tbody></table>");
+        sb.AppendLine("</div>");
+
+        // Daily Trend Breakdown
+        sb.AppendLine("<div class='card'>");
+        sb.AppendLine($"  <h3 style='margin:0 0 10px 0; font-size:15px; color:#f8fafc;'>Telemetry Activity ({SelectedTimeframe} - {SelectedModelFilter})</h3>");
+        sb.AppendLine("  <table><thead><tr><th>Time Bucket</th><th>Prompt Count</th><th>Est. Token Volume</th></tr></thead><tbody>");
+        foreach (var pt in DashboardChartPoints)
+        {
+            sb.AppendLine($"<tr><td>{pt.Label}</td><td><strong>{pt.Value}</strong></td><td>{pt.TokensLabel}</td></tr>");
+        }
+        sb.AppendLine("  </tbody></table>");
+        sb.AppendLine("</div>");
+
+        // MCP Server Audit
+        sb.AppendLine("<div class='card'>");
+        sb.AppendLine($"  <h3 style='margin:0 0 10px 0; font-size:15px; color:#f8fafc;'>Model Context Protocol (MCP) Tools ({McpServersCount} Servers, {McpToolsTotalCount} Tools)</h3>");
+        sb.AppendLine("  <table><thead><tr><th>Server Name</th><th>Tools Count</th><th>Status</th><th>Discovered Tools</th></tr></thead><tbody>");
+        foreach (var mcp in McpServers)
+        {
+            string toolsList = string.Join(", ", mcp.Tools);
+            sb.AppendLine($"<tr><td><strong>{mcp.Name}</strong></td><td>{mcp.ToolsCount}</td><td>{mcp.Status}</td><td><code>{toolsList}</code></td></tr>");
+        }
+        sb.AppendLine("  </tbody></table>");
+        sb.AppendLine("</div>");
+
+        sb.AppendLine("<div style='text-align:center; font-size:11px; color:#64748b; margin-top:30px;'>Agy Account Swarm v1.3 (MIT Open Source) • Authored by RifkyA911 • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
+        sb.AppendLine("</body></html>");
+        return sb.ToString();
+    }
+
     private async Task SaveProfilesAsync()
     {
         foreach (var p in Profiles) p.SyncBackToModel();
         await _storageService.SaveProfilesAsync(Profiles.Select(p => p.Profile));
+        RefreshAccountFilterOptions();
         UpdateStats();
     }
 
@@ -1096,7 +1398,8 @@ public partial class MainViewModel : ObservableObject
             SoundEnabled = SoundEnabled,
             CustomAgyExecutablePath = DetectedAgyPath,
             Language = CurrentLanguage,
-            PreferredChartMode = SelectedChartMode
+            PreferredChartMode = SelectedChartMode,
+            AutoSyncInterval = AutoSyncInterval
         };
         await _storageService.SaveSettingsAsync(settings);
     }
