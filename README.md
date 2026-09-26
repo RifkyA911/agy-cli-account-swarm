@@ -27,13 +27,18 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth tokens, history, and confi
 
 - **🛡️ Strict Environment Isolation**: Each profile points to its own sandbox (`~/.gemini-profiles/{profile-name}`) with independent tokens and sessions.
 - **⚡ 1-Click Launchers**: Open any account in **Windows Terminal** (tabs or split panes), **PowerShell**, or **Command Prompt** with pre-configured environment variables.
-- **🐝 Swarm Mode (Batch Multi-Launch)**: Launch 2, 4, or more account sessions concurrently with a single click. In Windows Terminal, Swarm Mode automatically organizes sessions into split panes or separate tabs!
+- **🐝 Flexible Swarm Modes**: Choose how your account swarm launches:
+  - **Split Panes**: Auto-arranges sessions into a tiled matrix inside a single Windows Terminal.
+  - **Separate Tabs**: Spawns accounts as distinct tabs in Windows Terminal.
+  - **Multi-Window**: Spawns independent windows for flexible multi-monitor setups.
+- **🧠 Active Model & Activity Meter**: Inspects and displays the currently active AI model (e.g. `Gemini 3.8 Flash (Medium)`) and prompt activity counter with a visual progress meter for every account.
 - **🔍 Live Auth & Status Inspector**: Automatically inspects profile storage to display:
   - Status indicator (🟢 *Authenticated*, 🟡 *Needs Login*, ⚪ *Not Initialized*).
   - Detected Google account email (extracted from active token or Google identity cache).
+- **🐱 Custom Cat Icon & System Tray Mode**: Keeps running in the background tray with double-click restore, minimize-to-tray, and close-to-tray options.
+- **🌓 Dark & Light Theme Switcher**: 1-click instant theme toggle between sleek slate dark and clean high-contrast light mode.
 - **📂 Workspace Anchoring**: Assign dedicated project folders to each account profile (e.g. Profile A always starts in `D:\Works\Project-A`, Profile B in `D:\Works\Project-B`).
 - **📋 Instant CLI Snippet Copy**: 1-click copy of the exact command-line snippet for CMD or PowerShell so you can paste it into any custom script or external automation.
-- **🎨 Minimalist Developer-First UI**: Clean dark theme inspired by modern developer tooling (VS Code, Linear) with zero AI bloat, high-contrast badges, and instant (<100ms) startup time.
 
 ---
 
