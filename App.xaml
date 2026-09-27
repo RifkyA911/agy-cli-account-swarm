@@ -16,6 +16,7 @@
             <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisConverter" />
             <converters:NullOrEmptyToVisibilityConverter x:Key="NotNullOrEmptyToVisConverter" Invert="True" />
             <converters:EqualityToVisibilityConverter x:Key="EqualityToVisConverter" />
+            <converters:PositiveIntToVisibilityConverter x:Key="IntToVisConverter" />
             <converters:PageToActiveBgConverter x:Key="PageToActiveBgConverter" />
             <converters:PageToActiveBorderConverter x:Key="PageToActiveBorderConverter" />
             <converters:PageToActiveTextConverter x:Key="PageToActiveTextConverter" />

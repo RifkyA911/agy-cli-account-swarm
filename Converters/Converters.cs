@@ -3,6 +3,8 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using WpfApp = System.Windows.Application;
+using WpfBrush = System.Windows.Media.Brush;
 
 namespace AgyAccountSwarm.Converters;
 
@@ -93,14 +95,32 @@ public class EqualityToVisibilityConverter : IValueConverter
     }
 }
 
+public class PositiveIntToVisibilityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is int i && i > 0) return Visibility.Visible;
+        if (value is long l && l > 0) return Visibility.Visible;
+        return Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
 public class PageToActiveBgConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool matches = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
-        return matches
-            ? (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!
-            : System.Windows.Media.Brushes.Transparent;
+        if (matches)
+        {
+            if (WpfApp.Current?.Resources["BrushNavActiveBg"] is WpfBrush brush) return brush;
+            return (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!;
+        }
+        return System.Windows.Media.Brushes.Transparent;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
@@ -111,9 +131,12 @@ public class PageToActiveBorderConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool matches = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
-        return matches
-            ? (SolidColorBrush)new BrushConverter().ConvertFromString("#3B82F6")!
-            : System.Windows.Media.Brushes.Transparent;
+        if (matches)
+        {
+            if (WpfApp.Current?.Resources["BrushNavActiveBorder"] is WpfBrush brush) return brush;
+            return (SolidColorBrush)new BrushConverter().ConvertFromString("#3B82F6")!;
+        }
+        return System.Windows.Media.Brushes.Transparent;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
@@ -124,9 +147,13 @@ public class PageToActiveTextConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool matches = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
-        return matches
-            ? (SolidColorBrush)new BrushConverter().ConvertFromString("#FFFFFF")!
-            : (SolidColorBrush)new BrushConverter().ConvertFromString("#9CA3AF")!;
+        if (matches)
+        {
+            if (WpfApp.Current?.Resources["BrushNavActiveText"] is WpfBrush brush) return brush;
+            return System.Windows.Media.Brushes.White;
+        }
+        if (WpfApp.Current?.Resources["BrushNavInactiveText"] is WpfBrush inact) return inact;
+        return (SolidColorBrush)new BrushConverter().ConvertFromString("#9CA3AF")!;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();

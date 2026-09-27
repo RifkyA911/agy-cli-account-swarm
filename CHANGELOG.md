@@ -2,6 +2,37 @@
 
 All notable changes to the **Agy Account Swarm** project are documented here.
 
+## [v1.3.3] - 2026-09-27
+### Added
+- **Interactive Charts with Hover Tooltips & Zoom Controls (`/dashboard` & `/analytics`)**:
+  - Detailed hover card tooltips showing date/time, prompts count, estimated tokens, account context, and model name.
+  - Interactive Zoom controls (`➖`, `➕`, `100%`) with horizontal `ScrollViewer` canvas expansion.
+  - Accurate Y-Axis scale metrics (safeMax, 75%, 50%, 25%, 0) with horizontal dashed guide lines.
+  - Generous top ceiling headroom (+30%) preventing highest bars or peak data points from colliding with the chart ceiling.
+- **Upgraded 24-Hour Swarm Activity Heatmap (`/analytics`)**:
+  - Taller canvas (230px) with per-hour prompt counts and rounded intensity-colored bars.
+  - Account filter dropdown to isolate 24-hour activity per profile or aggregate across swarm.
+  - KPI summary strip: Peak Hour, 24h Total Turns, Active Working Window, and Hourly Average Rate.
+  - Detailed hover cards showing exact prompt counts and token estimates per hour bucket.
+- **Dynamic AI Model Performance & Efficiency Matrix (`/analytics`)**:
+  - Removed static hardcoded model entries; dynamically computes model efficiency, token volume, share percent, and status directly from real session history (`history.jsonl`) and discovered AGY models.
+- **4 Appearance Color Palettes (`/settings` & Sidebar)**:
+  - Added 4 distinct themes in `ThemeManager`: **Obsidian Dark**, **Daylight Clean (Light)**, **Cyberpunk Neon**, and **Matrix Emerald**.
+  - Tuned contrast ratios and dynamic navigation brushes (`BrushNavActiveBg`, `BrushNavActiveBorder`, `BrushNavActiveText`, `BrushNavHoverBg`, `BrushNavInactiveText`) to eliminate white-on-white text clipping in Light theme.
+  - Added visual color palette selector chips in `/settings`.
+- **Language & Theme Dropdown Selectors**:
+  - Modern `ComboBox` selectors in sidebar and `/settings` for seamless language (`🇬🇧 English`, `🇮🇩 Bahasa Indonesia`) and theme switching.
+- **Window Dragging Support**:
+  - Enabled native window dragging (`DragMove()`) across the top header toolbar and sidebar branding.
+
+### Fixed
+- **Duplicate Icon Glitch**:
+  - Removed duplicate `🔄 🔄` icon prefixes on "Re-Calculate Telemetry" and "Reload MCP" action buttons.
+- **Sidebar Selection in Light Theme**:
+  - Fixed active/hover menu styling so active navigation items use distinct dark text and accessible borders in Light mode.
+
+---
+
 ## [v1.3.2] - 2026-09-27
 ### Added
 - **Dynamic AGY Model Engine (`AgyModelService`)**:

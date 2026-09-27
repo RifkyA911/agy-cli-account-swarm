@@ -83,7 +83,7 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         // Analytics
         ["Analytics_Title"] = "Swarm & Model Intelligence Telemetry",
         ["Analytics_Subtitle"] = "Deep breakdown of real token utilization, model efficiency, and quota health",
-        ["Analytics_Recalculate"] = "🔄 Re-Calculate Telemetry",
+        ["Analytics_Recalculate"] = "Re-Calculate Telemetry",
         ["Analytics_ModelMatrix"] = "AI Model Performance & Efficiency Matrix",
         ["Analytics_HeatmapTitle"] = "24-Hour Swarm Execution Heatmap",
         ["Analytics_AccountHealth"] = "Account Swarm Health & Rate-Limit Safety",
@@ -92,7 +92,7 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Mcp_Title"] = "Model Context Protocol (MCP) Integrations",
         ["Mcp_Subtitle"] = "Manage external tool providers and context sidecars configured for Antigravity AI",
         ["Mcp_AddServer"] = "+ Add MCP Server",
-        ["Mcp_Reload"] = "🔄 Reload MCPs",
+        ["Mcp_Reload"] = "Reload MCPs",
         ["Mcp_ActiveServers"] = "Active MCP Servers",
         ["Mcp_ToolsCount"] = "Tools Discovered",
 
@@ -177,7 +177,7 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         // Analytics
         ["Analytics_Title"] = "Telemetri Intelijen Swarm & Model",
         ["Analytics_Subtitle"] = "Analisis mendalam konsumsi token riil, efisiensi model, dan kesehatan kuota",
-        ["Analytics_Recalculate"] = "🔄 Hitung Ulang Telemetri",
+        ["Analytics_Recalculate"] = "Hitung Ulang Telemetri",
         ["Analytics_ModelMatrix"] = "Matriks Kinerja & Efisiensi Model AI",
         ["Analytics_HeatmapTitle"] = "Peta Intensitas Eksekusi Swarm 24-Jam",
         ["Analytics_AccountHealth"] = "Kesehatan Akun Swarm & Keamanan Kuota",
@@ -186,7 +186,7 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Mcp_Title"] = "Integrasi Model Context Protocol (MCP)",
         ["Mcp_Subtitle"] = "Kelola penyedia tools eksternal dan sidecar context untuk Antigravity AI",
         ["Mcp_AddServer"] = "+ Tambah Server MCP",
-        ["Mcp_Reload"] = "🔄 Muat Ulang MCP",
+        ["Mcp_Reload"] = "Muat Ulang MCP",
         ["Mcp_ActiveServers"] = "Server MCP Aktif",
         ["Mcp_ToolsCount"] = "Alat Ditemukan",
 

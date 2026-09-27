@@ -51,7 +51,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- Header / Branding -->
-                    <StackPanel Grid.Row="0" Margin="4,0,0,22">
+                    <StackPanel Grid.Row="0" Margin="4,0,0,22" Background="Transparent" MouseLeftButtonDown="WindowHeader_MouseLeftButtonDown">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="../Resources/favicon.ico" Width="28" Height="28" Margin="0,0,10,0" VerticalAlignment="Center" />
                             <StackPanel VerticalAlignment="Center">
@@ -287,46 +287,36 @@
                     <StackPanel Grid.Row="2" Margin="0,14,0,0">
                         <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,0,0,12" />
 
-                        <!-- Language Toggle (EN / ID) -->
-                        <Grid Margin="0,0,0,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Command="{Binding SetLanguageCommand}" CommandParameter="en"
-                                    Style="{StaticResource ModernButton}" Margin="0,0,2,0" Padding="6,4">
-                                <TextBlock Text="🇬🇧 EN" FontSize="11" FontWeight="Bold" />
-                            </Button>
-                            <Button Grid.Column="1" Command="{Binding SetLanguageCommand}" CommandParameter="id"
-                                    Style="{StaticResource ModernButton}" Margin="2,0,0,0" Padding="6,4">
-                                <TextBlock Text="🇮🇩 ID" FontSize="11" FontWeight="Bold" />
-                            </Button>
-                        </Grid>
+                        <!-- Language Selector Dropdown -->
+                        <Border Margin="0,0,0,6">
+                            <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                      SelectedItem="{Binding SelectedLanguageOption}"
+                                      DisplayMemberPath="DisplayName"
+                                      Style="{StaticResource ModernComboBox}"
+                                      HorizontalAlignment="Stretch"
+                                      ToolTip="Select Application Display Language" />
+                        </Border>
+
+                        <!-- Theme Appearance Palette Dropdown -->
+                        <Border Margin="0,0,0,6">
+                            <ComboBox ItemsSource="{Binding ThemeOptions}"
+                                      SelectedItem="{Binding SelectedThemeOption}"
+                                      Style="{StaticResource ModernComboBox}"
+                                      HorizontalAlignment="Stretch"
+                                      ToolTip="Select Theme Appearance Color Palette" />
+                        </Border>
 
                         <!-- Sound Toggle -->
                         <Button Command="{Binding ToggleSoundCommand}"
                                 Style="{StaticResource SidebarButton}"
                                 Padding="8,6"
-                                Margin="0,0,0,4">
+                                Margin="0,0,0,6">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="🔊 " FontSize="12" />
                                 <TextBlock Text="{Binding Strings[Label_Sound]}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
                                 <TextBlock Text=": " FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
                                 <TextBlock Text="ON" FontWeight="Bold" FontSize="12" Foreground="#10B981" Visibility="{Binding SoundEnabled, Converter={StaticResource BoolToVisConverter}}" />
                                 <TextBlock Text="MUTED" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextMuted}" Visibility="{Binding SoundEnabled, Converter={StaticResource InverseBoolToVisConverter}}" />
-                            </StackPanel>
-                        </Button>
-
-                        <!-- Theme Toggle -->
-                        <Button Command="{Binding ToggleThemeCommand}"
-                                Style="{StaticResource SidebarButton}"
-                                Padding="8,6"
-                                Margin="0,0,0,6">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🌓 " FontSize="12" />
-                                <TextBlock Text="{Binding Strings[Label_Theme]}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
-                                <TextBlock Text=": " FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
-                                <TextBlock Text="{Binding CurrentTheme}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
                             </StackPanel>
                         </Button>
 
@@ -374,7 +364,8 @@
                     <Border Background="{DynamicResource BrushSurface}"
                             BorderBrush="{DynamicResource BrushCardBorder}"
                             BorderThickness="0,0,0,1"
-                            Padding="24,14">
+                            Padding="24,14"
+                            MouseLeftButtonDown="WindowHeader_MouseLeftButtonDown">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <!-- Current Page Title -->
@@ -585,6 +576,16 @@
                                             </StackPanel>
                                         </Border>
 
+                                        <!-- Zoom Controls -->
+                                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="3" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="➖" Command="{Binding ChartZoomOutCommand}" Style="{StaticResource ModernButton}" Padding="7,4" FontSize="11" ToolTip="Zoom Out" Margin="0,0,2,0" />
+                                                <TextBlock Text="{Binding ChartZoomText}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="6,0" />
+                                                <Button Content="➕" Command="{Binding ChartZoomInCommand}" Style="{StaticResource ModernButton}" Padding="7,4" FontSize="11" ToolTip="Zoom In" Margin="2,0,2,0" />
+                                                <Button Content="100%" Command="{Binding ChartZoomResetCommand}" Style="{StaticResource ModernButton}" Padding="6,4" FontSize="10" ToolTip="Reset Zoom (100%)" />
+                                            </StackPanel>
+                                        </Border>
+
                                         <!-- Account Filter -->
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
                                             <TextBlock Text="Account:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
@@ -623,84 +624,170 @@
                                     </WrapPanel>
                                 </Border>
 
-                                <!-- Visual Chart Canvas Area -->
-                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="20,16,20,12" Height="290">
+                                <!-- Visual Interactive Chart Canvas Area (Height 340) -->
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="14,14,14,10" Height="340">
                                     <Grid>
                                         <!-- No Data Placeholder (When genuinely 0 prompts) -->
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding HasChartData, Converter={StaticResource InverseBoolToVisConverter}}">
-                                            <TextBlock Text="📭" FontSize="28" HorizontalAlignment="Center" Margin="0,0,0,6" />
-                                            <TextBlock Text="{Binding Strings[Chart_NoData]}" FontSize="12" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" />
+                                            <TextBlock Text="📭" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,6" />
+                                            <TextBlock Text="{Binding Strings[Chart_NoData]}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                            <TextBlock Text="Switch account or timeframe filter above to view historical prompt sessions." FontSize="11" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,4,0,0" />
                                         </StackPanel>
 
-                                        <!-- 1. BAR CHART MODE -->
-                                        <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                                                      Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Bar}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <StackPanel Width="70" Margin="10,0" VerticalAlignment="Bottom" HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
-                                                        <TextBlock Text="{Binding Value}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" Margin="0,0,0,2" />
-                                                        <TextBlock Text="{Binding TokensLabel}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,0,0,4" />
-                                                        <Border Height="{Binding Height}" Width="28" CornerRadius="4,4,0,0"
-                                                                Background="{Binding BarColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                HorizontalAlignment="Center" />
-                                                        <TextBlock Text="{Binding Label}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
-                                                    </StackPanel>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                                        <!-- Chart with Y-Axis, Horizontal Gridlines, and Horizontal ScrollViewer -->
+                                        <Grid Visibility="{Binding HasChartData, Converter={StaticResource BoolToVisConverter}}">
+                                            <Grid.ColumnDefinitions>
+                                                <!-- Left Y-Axis Scale -->
+                                                <ColumnDefinition Width="42" />
+                                                <!-- Plot Canvas & ScrollViewer Area -->
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
 
-                                        <!-- 2. LINE CHART MODE -->
-                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="620" Height="250"
-                                              Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Line}">
-                                            <Canvas Width="620" Height="240" VerticalAlignment="Top">
-                                                <Polyline Points="{Binding LinePoints}" Stroke="#3B82F6" StrokeThickness="3" StrokeLineJoin="Round" />
-                                            </Canvas>
-                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <UniformGrid Rows="1" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <StackPanel HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
-                                                             <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
-                                                             <Ellipse Width="10" Height="10" Fill="#3B82F6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" />
-                                                             <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
-                                                        </StackPanel>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </Grid>
+                                            <!-- Y-Axis Labels -->
+                                            <Grid Grid.Column="0" Margin="0,18,6,38">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Grid.Row="0" Text="{Binding YTick100}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Row="1" Text="{Binding YTick75}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Row="2" Text="{Binding YTick50}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Row="3" Text="{Binding YTick25}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Row="3" Text="{Binding YTick0}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                                            </Grid>
 
-                                        <!-- 3. AREA CHART MODE -->
-                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="620" Height="250"
-                                              Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Area}">
-                                            <Canvas Width="620" Height="240" VerticalAlignment="Top">
-                                                <Polygon Points="{Binding AreaPoints}" Fill="{StaticResource AreaChartGradient}" />
-                                                <Polyline Points="{Binding LinePoints}" Stroke="#8B5CF6" StrokeThickness="3" StrokeLineJoin="Round" />
-                                            </Canvas>
-                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <UniformGrid Rows="1" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <StackPanel HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
-                                                            <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
-                                                            <Ellipse Width="8" Height="8" Fill="#8B5CF6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" />
-                                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
-                                                        </StackPanel>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
+                                            <!-- Plot Container (Gridlines + ScrollViewer) -->
+                                            <Grid Grid.Column="1">
+                                                <!-- Horizontal Background Gridlines & Baseline -->
+                                                <Grid Margin="0,18,0,38">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
+                                                    <Rectangle Grid.Row="0" VerticalAlignment="Top" Height="1" Fill="{DynamicResource BrushCardBorder}" Opacity="0.45" StrokeDashArray="3 3" />
+                                                    <Rectangle Grid.Row="1" VerticalAlignment="Top" Height="1" Fill="{DynamicResource BrushCardBorder}" Opacity="0.45" StrokeDashArray="3 3" />
+                                                    <Rectangle Grid.Row="2" VerticalAlignment="Top" Height="1" Fill="{DynamicResource BrushCardBorder}" Opacity="0.45" StrokeDashArray="3 3" />
+                                                    <Rectangle Grid.Row="3" VerticalAlignment="Top" Height="1" Fill="{DynamicResource BrushCardBorder}" Opacity="0.45" StrokeDashArray="3 3" />
+                                                    <Rectangle Grid.Row="3" VerticalAlignment="Bottom" Height="1.5" Fill="{DynamicResource BrushCardBorder}" Opacity="0.8" />
+                                                </Grid>
+
+                                                <!-- Horizontal Scrollable Chart Content -->
+                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                                    <Grid MinWidth="{Binding ChartCanvasWidth}" Height="300" HorizontalAlignment="Left">
+                                                        <!-- 1. BAR CHART MODE -->
+                                                        <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                                                                      Margin="10,0,10,12"
+                                                                      Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Bar}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Width="76" Margin="6,0" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                                                        <StackPanel.ToolTip>
+                                                                            <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12">
+                                                                                <StackPanel>
+                                                                                    <TextBlock Text="{Binding Label}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,4" />
+                                                                                    <TextBlock Text="{Binding Value, StringFormat='Prompts: {0:N0}'}" FontWeight="SemiBold" FontSize="12" Foreground="#38BDF8" />
+                                                                                    <TextBlock Text="{Binding TokensLabel, StringFormat='Est. Tokens: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,4" />
+                                                                                    <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,4" />
+                                                                                    <TextBlock Text="{Binding AccountContext, StringFormat='Account: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                    <TextBlock Text="{Binding ModelContext, StringFormat='Model: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                </StackPanel>
+                                                                            </Border>
+                                                                        </StackPanel.ToolTip>
+                                                                        <TextBlock Text="{Binding Value}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" Margin="0,0,0,2" />
+                                                                        <TextBlock Text="{Binding TokensLabel}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                                                        <Border Height="{Binding Height}" Width="{Binding Width}" CornerRadius="4,4,0,0"
+                                                                                Background="{Binding BarColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                                HorizontalAlignment="Center" Cursor="Hand" />
+                                                                        <TextBlock Text="{Binding Label}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+
+                                                        <!-- 2. LINE CHART MODE -->
+                                                        <Grid Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Line}"
+                                                              Width="{Binding ChartCanvasWidth}" Height="290" VerticalAlignment="Center">
+                                                            <Canvas Width="{Binding ChartCanvasWidth}" Height="230" VerticalAlignment="Top" Margin="0,15,0,0">
+                                                                <Polyline Points="{Binding LinePoints}" Stroke="#3B82F6" StrokeThickness="3.5" StrokeLineJoin="Round" />
+                                                            </Canvas>
+                                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" Margin="0,0,0,12">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate>
+                                                                        <UniformGrid Rows="1" />
+                                                                    </ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <StackPanel HorizontalAlignment="Center">
+                                                                            <StackPanel.ToolTip>
+                                                                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12">
+                                                                                    <StackPanel>
+                                                                                        <TextBlock Text="{Binding Label}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,4" />
+                                                                                        <TextBlock Text="{Binding Value, StringFormat='Prompts: {0:N0}'}" FontWeight="SemiBold" FontSize="12" Foreground="#38BDF8" />
+                                                                                        <TextBlock Text="{Binding TokensLabel, StringFormat='Est. Tokens: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,4" />
+                                                                                        <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,4" />
+                                                                                        <TextBlock Text="{Binding AccountContext, StringFormat='Account: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                        <TextBlock Text="{Binding ModelContext, StringFormat='Model: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                    </StackPanel>
+                                                                                </Border>
+                                                                            </StackPanel.ToolTip>
+                                                                            <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                                                            <Ellipse Width="10" Height="10" Fill="#3B82F6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" Cursor="Hand" />
+                                                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                                        </StackPanel>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </Grid>
+
+                                                        <!-- 3. AREA CHART MODE -->
+                                                        <Grid Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Area}"
+                                                              Width="{Binding ChartCanvasWidth}" Height="290" VerticalAlignment="Center">
+                                                            <Canvas Width="{Binding ChartCanvasWidth}" Height="230" VerticalAlignment="Top" Margin="0,15,0,0">
+                                                                <Polygon Points="{Binding AreaPoints}" Fill="{StaticResource AreaChartGradient}" />
+                                                                <Polyline Points="{Binding LinePoints}" Stroke="#8B5CF6" StrokeThickness="3.5" StrokeLineJoin="Round" />
+                                                            </Canvas>
+                                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" Margin="0,0,0,12">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate>
+                                                                        <UniformGrid Rows="1" />
+                                                                    </ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <StackPanel HorizontalAlignment="Center">
+                                                                            <StackPanel.ToolTip>
+                                                                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12">
+                                                                                    <StackPanel>
+                                                                                        <TextBlock Text="{Binding Label}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,4" />
+                                                                                        <TextBlock Text="{Binding Value, StringFormat='Prompts: {0:N0}'}" FontWeight="SemiBold" FontSize="12" Foreground="#8B5CF6" />
+                                                                                        <TextBlock Text="{Binding TokensLabel, StringFormat='Est. Tokens: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,4" />
+                                                                                        <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,4" />
+                                                                                        <TextBlock Text="{Binding AccountContext, StringFormat='Account: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                        <TextBlock Text="{Binding ModelContext, StringFormat='Model: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                    </StackPanel>
+                                                                                </Border>
+                                                                            </StackPanel.ToolTip>
+                                                                            <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                                                            <Ellipse Width="9" Height="9" Fill="#8B5CF6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" Cursor="Hand" />
+                                                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                                        </StackPanel>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </Grid>
+                                                    </Grid>
+                                                </ScrollViewer>
+                                            </Grid>
                                         </Grid>
                                     </Grid>
                                 </Border>
@@ -1132,6 +1219,16 @@
                                             </StackPanel>
                                         </Border>
 
+                                        <!-- Zoom Controls -->
+                                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="3" Margin="0,0,14,0" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Content="➖" Command="{Binding ChartZoomOutCommand}" Style="{StaticResource ModernButton}" Padding="7,4" FontSize="11" ToolTip="Zoom Out" Margin="0,0,2,0" />
+                                                <TextBlock Text="{Binding ChartZoomText}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="6,0" />
+                                                <Button Content="➕" Command="{Binding ChartZoomInCommand}" Style="{StaticResource ModernButton}" Padding="7,4" FontSize="11" ToolTip="Zoom In" Margin="2,0,2,0" />
+                                                <Button Content="100%" Command="{Binding ChartZoomResetCommand}" Style="{StaticResource ModernButton}" Padding="6,4" FontSize="10" ToolTip="Reset Zoom (100%)" />
+                                            </StackPanel>
+                                        </Border>
+
                                         <!-- Account Filter -->
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
                                             <TextBlock Text="Account:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
@@ -1170,8 +1267,8 @@
                                     </WrapPanel>
                                 </Border>
 
-                                <!-- Visual Tall Canvas Area (Height 340) -->
-                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="20,16,20,12" Height="340">
+                                <!-- Visual Interactive Tall Canvas Area (Height 360) -->
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="14,14,14,10" Height="360">
                                     <Grid>
                                         <!-- No Data Placeholder (When genuinely 0 prompts) -->
                                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding HasChartData, Converter={StaticResource InverseBoolToVisConverter}}">
@@ -1180,78 +1277,163 @@
                                             <TextBlock Text="There are 0 prompt executions matching the selected account sandbox, model, and timeframe." FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" Margin="0,4,0,0" />
                                         </StackPanel>
 
-                                        <!-- 1. BAR CHART MODE (TALL) -->
-                                        <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                                                      Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Bar}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <StackPanel Width="75" Margin="10,0" VerticalAlignment="Bottom" HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
-                                                        <TextBlock Text="{Binding Value}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" Margin="0,0,0,2" />
-                                                        <TextBlock Text="{Binding TokensLabel}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,0,0,4" />
-                                                        <Border Height="{Binding Height}" Width="32" CornerRadius="5,5,0,0"
-                                                                Background="{Binding BarColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                HorizontalAlignment="Center" />
-                                                        <TextBlock Text="{Binding Label}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
-                                                    </StackPanel>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                                        <!-- Chart with Y-Axis, Horizontal Gridlines, and Horizontal ScrollViewer -->
+                                        <Grid Visibility="{Binding HasChartData, Converter={StaticResource BoolToVisConverter}}">
+                                            <Grid.ColumnDefinitions>
+                                                <!-- Left Y-Axis Scale -->
+                                                <ColumnDefinition Width="42" />
+                                                <!-- Plot Canvas & ScrollViewer Area -->
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
 
-                                        <!-- 2. LINE CHART MODE (TALL) -->
-                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="640" Height="290"
-                                              Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Line}">
-                                            <Canvas Width="640" Height="250" VerticalAlignment="Top">
-                                                <Polyline Points="{Binding LinePoints}" Stroke="#3B82F6" StrokeThickness="3.5" StrokeLineJoin="Round" />
-                                            </Canvas>
-                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <UniformGrid Rows="1" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <StackPanel HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
-                                                            <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
-                                                            <Ellipse Width="10" Height="10" Fill="#3B82F6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" />
-                                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
-                                                        </StackPanel>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </Grid>
+                                            <!-- Y-Axis Labels -->
+                                            <Grid Grid.Column="0" Margin="0,18,6,38">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Grid.Row="0" Text="{Binding YTick100}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Row="1" Text="{Binding YTick75}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Row="2" Text="{Binding YTick50}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Row="3" Text="{Binding YTick25}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                                <TextBlock Grid.Row="3" Text="{Binding YTick0}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                                            </Grid>
 
-                                        <!-- 3. AREA CHART MODE (TALL) -->
-                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="640" Height="290"
-                                              Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Area}">
-                                            <Canvas Width="640" Height="250" VerticalAlignment="Top">
-                                                <Polygon Points="{Binding AreaPoints}" Fill="{StaticResource AreaChartGradient}" />
-                                                <Polyline Points="{Binding LinePoints}" Stroke="#8B5CF6" StrokeThickness="3.5" StrokeLineJoin="Round" />
-                                            </Canvas>
-                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <UniformGrid Rows="1" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <StackPanel HorizontalAlignment="Center" ToolTip="{Binding TooltipText}">
-                                                            <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
-                                                            <Ellipse Width="8" Height="8" Fill="#8B5CF6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" />
-                                                            <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
-                                                        </StackPanel>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
+                                            <!-- Plot Container (Gridlines + ScrollViewer) -->
+                                            <Grid Grid.Column="1">
+                                                <!-- Horizontal Background Gridlines & Baseline -->
+                                                <Grid Margin="0,18,0,38">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="*" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
+                                                    <Rectangle Grid.Row="0" VerticalAlignment="Top" Height="1" Fill="{DynamicResource BrushCardBorder}" Opacity="0.45" StrokeDashArray="3 3" />
+                                                    <Rectangle Grid.Row="1" VerticalAlignment="Top" Height="1" Fill="{DynamicResource BrushCardBorder}" Opacity="0.45" StrokeDashArray="3 3" />
+                                                    <Rectangle Grid.Row="2" VerticalAlignment="Top" Height="1" Fill="{DynamicResource BrushCardBorder}" Opacity="0.45" StrokeDashArray="3 3" />
+                                                    <Rectangle Grid.Row="3" VerticalAlignment="Top" Height="1" Fill="{DynamicResource BrushCardBorder}" Opacity="0.45" StrokeDashArray="3 3" />
+                                                    <Rectangle Grid.Row="3" VerticalAlignment="Bottom" Height="1.5" Fill="{DynamicResource BrushCardBorder}" Opacity="0.8" />
+                                                </Grid>
+
+                                                <!-- Horizontal Scrollable Chart Content -->
+                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                                    <Grid MinWidth="{Binding ChartCanvasWidth}" Height="320" HorizontalAlignment="Left">
+                                                        <!-- 1. BAR CHART MODE (TALL) -->
+                                                        <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                                                                      Margin="10,0,10,12"
+                                                                      Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Bar}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Width="76" Margin="6,0" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                                                        <StackPanel.ToolTip>
+                                                                            <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12">
+                                                                                <StackPanel>
+                                                                                    <TextBlock Text="{Binding Label}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,4" />
+                                                                                    <TextBlock Text="{Binding Value, StringFormat='Prompts: {0:N0}'}" FontWeight="SemiBold" FontSize="12" Foreground="#38BDF8" />
+                                                                                    <TextBlock Text="{Binding TokensLabel, StringFormat='Est. Tokens: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,4" />
+                                                                                    <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,4" />
+                                                                                    <TextBlock Text="{Binding AccountContext, StringFormat='Account: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                    <TextBlock Text="{Binding ModelContext, StringFormat='Model: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                </StackPanel>
+                                                                            </Border>
+                                                                        </StackPanel.ToolTip>
+                                                                        <TextBlock Text="{Binding Value}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" Margin="0,0,0,2" />
+                                                                        <TextBlock Text="{Binding TokensLabel}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                                                        <Border Height="{Binding Height}" Width="{Binding Width}" CornerRadius="5,5,0,0"
+                                                                                Background="{Binding BarColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                                HorizontalAlignment="Center" Cursor="Hand" />
+                                                                        <TextBlock Text="{Binding Label}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+
+                                                        <!-- 2. LINE CHART MODE -->
+                                                        <Grid Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Line}"
+                                                              Width="{Binding ChartCanvasWidth}" Height="310" VerticalAlignment="Center">
+                                                            <Canvas Width="{Binding ChartCanvasWidth}" Height="250" VerticalAlignment="Top" Margin="0,15,0,0">
+                                                                <Polyline Points="{Binding LinePoints}" Stroke="#3B82F6" StrokeThickness="3.5" StrokeLineJoin="Round" />
+                                                            </Canvas>
+                                                            <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" Margin="0,0,0,12">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate>
+                                                                        <UniformGrid Rows="1" />
+                                                                    </ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <StackPanel HorizontalAlignment="Center">
+                                                                            <StackPanel.ToolTip>
+                                                                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12">
+                                                                                <StackPanel>
+                                                                                    <TextBlock Text="{Binding Label}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,4" />
+                                                                                    <TextBlock Text="{Binding Value, StringFormat='Prompts: {0:N0}'}" FontWeight="SemiBold" FontSize="12" Foreground="#38BDF8" />
+                                                                                    <TextBlock Text="{Binding TokensLabel, StringFormat='Est. Tokens: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,4" />
+                                                                                    <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,4" />
+                                                                                    <TextBlock Text="{Binding AccountContext, StringFormat='Account: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                    <TextBlock Text="{Binding ModelContext, StringFormat='Model: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                </StackPanel>
+                                                                            </Border>
+                                                                        </StackPanel.ToolTip>
+                                                                        <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                                                        <Ellipse Width="10" Height="10" Fill="#3B82F6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" Cursor="Hand" />
+                                                                        <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </Grid>
+
+                                                    <!-- 3. AREA CHART MODE -->
+                                                    <Grid Visibility="{Binding SelectedChartMode, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Area}"
+                                                          Width="{Binding ChartCanvasWidth}" Height="310" VerticalAlignment="Center">
+                                                        <Canvas Width="{Binding ChartCanvasWidth}" Height="250" VerticalAlignment="Top" Margin="0,15,0,0">
+                                                            <Polygon Points="{Binding AreaPoints}" Fill="{StaticResource AreaChartGradient}" />
+                                                            <Polyline Points="{Binding LinePoints}" Stroke="#8B5CF6" StrokeThickness="3.5" StrokeLineJoin="Round" />
+                                                        </Canvas>
+                                                        <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" Margin="0,0,0,12">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <UniformGrid Rows="1" />
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel HorizontalAlignment="Center">
+                                                                        <StackPanel.ToolTip>
+                                                                            <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12">
+                                                                                <StackPanel>
+                                                                                    <TextBlock Text="{Binding Label}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,4" />
+                                                                                    <TextBlock Text="{Binding Value, StringFormat='Prompts: {0:N0}'}" FontWeight="SemiBold" FontSize="12" Foreground="#8B5CF6" />
+                                                                                    <TextBlock Text="{Binding TokensLabel, StringFormat='Est. Tokens: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,4" />
+                                                                                    <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,4" />
+                                                                                    <TextBlock Text="{Binding AccountContext, StringFormat='Account: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                    <TextBlock Text="{Binding ModelContext, StringFormat='Model: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                </StackPanel>
+                                                                            </Border>
+                                                                        </StackPanel.ToolTip>
+                                                                        <TextBlock Text="{Binding Value}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                                                        <Ellipse Width="9" Height="9" Fill="#8B5CF6" Stroke="#FFFFFF" StrokeThickness="2" HorizontalAlignment="Center" Margin="0,4" Cursor="Hand" />
+                                                                        <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+                                                    </Grid>
+                                                </Grid>
+                                            </ScrollViewer>
                                         </Grid>
                                     </Grid>
-                                </Border>
+                                </Grid>
+                            </Border>
                             </StackPanel>
                         </Border>
 
@@ -1316,28 +1498,94 @@
                         </Border>
 
                         <!-- Section 2: Real 24-Hour Swarm Hourly Activity Heatmap -->
-                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,20">
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,20">
                             <StackPanel>
-                                <TextBlock Text="{Binding Strings[Analytics_HeatmapTitle]}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,4" />
-                                <TextBlock Text="Actual timestamp frequency from local history files across all active instances" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,14" />
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                                <ItemsControl ItemsSource="{Binding HourlyHeatmap}" HorizontalAlignment="Center">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Width="32" Margin="3,0" VerticalAlignment="Bottom" ToolTip="{Binding Tooltip}">
-                                                <Border Height="{Binding Height}" Width="18" CornerRadius="3"
-                                                        Background="{Binding Color, Converter={StaticResource HexToBrushConverter}}"
-                                                        HorizontalAlignment="Center" />
-                                                <TextBlock Text="{Binding HourLabel}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,6,0,0" />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding Strings[Analytics_HeatmapTitle]}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Actual timestamp frequency from local history files across all active instances" FontSize="12" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                    </StackPanel>
+
+                                    <!-- Account Filter for Heatmap -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Filter Account:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <ComboBox ItemsSource="{Binding HeatmapAccountOptions}"
+                                                  SelectedItem="{Binding SelectedHeatmapAccount}"
+                                                  Style="{StaticResource ModernComboBox}"
+                                                  Width="180" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- 24h KPI Summary Strip -->
+                                <UniformGrid Columns="4" Margin="0,0,0,16">
+                                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="PEAK HOUR" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
+                                            <TextBlock Text="{Binding HeatmapPeakHour}" FontSize="15" FontWeight="Bold" Foreground="#8B5CF6" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="24H TOTAL TURNS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
+                                            <TextBlock Text="{Binding HeatmapTotal24hPrompts}" FontSize="15" FontWeight="Bold" Foreground="#3B82F6" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="ACTIVE WINDOW" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
+                                            <TextBlock Text="{Binding HeatmapActiveWindow}" FontSize="15" FontWeight="Bold" Foreground="#10B981" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,10">
+                                        <StackPanel>
+                                            <TextBlock Text="AVG HOURLY RATE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
+                                            <TextBlock Text="{Binding HeatmapAveragePerHour}" FontSize="15" FontWeight="Bold" Foreground="#F59E0B" Margin="0,4,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+
+                                <!-- Heatmap Canvas Surface (Height 230) -->
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="16,16,16,10" Height="230">
+                                    <ItemsControl ItemsSource="{Binding HourlyHeatmap}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Width="32" Margin="3,0" VerticalAlignment="Bottom" Cursor="Hand">
+                                                    <StackPanel.ToolTip>
+                                                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10">
+                                                            <TextBlock Text="{Binding Tooltip}" FontSize="11" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                        </Border>
+                                                    </StackPanel.ToolTip>
+
+                                                    <!-- Prompt count label shown if > 0 -->
+                                                    <TextBlock Text="{Binding PromptCount}"
+                                                               Visibility="{Binding PromptCount, Converter={StaticResource IntToVisConverter}}"
+                                                               FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextSecondary}"
+                                                               HorizontalAlignment="Center" Margin="0,0,0,4" />
+
+                                                    <!-- Heatmap Bar -->
+                                                    <Border Height="{Binding Height}" Width="20" CornerRadius="4,4,0,0"
+                                                            Background="{Binding Color, Converter={StaticResource HexToBrushConverter}}"
+                                                            HorizontalAlignment="Center" />
+
+                                                    <!-- Hour Label -->
+                                                    <TextBlock Text="{Binding HourLabel}" FontSize="10" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource BrushTextMuted}"
+                                                               HorizontalAlignment="Center" Margin="0,6,0,0" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
                             </StackPanel>
                         </Border>
 
@@ -1619,15 +1867,67 @@
                                     <TextBlock Text="🌐 " FontSize="16" VerticalAlignment="Center" />
                                     <TextBlock Text="{Binding Strings[Settings_Language]}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                 </StackPanel>
-                                <TextBlock Text="Select your preferred application display language." FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,10" />
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Command="{Binding SetLanguageCommand}" CommandParameter="en" Style="{StaticResource ModernButton}" Padding="16,8" Margin="0,0,10,0">
-                                        <TextBlock Text="🇬🇧 English (Default)" FontWeight="Bold" />
-                                    </Button>
-                                    <Button Command="{Binding SetLanguageCommand}" CommandParameter="id" Style="{StaticResource ModernButton}" Padding="16,8">
-                                        <TextBlock Text="🇮🇩 Bahasa Indonesia" FontWeight="Bold" />
-                                    </Button>
+                                <TextBlock Text="Select your preferred application display language." FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,12" />
+                                <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                          SelectedItem="{Binding SelectedLanguageOption}"
+                                          DisplayMemberPath="DisplayName"
+                                          Style="{StaticResource ModernComboBox}"
+                                          Width="260"
+                                          HorizontalAlignment="Left" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Group: Appearance & Color Palette -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,16">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <TextBlock Text="🎨 " FontSize="16" VerticalAlignment="Center" />
+                                    <TextBlock Text="Theme Appearance &amp; Color Palette" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                 </StackPanel>
+                                <TextBlock Text="Choose your preferred color scheme across the application. Contrast and borders are automatically tuned for maximum legibility." FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,14" />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                    <TextBlock Text="Active Palette:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                    <ComboBox ItemsSource="{Binding ThemeOptions}"
+                                              SelectedItem="{Binding SelectedThemeOption}"
+                                              Style="{StaticResource ModernComboBox}"
+                                              Width="220" />
+                                </StackPanel>
+
+                                <!-- Visual Palette Selector Chips -->
+                                <WrapPanel Margin="0,4,0,0">
+                                    <!-- Dark Chip -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Dark" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="16" Height="16" CornerRadius="8" Background="#0F1115" BorderBrush="#38BDF8" BorderThickness="2" Margin="0,0,8,0" />
+                                            <TextBlock Text="🌙 Obsidian Dark" FontWeight="SemiBold" FontSize="11" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Light Chip -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Light" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="16" Height="16" CornerRadius="8" Background="#FFFFFF" BorderBrush="#0284C7" BorderThickness="2" Margin="0,0,8,0" />
+                                            <TextBlock Text="☀️ Daylight Clean" FontWeight="SemiBold" FontSize="11" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Cyberpunk Chip -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Cyberpunk" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="16" Height="16" CornerRadius="8" Background="#0C0A1D" BorderBrush="#EC4899" BorderThickness="2" Margin="0,0,8,0" />
+                                            <TextBlock Text="🔮 Cyberpunk Neon" FontWeight="SemiBold" FontSize="11" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Matrix Chip -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Matrix" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="16" Height="16" CornerRadius="8" Background="#05130B" BorderBrush="#10B981" BorderThickness="2" Margin="0,0,8,0" />
+                                            <TextBlock Text="📟 Matrix Emerald" FontWeight="SemiBold" FontSize="11" />
+                                        </StackPanel>
+                                    </Button>
+                                </WrapPanel>
                             </StackPanel>
                         </Border>
 

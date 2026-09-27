@@ -32,22 +32,30 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth tokens, history, and confi
 
 - **🛡️ Strict Environment Isolation**: Each profile points to its own sandbox (`~/.gemini-profiles/{id}`) with independent tokens, brain logs, and history files.
 - **🌐 Bilingual Multi-Language Support**: Seamless instant switching between **English (EN - Default)** and **Bahasa Indonesia (ID)**.
-- **📊 Real Telemetry & Tall Multi-Mode Charts**:
+- **📊 Real Telemetry & Interactive Multi-Mode Charts**:
   - Direct timestamp parsing from local `history.jsonl` (no synthetic dummy data, authentic zero-baselines).
   - Multi-mode rendering: **Bar Chart**, **Line Chart**, and **Area Chart** with gradient fills.
   - Interactive multi-dimensional filters: **Account Selector**, Timeframe (*24h*, *3d*, *7d*, *14d*, *30d*, *90d*, *All Time*), Model, and Tier.
-  - Expanded 340px tall telemetry canvas in `/analytics`.
+  - **Interactive Hover Cards & Zoom**: Hover tooltips showing exact timestamps, prompt counts, token metrics, and model names. Zoom In/Out/Reset (`➖`, `➕`, `100%`) with horizontal canvas scrolling.
+  - **Y-Axis Scale & Headroom**: Numerical Y-axis ticks with dotted guidelines and 30% top headroom to prevent ceiling collision.
+  - **24-Hour Activity Heatmap**: 230px tall hourly intensity matrix with Account Filter, Peak Hour, Total Turns, Active Window, and Average Rate KPIs.
 - **📥 Native PDF Report Download**:
   - One-click PDF export using Microsoft Edge headless vector rendering engine.
   - Generates comprehensive executive summaries with metrics, inline SVG charts, and per-profile activity breakdowns.
 - **⏱️ Configurable Auto-Sync Telemetry**:
   - Periodic background telemetry and MCP polling (1 min, 5 min, 15 min, 30 min, or manual).
+- **🎨 4 Appearance Color Palettes**:
+  - Choose between **Obsidian Dark**, **Daylight Clean (Light)**, **Cyberpunk Neon**, and **Matrix Emerald**.
+  - Dynamic navigation brushes guarantee high-contrast legibility without white-on-white text clipping.
+- **🌐 Bilingual Multi-Language Support**:
+  - Clean dropdown selectors (`ComboBox`) for instant runtime switching between **English (EN - Default)** and **Bahasa Indonesia (ID)**.
 - **🧩 Model Context Protocol (MCP) Manager**:
   - Live inspection and management of local MCP tool servers (`context7`, `filesystem`, etc.).
   - Automatic tool discovery and schema inspection.
 - **🧠 Full Model Support & Pro Tier Detection**:
+  - Dynamic AGY model engine discovers models dynamically from CLI (`agy models`).
   - Automatic Pro badge assignment for authenticated Google accounts (e.g. `rifkyakhmad911@gmail.com`).
-  - Supports `claude-3-opus`, `claude-3.5-sonnet`, `claude-3.7-sonnet`, `gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-1.5-pro`, and `gpt-4o`.
+  - Supports `Gemini 3.8 Flash (Medium/High/Low)`, `Gemini 3.7 Flash`, `Claude Sonnet 4.6 (Thinking)`, `Claude Opus 4.6 (Thinking)`, `GPT-OSS 120B`, and more.
 - **🚨 Quota Exhaustion Alerts & Audio Synthesizer**:
   - High-visibility warning banner and synthesized acoustic alarm when an account reaches 100% daily quota.
   - In-memory synthesized audio tones for clicks, launches, sync droplet chimes, and soft welcome purrs.
@@ -60,9 +68,6 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth tokens, history, and confi
 - **📖 Interactive In-App & Browser Documentation (`/docs`)**:
   - Centered cards with built-in guides covering Architecture, Swarm Workflow, Database DDL/DML, and MCP integration.
   - "🌐 Open Interactive Spec in Browser" opens rich dark-themed HTML documents with client-rendered Mermaid.js flowcharts and SQL schemas.
-- **🌓 Theme & System Tray**:
-  - Instant toggle between Dark Mode and high-contrast Light Mode.
-  - Background tray integration (Minimize to Tray and Close to Tray).
 
 ---
 

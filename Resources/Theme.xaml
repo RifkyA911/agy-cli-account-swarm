@@ -36,6 +36,13 @@
     <SolidColorBrush x:Key="BrushQuotaExhaustedBorder" Color="#DC2626" />
     <SolidColorBrush x:Key="BrushQuotaExhaustedText" Color="#FCA5A5" />
 
+    <!-- Navigation Sidebar Brushes (Dynamic Contrast) -->
+    <SolidColorBrush x:Key="BrushNavActiveBg" Color="#1E293B" />
+    <SolidColorBrush x:Key="BrushNavActiveBorder" Color="#3B82F6" />
+    <SolidColorBrush x:Key="BrushNavActiveText" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="BrushNavHoverBg" Color="#1F222A" />
+    <SolidColorBrush x:Key="BrushNavInactiveText" Color="#9CA3AF" />
+
     <!-- Typography -->
     <FontFamily x:Key="FontMain">Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
     <FontFamily x:Key="FontMono">Cascadia Code, Consolas, Courier New</FontFamily>
@@ -48,7 +55,7 @@
         <Setter Property="Padding" Value="14,11" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushNavInactiveText}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="Template">
@@ -63,11 +70,10 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushSurfaceHover}" />
-                            <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushNavHoverBg}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="#252936" />
+                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushSurfaceHover}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

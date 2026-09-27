@@ -151,4 +151,12 @@ public partial class MainWindow : Window
         var result = MessageBox.Show(this, message, title, MessageBoxButton.YesNo, MessageBoxImage.Warning);
         return Task.FromResult(result == MessageBoxResult.Yes);
     }
+
+    private void WindowHeader_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+        {
+            DragMove();
+        }
+    }
 }
