@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Threading.Tasks;
 using AgyAccountSwarm.Models;
 using AgyAccountSwarm.Services;
 using AgyAccountSwarm.ViewModels;
@@ -201,13 +203,48 @@ public class TerminalLauncherTests
     }
 
     [Fact]
+    public async Task DetectAuthStatus_WithMockSandbox_DetectsEmailHermetically()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), "agy_test_" + Guid.NewGuid().ToString("N"));
+        var cliDir = Path.Combine(tempDir, ".gemini", "antigravity-cli");
+        Directory.CreateDirectory(cliDir);
+        try
+        {
+            // Valid base64 payload: {"email":"testuser@example.com","name":"Test User"}
+            string base64Payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("{\"email\":\"testuser@example.com\",\"name\":\"Test User\"}")).TrimEnd('=');
+            string json = $"{{\"id_token\":\"eyJhbGciOiJub25lIn0.{base64Payload}.dummy_sig\"}}";
+            await File.WriteAllTextAsync(Path.Combine(cliDir, "antigravity-oauth-token"), json);
+
+            var service = new AuthDetectorService();
+            var profile = new AccountProfile
+            {
+                Name = "Mock Sandbox",
+                CustomProfilePath = tempDir
+            };
+            var status = await service.DetectAuthStatusAsync(profile);
+            Assert.Equal("testuser@example.com", status.AccountEmail);
+            Assert.Equal(AuthStatusType.Authenticated, status.Status);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
+    }
+
+    [Fact]
     public async Task DetectAuthStatus_WorkerSpace_DetectsEmail()
     {
+        string path = @"C:\Users\rifky\.gemini-profiles\Worker Space";
+        if (!Directory.Exists(path)) return; // Skip in non-host CI environments
+
         var service = new AuthDetectorService();
         var profile = new AccountProfile
         {
             Name = "Worker Space",
-            CustomProfilePath = @"C:\Users\rifky\.gemini-profiles\Worker Space"
+            CustomProfilePath = path
         };
         var status = await service.DetectAuthStatusAsync(profile);
         Assert.Equal("missfaruzan@gmail.com", status.AccountEmail);
@@ -217,6 +254,9 @@ public class TerminalLauncherTests
     [Fact]
     public async Task DetectAuthStatus_DefaultProfile_DetectsEmail()
     {
+        string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini");
+        if (!Directory.Exists(defaultPath)) return; // Skip in non-host CI environments
+
         var service = new AuthDetectorService();
         var profile = new AccountProfile
         {
