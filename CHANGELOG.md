@@ -2,6 +2,30 @@
 
 All notable changes to the **Agy Account Swarm** project are documented here.
 
+## [v0.9.2-beta] - 2026-09-27
+### Fixed
+- **Terminal Launcher Directory Path with Spaces Quoting**:
+  - Fixed CMD argument generation bug (`/k call "{scriptPath}"` instead of consecutive double quotes `\"\"{scriptPath}\"\"`).
+  - Resolved fatal Windows shell error: `'C:\Users\rifky\.gemini-profiles\Worker' is not recognized as an internal or external command, operable program or batch file` when profile directories or paths contained spaces.
+  - Implemented proper quoting and escaping for single-pane launch, Windows Terminal multi-tab and split-pane swarm execution, and PowerShell fallback commands.
+- **Profile Edit Model & Color Accent Selection**:
+  - Removed restrictive combo box edit modes so clicking any model in the dropdown reliably selects and binds `PreferredModel`.
+  - Upgraded Color Accent picker from raw buttons to an interactive preset grid: clicking any palette item displays an outer active ring and glowing white checkmark indicator with real-time hex badge preview.
+  - Added automatic tier-aware daily quota auto-calculation upon changing the subscription tier (Basic = 100, Plus = 300, Pro = 1,000, Ultra = 2,500).
+
+### Added
+- **Comprehensive Lightweight Tracing & Telemetry Logs**:
+  - Expanded logging infrastructure across all services: `AuthDetectorService` (profile scan & auth state), `ProfileStorageService` (profile loads & persistence), `AgyModelService` (dynamic model discovery), `McpService` (MCP server & tool discovery), and `MainViewModel` (navigation, theme changes, locale updates, and swarm syncs).
+  - Added thread-safe in-memory 1,000-entry ring buffer (`Logger.GetRecentLogLines()`) for ultra-low latency, disk-free reading in the `/logs` console.
+  - Added reactive filtering in `/logs`: changing the Log Level dropdown or typing in the search box immediately filters displayed entries without requiring a manual refresh.
+- **Dedicated Automated Unit Test Suite (`AgyAccountSwarm.Tests`)**:
+  - Added test suite with xUnit covering:
+    - Path and argument escaping with spaces (`TerminalLauncherTests`).
+    - Model selection, color accent switching, tier quota auto-calculation, and validation (`ProfileEditViewModelTests`).
+    - In-memory ring buffer, capacity roll-off, and log clearing (`LoggerTests`).
+    - Authentic tier daily, weekly, and token quota formulas (`AuthDetectorQuotaTests`).
+  - 100% test pass rate (30/30 tests passing cleanly).
+
 ## [v0.9.1-beta] - 2026-09-27
 ### Added
 - **Native OS Window Frame & Proper Desktop Breathing Room**:

@@ -1,10 +1,11 @@
 <Window x:Class="AgyAccountSwarm.Views.ProfileEditDialog"
+        x:Name="RootDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:AgyAccountSwarm.ViewModels"
         Title="{Binding DialogTitle}"
         Icon="../Resources/favicon.ico"
-        Height="620" Width="500"
+        Height="640" Width="520"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource BrushBg}"
@@ -79,8 +80,7 @@
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Target / Preferred Model" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                             <ComboBox ItemsSource="{Binding ModelOptions}"
-                                      SelectedItem="{Binding PreferredModel}"
-                                      IsEditable="True"
+                                      SelectedItem="{Binding PreferredModel, Mode=TwoWay}"
                                       Style="{StaticResource ModernComboBox}"
                                       Margin="0,6,0,0" />
                         </StackPanel>
@@ -95,43 +95,72 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Prompt Turns Quota Limit" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                            <TextBlock Text="Daily Prompt Turns Quota" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                             <TextBox Text="{Binding QuotaLimit, UpdateSourceTrigger=PropertyChanged}"
                                      Style="{StaticResource ModernTextBox}"
                                      Margin="0,6,0,0" />
+                            <TextBlock Text="Auto-calculated per tier (Basic: 100, Plus: 300, Pro: 1k, Ultra: 2.5k)"
+                                       FontSize="10.5"
+                                       Foreground="{DynamicResource BrushTextMuted}"
+                                       Margin="0,3,0,0" />
                         </StackPanel>
 
-                        <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
                             <CheckBox IsChecked="{Binding IsQuotaExhausted}"
                                       Style="{StaticResource ModernCheckBox}"
                                       Content="Flag as Quota Exhausted"
                                       ToolTip="Manually flag quota exhausted to test notifications"
-                                      Margin="0,0,0,8" />
+                                      Margin="0,16,0,0" />
                         </StackPanel>
                     </Grid>
 
-                    <!-- Color Tag -->
-                    <TextBlock Text="Color Accent" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,8" />
+                    <!-- Color Accent Selection -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Text="Color Accent" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                        <Border Background="{DynamicResource BrushCardBg}" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Fill="{Binding SelectedColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectedColor}" FontSize="10" FontFamily="{StaticResource FontMono}" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
                     <ItemsControl ItemsSource="{Binding ColorPresets}" Margin="0,0,0,14">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
+                                <WrapPanel Orientation="Horizontal" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Command="{Binding DataContext.SelectColorCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                <Button Command="{Binding ElementName=RootDialog, Path=DataContext.SelectColorCommand}"
                                         CommandParameter="{Binding}"
-                                        Width="28" Height="28"
-                                        Margin="0,0,8,0"
+                                        Width="32" Height="32"
+                                        Margin="0,0,8,6"
                                         Cursor="Hand"
-                                        Background="{Binding Converter={StaticResource HexToBrushConverter}}">
+                                        ToolTip="{Binding Name}">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
-                                            <Border CornerRadius="14"
-                                                    Background="{TemplateBinding Background}"
-                                                    BorderBrush="#FFFFFF"
-                                                    BorderThickness="1" />
+                                            <Grid>
+                                                <!-- Outer active ring when selected -->
+                                                <Ellipse Width="32" Height="32"
+                                                         Stroke="{Binding Hex, Converter={StaticResource HexToBrushConverter}}"
+                                                         StrokeThickness="2"
+                                                         Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisConverter}}" />
+                                                <!-- Inner color circle -->
+                                                <Ellipse Width="24" Height="24"
+                                                         Fill="{Binding Hex, Converter={StaticResource HexToBrushConverter}}"
+                                                         Stroke="#1E293B"
+                                                         StrokeThickness="1" />
+                                                <!-- Checkmark icon when selected -->
+                                                <Path Data="M 11,16 L 14,19 L 21,12"
+                                                      Stroke="#FFFFFF"
+                                                      StrokeThickness="2"
+                                                      StrokeStartLineCap="Round"
+                                                      StrokeEndLineCap="Round"
+                                                      StrokeLineJoin="Round"
+                                                      Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisConverter}}" />
+                                            </Grid>
                                         </ControlTemplate>
                                     </Button.Template>
                                 </Button>

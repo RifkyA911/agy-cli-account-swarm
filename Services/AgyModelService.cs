@@ -155,6 +155,7 @@ public class AgyModelService : IAgyModelService
         }
 
         _cachedModels = modelsDict.Values.OrderBy(m => m.DisplayName).ToList();
+        Logger.Info($"[AgyModelService] Discovered {_cachedModels.Count} available models ({modelsDict.Count(m => !DefaultModels.Any(d => d.Id == m.Key))} dynamic)");
         return _cachedModels;
     }
 

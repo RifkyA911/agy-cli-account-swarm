@@ -14,11 +14,13 @@ public class AuthDetectorService : IAuthDetectorService
         {
             var status = new ProfileAuthStatus();
             var profileDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
+            Logger.Debug($"[AuthDetector] Scanning profile '{profile.Name}' directory: {profileDir}");
 
             if (!Directory.Exists(profileDir))
             {
                 status.Status = AuthStatusType.NotInitialized;
                 status.StatusMessage = "Directory not created yet";
+                Logger.Debug($"[AuthDetector] Profile '{profile.Name}' not initialized (directory missing).");
                 return status;
             }
 
@@ -27,6 +29,7 @@ public class AuthDetectorService : IAuthDetectorService
             {
                 status.Status = AuthStatusType.NeedsLogin;
                 status.StatusMessage = "Needs initial login";
+                Logger.Debug($"[AuthDetector] Profile '{profile.Name}' needs login (.gemini missing).");
                 return status;
             }
 
@@ -249,6 +252,7 @@ public class AuthDetectorService : IAuthDetectorService
                         ? "Authenticated"
                         : $"Logged in ({status.AccountEmail})";
                 }
+                Logger.Info($"[AuthDetector] Profile '{profile.Name}' -> {status.StatusMessage} | Tier: {effectiveTier} | Model: {status.CurrentModel ?? "None"} | Usage: {status.TodayTurnsCount}/{dailyLimit} ({status.UsagePercentage:F1}%)");
                 return status;
             }
 
@@ -256,11 +260,13 @@ public class AuthDetectorService : IAuthDetectorService
             {
                 status.Status = AuthStatusType.NeedsLogin;
                 status.StatusMessage = "Session initialized, awaiting auth";
+                Logger.Debug($"[AuthDetector] Profile '{profile.Name}' awaiting auth.");
                 return status;
             }
 
             status.Status = AuthStatusType.NeedsLogin;
             status.StatusMessage = "Ready for login";
+            Logger.Debug($"[AuthDetector] Profile '{profile.Name}' ready for login.");
             return status;
         });
     }

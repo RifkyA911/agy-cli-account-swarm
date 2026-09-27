@@ -362,8 +362,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _selectedLogLevel = "ALL";
 
+    partial void OnSelectedLogLevelChanged(string value) => LoadLogs();
+
     [ObservableProperty]
     private string _logSearchQuery = string.Empty;
+
+    partial void OnLogSearchQueryChanged(string value) => LoadLogs();
 
     // Raw real history cache
     private List<RealHistoryEntry> _cachedRealHistory = [];
@@ -501,6 +505,7 @@ public partial class MainViewModel : ObservableObject
             SelectedLanguageOption = match;
         }
         _audioService.PlayClick();
+        Logger.Info($"[Locale] Display language updated to '{lang}'");
         _ = SaveSettingsAsync();
         ShowNotification(lang == "id" ? "Bahasa tampilan diubah ke Bahasa Indonesia" : "Display language set to English");
     }
@@ -623,6 +628,7 @@ public partial class MainViewModel : ObservableObject
     {
         CurrentPage = page;
         _audioService.PlayClick();
+        Logger.Debug($"[Navigation] Switched view to page: {page}");
         if (page == "Logs")
         {
             LoadLogs();
@@ -754,6 +760,7 @@ public partial class MainViewModel : ObservableObject
             CurrentTheme = value;
             ThemeManager.ApplyTheme(value);
             _audioService.PlayClick();
+            Logger.Info($"[Theme] Switched theme to: {value}");
             _ = SaveSettingsAsync();
             ShowNotification($"Theme set to {value}");
         }
@@ -773,6 +780,7 @@ public partial class MainViewModel : ObservableObject
         CurrentTheme = ThemeManager.AvailableThemes[nextIdx];
         SelectedThemeOption = CurrentTheme;
         ThemeManager.ApplyTheme(CurrentTheme);
+        Logger.Info($"[Theme] Toggled theme to: {CurrentTheme}");
         _ = SaveSettingsAsync();
         ShowNotification($"Switched to {CurrentTheme} theme");
     }
@@ -785,6 +793,7 @@ public partial class MainViewModel : ObservableObject
         CurrentTheme = themeName;
         SelectedThemeOption = themeName;
         ThemeManager.ApplyTheme(themeName);
+        Logger.Info($"[Theme] Explicitly set theme to: {themeName}");
         _ = SaveSettingsAsync();
         ShowNotification($"Theme set to {themeName}");
     }
@@ -829,6 +838,7 @@ public partial class MainViewModel : ObservableObject
             {
                 _audioService.PlaySync();
             }
+            Logger.Info($"[SwarmSync] Telemetry sync finished across {Profiles.Count} profiles ({_cachedRealHistory.Count} real history interactions, auto={isAutoSync})");
             UpdateStats();
             if (!isAutoSync)
             {
@@ -1002,14 +1012,19 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
-            if (File.Exists(Logger.LogPath))
+            var lines = Logger.GetRecentLogLines();
+            if (lines.Count == 0 && File.Exists(Logger.LogPath))
             {
-                var lines = File.ReadAllLines(Logger.LogPath);
+                lines = File.ReadAllLines(Logger.LogPath);
+            }
+
+            if (lines.Count > 0)
+            {
                 var filtered = lines.AsEnumerable();
 
-                if (SelectedLogLevel != "ALL")
+                if (!string.IsNullOrWhiteSpace(SelectedLogLevel) && !SelectedLogLevel.Equals("ALL", StringComparison.OrdinalIgnoreCase))
                 {
-                    filtered = filtered.Where(l => l.Contains($"[{SelectedLogLevel}]"));
+                    filtered = filtered.Where(l => l.Contains($"[{SelectedLogLevel}]", StringComparison.OrdinalIgnoreCase));
                 }
 
                 if (!string.IsNullOrWhiteSpace(LogSearchQuery))
@@ -1017,7 +1032,8 @@ public partial class MainViewModel : ObservableObject
                     filtered = filtered.Where(l => l.Contains(LogSearchQuery, StringComparison.OrdinalIgnoreCase));
                 }
 
-                LogContent = string.Join(Environment.NewLine, filtered);
+                var list = filtered.ToList();
+                LogContent = list.Count > 0 ? string.Join(Environment.NewLine, list) : "No matching log entries found.";
             }
             else
             {
@@ -1044,7 +1060,7 @@ public partial class MainViewModel : ObservableObject
         _audioService.PlayClick();
         try
         {
-            File.WriteAllText(Logger.LogPath, string.Empty);
+            Logger.Clear();
             LogContent = string.Empty;
             ShowNotification("Logs cleared");
         }

@@ -1,10 +1,29 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgyAccountSwarm.Models;
+using AgyAccountSwarm.Services;
 
 namespace AgyAccountSwarm.ViewModels;
+
+public partial class ColorOptionItem : ObservableObject
+{
+    public string Hex { get; }
+    public string Name { get; }
+
+    [ObservableProperty]
+    private bool _isSelected;
+
+    public ColorOptionItem(string hex, string name, bool isSelected = false)
+    {
+        Hex = hex;
+        Name = name;
+        _isSelected = isSelected;
+    }
+}
 
 public partial class ProfileEditViewModel : ObservableObject
 {
@@ -35,33 +54,22 @@ public partial class ProfileEditViewModel : ObservableObject
     [ObservableProperty]
     private string? _validationError;
 
-    public ObservableCollection<string> ColorPresets { get; } =
-    [
-        "#10B981", // Emerald
-        "#3B82F6", // Blue
-        "#8B5CF6", // Violet
-        "#EC4899", // Rose
-        "#F59E0B", // Amber
-        "#06B6D4", // Cyan
-        "#E11D48", // Crimson
-        "#64748B"  // Slate
-    ];
-
     [ObservableProperty]
     private string _tier = "Basic";
 
     [ObservableProperty]
-    private string _preferredModel = "gemini-2.5-flash";
+    private string _preferredModel = "Gemini 3.8 Flash (Medium)";
 
     [ObservableProperty]
-    private int _quotaLimit = 500;
+    private int _quotaLimit = 100;
 
     [ObservableProperty]
     private bool _isQuotaExhausted = false;
 
     public ObservableCollection<string> TierOptions { get; } = ["Basic", "Plus", "Pro", "Ultra"];
-    public ObservableCollection<string> ModelOptions { get; } =
-        ["gemini-2.5-flash", "gemini-2.5-pro", "claude-3-opus", "claude-3.5-sonnet", "claude-3.7-sonnet", "gpt-4o", "gemini-1.5-pro"];
+    public ObservableCollection<string> ModelOptions { get; } = [];
+    public ObservableCollection<ColorOptionItem> ColorOptions { get; } = [];
+    public ObservableCollection<ColorOptionItem> ColorPresets => ColorOptions;
 
     public bool IsEditMode { get; private set; }
     public AccountProfile ResultProfile { get; private set; } = new();
@@ -73,8 +81,11 @@ public partial class ProfileEditViewModel : ObservableObject
         _dialogTitle = "Add Account Profile";
         IsEditMode = false;
         _tier = "Basic";
+        _quotaLimit = 100;
         _preferredModel = "Gemini 3.8 Flash (Medium)";
-        _quotaLimit = 500;
+        _selectedColor = "#3B82F6";
+
+        InitializeColorOptions();
         PopulateModels(availableModels);
     }
 
@@ -93,56 +104,113 @@ public partial class ProfileEditViewModel : ObservableObject
         _isSelectedForSwarm = profileToEdit.IsSelectedForSwarm;
         _tier = string.IsNullOrWhiteSpace(profileToEdit.Tier) ? "Pro" : profileToEdit.Tier;
         _preferredModel = string.IsNullOrWhiteSpace(profileToEdit.PreferredModel) ? "Gemini 3.8 Flash (Medium)" : profileToEdit.PreferredModel;
-        _quotaLimit = profileToEdit.QuotaLimit > 0 ? profileToEdit.QuotaLimit : 500;
+        _quotaLimit = profileToEdit.QuotaLimit > 0 ? profileToEdit.QuotaLimit : GetDefaultQuotaForTier(_tier);
         _isQuotaExhausted = profileToEdit.IsQuotaExhausted;
 
+        InitializeColorOptions();
         PopulateModels(availableModels);
     }
+
+    private void InitializeColorOptions()
+    {
+        var presets = new (string Hex, string Name)[]
+        {
+            ("#3B82F6", "Blue"),
+            ("#10B981", "Emerald"),
+            ("#8B5CF6", "Violet"),
+            ("#EC4899", "Rose"),
+            ("#F59E0B", "Amber"),
+            ("#06B6D4", "Cyan"),
+            ("#E11D48", "Crimson"),
+            ("#64748B", "Slate")
+        };
+
+        ColorOptions.Clear();
+        foreach (var (hex, name) in presets)
+        {
+            ColorOptions.Add(new ColorOptionItem(hex, name, hex.Equals(SelectedColor, StringComparison.OrdinalIgnoreCase)));
+        }
+    }
+
+    partial void OnSelectedColorChanged(string value)
+    {
+        foreach (var item in ColorOptions)
+        {
+            item.IsSelected = item.Hex.Equals(value, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    partial void OnTierChanged(string value)
+    {
+        QuotaLimit = GetDefaultQuotaForTier(value);
+    }
+
+    private static int GetDefaultQuotaForTier(string? tier) => (tier?.ToLowerInvariant()) switch
+    {
+        "basic" => 100,
+        "plus" => 300,
+        "pro" => 1000,
+        "ultra" => 2500,
+        _ => 100
+    };
 
     private void PopulateModels(IEnumerable<string>? availableModels)
     {
         ModelOptions.Clear();
+        var defaults = new[]
+        {
+            "Gemini 3.8 Flash (Medium)",
+            "Gemini 3.8 Flash (High)",
+            "Gemini 3.8 Flash (Low)",
+            "Gemini 3.7 Flash (High)",
+            "Gemini 3.7 Flash (Medium)",
+            "Gemini 3.6 Flash (Medium)",
+            "Gemini 3.1 Pro (High)",
+            "Claude Sonnet 4.6 (Thinking)",
+            "Claude Opus 4.6 (Thinking)",
+            "GPT-OSS 120B (Medium)",
+            "Gemini 2.5 Pro",
+            "Gemini 2.5 Flash",
+            "Gemini 1.5 Pro"
+        };
+
+        var allModels = new List<string>();
         if (availableModels != null && availableModels.Any())
         {
-            foreach (var m in availableModels)
+            allModels.AddRange(availableModels.Where(m => !string.IsNullOrWhiteSpace(m) && m != "All Models"));
+        }
+        foreach (var d in defaults)
+        {
+            if (!allModels.Contains(d))
             {
-                if (!string.IsNullOrWhiteSpace(m) && !ModelOptions.Contains(m))
-                {
-                    ModelOptions.Add(m);
-                }
+                allModels.Add(d);
             }
         }
-        else
+
+        if (!string.IsNullOrWhiteSpace(PreferredModel) && !allModels.Contains(PreferredModel))
         {
-            var defaults = new[]
-            {
-                "Gemini 3.8 Flash (Medium)",
-                "Gemini 3.8 Flash (High)",
-                "Gemini 3.8 Flash (Low)",
-                "Gemini 3.7 Flash (High)",
-                "Gemini 3.7 Flash (Medium)",
-                "Gemini 3.6 Flash (Medium)",
-                "Gemini 3.1 Pro (High)",
-                "Claude Sonnet 4.6 (Thinking)",
-                "Claude Opus 4.6 (Thinking)",
-                "GPT-OSS 120B (Medium)",
-                "Gemini 2.5 Pro",
-                "Gemini 2.5 Flash",
-                "Gemini 1.5 Pro"
-            };
-            foreach (var d in defaults) ModelOptions.Add(d);
+            allModels.Insert(0, PreferredModel);
         }
 
-        if (!string.IsNullOrWhiteSpace(PreferredModel) && !ModelOptions.Contains(PreferredModel))
+        foreach (var m in allModels)
         {
-            ModelOptions.Insert(0, PreferredModel);
+            ModelOptions.Add(m);
         }
     }
 
     [RelayCommand]
-    public void SelectColor(string color)
+    public void SelectColor(object? parameter)
     {
-        SelectedColor = color;
+        string? hex = parameter switch
+        {
+            ColorOptionItem item => item.Hex,
+            string s => s,
+            _ => null
+        };
+        if (!string.IsNullOrWhiteSpace(hex))
+        {
+            SelectedColor = hex;
+        }
     }
 
     [RelayCommand]
@@ -163,9 +231,10 @@ public partial class ProfileEditViewModel : ObservableObject
         ResultProfile.IsSelectedForSwarm = IsSelectedForSwarm;
         ResultProfile.Tier = Tier;
         ResultProfile.PreferredModel = PreferredModel;
-        ResultProfile.QuotaLimit = QuotaLimit > 0 ? QuotaLimit : 500;
+        ResultProfile.QuotaLimit = QuotaLimit > 0 ? QuotaLimit : GetDefaultQuotaForTier(Tier);
         ResultProfile.IsQuotaExhausted = IsQuotaExhausted;
 
+        Logger.Info($"[ProfileEdit] Saved profile '{ResultProfile.Name}' (Tier: {ResultProfile.Tier}, Model: {ResultProfile.PreferredModel}, Color: {ResultProfile.ColorTag})");
         RequestClose?.Invoke(true);
     }
 

@@ -126,6 +126,7 @@ public class McpService : IMcpService
                 });
             }
 
+            Logger.Info($"[McpService] Discovered {servers.Count} MCP servers with {servers.Sum(s => s.ToolsCount)} total tools");
             return servers;
         });
     }

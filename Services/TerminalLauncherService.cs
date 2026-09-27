@@ -76,7 +76,33 @@ public class TerminalLauncherService : ITerminalLauncherService
                       $"\"{agyBinary}\"{extraArgs} %*\r\n";
 
         File.WriteAllText(scriptPath, content, System.Text.Encoding.ASCII);
+        Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{scriptPath}' (Target: '{agyBinary}')");
         return scriptPath;
+    }
+
+    public static string BuildCmdArguments(string scriptPath)
+    {
+        return $"/k call \"{scriptPath}\"";
+    }
+
+    public static string BuildWindowsTerminalArguments(string title, string workingDir, string scriptPath)
+    {
+        return $"--title \"{title}\" -d \"{workingDir}\" cmd.exe /k call \"{scriptPath}\"";
+    }
+
+    public static string BuildPowerShellCommand(string title, string effectiveDir, string workingDir, string agyBinary, string? extraArgs)
+    {
+        var escapedTitle = title.Replace("'", "''");
+        var escapedEffectiveDir = effectiveDir.Replace("'", "''");
+        var escapedWorkingDir = workingDir.Replace("'", "''");
+        var escapedAgy = agyBinary.Replace("'", "''");
+        var cleanExtra = string.IsNullOrWhiteSpace(extraArgs) ? "" : " " + extraArgs.Trim();
+
+        return $"$host.UI.RawUI.WindowTitle = '{escapedTitle}'; " +
+               $"$env:USERPROFILE = '{escapedEffectiveDir}'; " +
+               $"$env:HOME = '{escapedEffectiveDir}'; " +
+               $"Set-Location '{escapedWorkingDir}'; " +
+               $"& '{escapedAgy}'{cleanExtra}";
     }
 
     public Task<Process?> LaunchProfileAsync(AccountProfile profile, TerminalType terminal, bool forceLoginPrompt = false)
@@ -103,18 +129,14 @@ public class TerminalLauncherService : ITerminalLauncherService
                 psi = new ProcessStartInfo
                 {
                     FileName = "wt.exe",
-                    Arguments = $"--title \"{title}\" -d \"{workingDir}\" cmd.exe /k \"\"{scriptPath}\"\"",
+                    Arguments = BuildWindowsTerminalArguments(title, workingDir, scriptPath),
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
             }
             else if (terminal == TerminalType.PowerShell)
             {
-                var psScript = $"$host.UI.RawUI.WindowTitle = '{title}'; " +
-                               $"$env:USERPROFILE = '{effectiveDir}'; " +
-                               $"$env:HOME = '{effectiveDir}'; " +
-                               $"Set-Location '{workingDir}'; " +
-                               $"& '{agyBinary}' {extraArgs}";
+                var psScript = BuildPowerShellCommand(title, effectiveDir, workingDir, agyBinary, extraArgs);
 
                 psi = new ProcessStartInfo
                 {
@@ -129,14 +151,16 @@ public class TerminalLauncherService : ITerminalLauncherService
                 psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = $"/k \"\"{scriptPath}\"\"",
+                    Arguments = BuildCmdArguments(scriptPath),
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
             }
 
             profile.LastLaunchedAt = DateTime.UtcNow;
-            return Process.Start(psi);
+            var proc = Process.Start(psi);
+            Logger.Info($"[TerminalLauncher] Launched profile '{profile.Name}' via {terminal} (PID: {proc?.Id.ToString() ?? "detached"}) in '{workingDir}'");
+            return proc;
         });
     }
 
@@ -146,6 +170,8 @@ public class TerminalLauncherService : ITerminalLauncherService
         var processes = new List<Process>();
 
         if (profileList.Count == 0) return processes;
+
+        Logger.Info($"[TerminalLauncher] Orchestrating Swarm launch for {profileList.Count} accounts (Mode: {swarmMode}, Terminal: {terminal})");
 
         // If Windows Terminal is available and user chose SplitPanes or SeparateTabs
         if (terminal == TerminalType.WindowsTerminal && IsWindowsTerminalAvailable() && swarmMode != SwarmLaunchMode.SeparateWindows && profileList.Count > 1)
@@ -161,18 +187,18 @@ public class TerminalLauncherService : ITerminalLauncherService
 
                 if (i == 0)
                 {
-                    wtArgs.Add($"--title \"{title}\" -d \"{workDir}\" cmd.exe /k \"\"{scriptPath}\"\"");
+                    wtArgs.Add(BuildWindowsTerminalArguments(title, workDir, scriptPath));
                 }
                 else
                 {
                     if (swarmMode == SwarmLaunchMode.SplitPanes)
                     {
                         var splitFlag = (i % 2 == 1) ? "-V" : "-H";
-                        wtArgs.Add($"; split-pane {splitFlag} --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"\"{scriptPath}\"\"");
+                        wtArgs.Add($"; split-pane {splitFlag} --title \"{title}\" -d \"{workDir}\" cmd.exe /k call \"{scriptPath}\"");
                     }
                     else
                     {
-                        wtArgs.Add($"; new-tab --title \"{title}\" -d \"{workDir}\" cmd.exe /k \"\"{scriptPath}\"\"");
+                        wtArgs.Add($"; new-tab --title \"{title}\" -d \"{workDir}\" cmd.exe /k call \"{scriptPath}\"");
                     }
                 }
 
@@ -189,6 +215,7 @@ public class TerminalLauncherService : ITerminalLauncherService
 
             var proc = Process.Start(psi);
             if (proc != null) processes.Add(proc);
+            Logger.Info($"[TerminalLauncher] Swarm Windows Terminal session started (PID: {proc?.Id.ToString() ?? "detached"})");
             return processes;
         }
 
@@ -209,13 +236,16 @@ public class TerminalLauncherService : ITerminalLauncherService
         var workDir = GetValidWorkingDirectory(profile);
         var extraArgs = string.IsNullOrWhiteSpace(profile.ExtraArguments) ? "" : $" {profile.ExtraArguments.Trim()}";
 
-        return terminal switch
+        var snippet = terminal switch
         {
             TerminalType.PowerShell =>
                 $"$env:USERPROFILE=\"{effectiveDir}\"; $env:HOME=\"{effectiveDir}\"; cd \"{workDir}\"; agy{extraArgs}",
             _ =>
                 $"set \"USERPROFILE={effectiveDir}\" && set \"HOME={effectiveDir}\" && cd /d \"{workDir}\" && agy{extraArgs}"
         };
+
+        Logger.Info($"[TerminalLauncher] Generated CLI snippet for '{profile.Name}' ({terminal})");
+        return snippet;
     }
 
     public void OpenProfileFolder(AccountProfile profile)
@@ -231,6 +261,7 @@ public class TerminalLauncherService : ITerminalLauncherService
             Arguments = $"\"{dir}\"",
             UseShellExecute = true
         });
+        Logger.Info($"[TerminalLauncher] Opened profile directory in Explorer: '{dir}'");
     }
 
     public void OpenWorkspaceFolder(AccountProfile profile)
@@ -246,6 +277,7 @@ public class TerminalLauncherService : ITerminalLauncherService
             Arguments = $"\"{dir}\"",
             UseShellExecute = true
         });
+        Logger.Info($"[TerminalLauncher] Opened workspace directory in Explorer: '{dir}'");
     }
 
     private static string GetValidWorkingDirectory(AccountProfile profile)

@@ -41,6 +41,7 @@ public class ProfileStorageService : IProfileStorageService
             // Seed initial profiles for an out-of-the-box great experience
             var initialProfiles = CreateInitialProfiles();
             await SaveProfilesAsync(initialProfiles);
+            Logger.Info($"[ProfileStorage] Initialized new storage with {initialProfiles.Count} default profiles at {_profilesFile}");
             return initialProfiles;
         }
 
@@ -60,18 +61,22 @@ public class ProfileStorageService : IProfileStorageService
                     }
                 }
             }
+            Logger.Info($"[ProfileStorage] Loaded {profiles.Count} profiles from {_profilesFile}");
             return profiles;
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.Error($"[ProfileStorage] Failed to read profiles from {_profilesFile}", ex);
             return CreateInitialProfiles();
         }
     }
 
     public async Task SaveProfilesAsync(IEnumerable<AccountProfile> profiles)
     {
-        var json = JsonSerializer.Serialize(profiles, JsonOptions);
+        var list = profiles is List<AccountProfile> l ? l : new List<AccountProfile>(profiles);
+        var json = JsonSerializer.Serialize(list, JsonOptions);
         await File.WriteAllTextAsync(_profilesFile, json);
+        Logger.Info($"[ProfileStorage] Successfully saved {list.Count} profiles to {_profilesFile}");
     }
 
     public async Task<AppSettings> LoadSettingsAsync()
@@ -80,6 +85,7 @@ public class ProfileStorageService : IProfileStorageService
         {
             var defaultSettings = new AppSettings();
             await SaveSettingsAsync(defaultSettings);
+            Logger.Info($"[ProfileStorage] Generated default settings at {_settingsFile}");
             return defaultSettings;
         }
 
@@ -87,10 +93,12 @@ public class ProfileStorageService : IProfileStorageService
         {
             var json = await File.ReadAllTextAsync(_settingsFile);
             var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions);
+            Logger.Debug($"[ProfileStorage] Loaded application settings from {_settingsFile}");
             return settings ?? new AppSettings();
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.Error($"[ProfileStorage] Failed to read settings from {_settingsFile}", ex);
             return new AppSettings();
         }
     }
@@ -99,6 +107,7 @@ public class ProfileStorageService : IProfileStorageService
     {
         var json = JsonSerializer.Serialize(settings, JsonOptions);
         await File.WriteAllTextAsync(_settingsFile, json);
+        Logger.Debug($"[ProfileStorage] Saved application settings to {_settingsFile}");
     }
 
     private static List<AccountProfile> CreateInitialProfiles()
