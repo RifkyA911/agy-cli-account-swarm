@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -71,7 +72,27 @@ public partial class ProfileItemViewModel : ObservableObject
         _preferredModel = profile.PreferredModel;
         _quotaLimit = profile.QuotaLimit;
         _isQuotaExhausted = profile.IsQuotaExhausted;
+
+        // Initialize available conversation sessions
+        try
+        {
+            var sessions = _authDetector.GetAvailableSessions(profile);
+            foreach (var s in sessions)
+            {
+                AvailableSessions.Add(s);
+            }
+            if (AvailableSessions.Count > 0)
+            {
+                SelectedSession = AvailableSessions[0];
+            }
+        }
+        catch { }
     }
+
+    public ObservableCollection<ConversationSessionItem> AvailableSessions { get; } = new();
+
+    [ObservableProperty]
+    private ConversationSessionItem? _selectedSession;
 
     [ObservableProperty]
     private string _tier = "Pro";
@@ -214,7 +235,9 @@ public partial class ProfileItemViewModel : ObservableObject
     }
 
     public string? AccountEmail => AuthStatus.AccountEmail;
-    public string? AvatarUrl => AuthStatus.AvatarUrl;
+    public string? AvatarUrl => !string.IsNullOrEmpty(AuthStatus.LocalAvatarPath) && System.IO.File.Exists(AuthStatus.LocalAvatarPath)
+        ? AuthStatus.LocalAvatarPath
+        : AuthStatus.AvatarUrl;
     public bool HasAvatarUrl => !string.IsNullOrEmpty(AvatarUrl);
 
     public int DailyQuotaLimit => AuthStatus.DailyQuotaLimit > 0 ? AuthStatus.DailyQuotaLimit : AuthDetectorService.GetDailyQuotaForTier(TierBadgeText);
@@ -236,6 +259,72 @@ public partial class ProfileItemViewModel : ObservableObject
     public string WeeklyRemainingFormatted => $"{WeeklyRemainingPercentage:F0}% remaining";
     public string WeeklySummary => $"Weekly Quota: {WeeklyRemainingPercentage:F0}% remaining ({Math.Max(0, WeeklyQuotaLimit - WeeklyTurnsCount):N0} / {WeeklyQuotaLimit:N0} left)";
 
+    // Context Metrics
+    public long ModelContextLimit => AuthStatus.ModelContextLimit;
+    public long EstimatedContextTokens => AuthStatus.EstimatedContextTokens;
+    public double ContextUsagePercentage => AuthStatus.ContextUsagePercentage;
+    public string ContextWindowLabel => AuthStatus.ContextWindowLabel;
+    public string ContextUsageSummary => AuthStatus.ContextUsageSummary;
+    public string ContextHeadroomSummary => AuthStatus.ContextHeadroomSummary;
+
+    // CLI Inspection & Drawer
+    [ObservableProperty]
+    private bool _isInspectorOpen;
+
+    [ObservableProperty]
+    private string _inspectorTitle = "AGY CLI /usage";
+
+    [ObservableProperty]
+    private string _inspectorContent = string.Empty;
+
+    [ObservableProperty]
+    private string _inspectorMode = "usage";
+
+    [RelayCommand]
+    public void ToggleUsageInspection()
+    {
+        _audioService.PlayClick();
+        if (IsInspectorOpen && InspectorMode == "usage")
+        {
+            IsInspectorOpen = false;
+        }
+        else
+        {
+            InspectorTitle = $"⚡ AGY CLI /usage: {Name} ({AuthStatus.AccountEmail ?? "Local User"})";
+            InspectorContent = string.IsNullOrEmpty(AuthStatus.InspectionUsageText)
+                ? "No usage telemetry recorded yet."
+                : AuthStatus.InspectionUsageText;
+            InspectorMode = "usage";
+            IsInspectorOpen = true;
+        }
+    }
+
+    [RelayCommand]
+    public void ToggleContextInspection()
+    {
+        _audioService.PlayClick();
+        if (IsInspectorOpen && InspectorMode == "context")
+        {
+            IsInspectorOpen = false;
+        }
+        else
+        {
+            InspectorTitle = $"🧠 AGY CLI /context: {CurrentModel} ({ContextWindowLabel})";
+            InspectorContent = string.IsNullOrEmpty(AuthStatus.InspectionContextText)
+                ? "No context telemetry recorded yet."
+                : AuthStatus.InspectionContextText;
+            InspectorMode = "context";
+            IsInspectorOpen = true;
+        }
+    }
+
+    [RelayCommand]
+    public void CloseInspector()
+    {
+        _audioService.PlayClick();
+        IsInspectorOpen = false;
+    }
+
     public async Task RefreshAuthStatusAsync()
     {
         IsBusy = true;
@@ -243,6 +332,19 @@ public partial class ProfileItemViewModel : ObservableObject
         {
             AuthStatus = await _authDetector.DetectAuthStatusAsync(Profile);
             Profile.AuthStatus = AuthStatus;
+
+            // Refresh available conversation sessions
+            var sessions = _authDetector.GetAvailableSessions(Profile);
+            AvailableSessions.Clear();
+            foreach (var s in sessions)
+            {
+                AvailableSessions.Add(s);
+            }
+            if (SelectedSession == null && AvailableSessions.Count > 0)
+            {
+                SelectedSession = AvailableSessions[0];
+            }
+
             OnPropertyChanged(nameof(StatusBadgeColor));
             OnPropertyChanged(nameof(StatusBadgeText));
             OnPropertyChanged(nameof(CurrentModel));
@@ -277,6 +379,12 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(WeeklyRemainingLabel));
             OnPropertyChanged(nameof(WeeklyRemainingFormatted));
             OnPropertyChanged(nameof(WeeklySummary));
+            OnPropertyChanged(nameof(ModelContextLimit));
+            OnPropertyChanged(nameof(EstimatedContextTokens));
+            OnPropertyChanged(nameof(ContextUsagePercentage));
+            OnPropertyChanged(nameof(ContextWindowLabel));
+            OnPropertyChanged(nameof(ContextUsageSummary));
+            OnPropertyChanged(nameof(ContextHeadroomSummary));
         }
         finally
         {
@@ -291,8 +399,20 @@ public partial class ProfileItemViewModel : ObservableObject
         try
         {
             _audioService.PlayLaunch();
-            await _launcherService.LaunchProfileAsync(Profile, terminal);
-            OnNotificationRequested?.Invoke($"Launched session for '{Name}'");
+            string? sessionArgs = null;
+            if (SelectedSession != null)
+            {
+                if (SelectedSession.IsContinueRecent)
+                {
+                    sessionArgs = "--continue";
+                }
+                else if (SelectedSession.IsSpecificConversation)
+                {
+                    sessionArgs = $"--conversation {SelectedSession.Id}";
+                }
+            }
+            await _launcherService.LaunchProfileAsync(Profile, terminal, forceLoginPrompt: false, sessionArgs: sessionArgs);
+            OnNotificationRequested?.Invoke($"Launched session for '{Name}' {(sessionArgs != null ? $"({sessionArgs})" : "")}");
             // Delay and refresh status in background
             _ = Task.Run(async () =>
             {

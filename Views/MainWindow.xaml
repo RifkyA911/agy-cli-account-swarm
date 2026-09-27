@@ -881,15 +881,37 @@
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
                                             <!-- Color Accent Indicator -->
-                                            <Border Grid.Column="0" Width="4" CornerRadius="2" Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,14,0" />
+                                            <Border Grid.Column="0" Width="4" CornerRadius="2" Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,12,0" />
+
+                                            <!-- Avatar Image & Initial Badge (Dashboard) -->
+                                            <Border Grid.Column="1" Width="42" Height="42" CornerRadius="21"
+                                                    Background="{DynamicResource BrushSurface}"
+                                                    BorderBrush="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                    BorderThickness="2"
+                                                    Margin="0,0,12,0"
+                                                    VerticalAlignment="Center"
+                                                    ClipToBounds="True">
+                                                <Grid>
+                                                    <Image Source="{Binding AvatarUrl}"
+                                                           Stretch="UniformToFill"
+                                                           Width="42" Height="42"
+                                                           Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}" />
+                                                    <Border Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}"
+                                                            Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                        <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
 
                                             <!-- Info -->
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
 
@@ -941,7 +963,7 @@
                                             </StackPanel>
 
                                             <!-- Quick Launch Action -->
-                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Button Command="{Binding LaunchCommand}"
                                                         CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         Style="{StaticResource PrimaryButton}" Padding="12,5" Margin="0,0,6,0">
@@ -1067,12 +1089,14 @@
                                                            Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}" />
 
                                                     <!-- Fallback Google Circular Initial Badge -->
-                                                    <Grid Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}">
+                                                    <Border Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}"
+                                                            Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                                         <TextBlock Text="{Binding AvatarInitial}"
                                                                    FontWeight="Bold" FontSize="20"
-                                                                   Foreground="{DynamicResource BrushTextPrimary}"
+                                                                   Foreground="#FFFFFF"
                                                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Grid>
+                                                    </Border>
 
                                                     <!-- Mini Google 'G' Accent Dot in bottom right -->
                                                     <Border Width="16" Height="16" CornerRadius="8"
@@ -1252,6 +1276,106 @@
                                                                 </Border>
                                                             </Grid>
                                                         </StackPanel>
+
+                                                        <!-- Clean Separator below Weekly Limit -->
+                                                        <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,12" />
+
+                                                        <!-- AGY CLI Telemetry & Context Inspector (/usage & /context) -->
+                                                        <StackPanel Margin="0,0,0,0">
+                                                            <!-- Inspector Header & Quick Inspection Actions -->
+                                                            <Grid Margin="0,0,0,8">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <!-- Title -->
+                                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="🛠️ AGY CLI TELEMETRY &amp; CONTEXT" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <Border Background="#158B5CF6" BorderBrush="#308B5CF6" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                        <TextBlock Text="CLI Features" FontSize="9.5" FontWeight="SemiBold" Foreground="#8B5CF6" />
+                                                                    </Border>
+                                                                </WrapPanel>
+
+                                                                <!-- Action Buttons for /usage and /context -->
+                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Button Command="{Binding ToggleUsageInspectionCommand}"
+                                                                            Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
+                                                                            Foreground="{DynamicResource BrushTextPrimary}" FontSize="10" FontWeight="SemiBold" Padding="8,3" Margin="0,0,6,0" Cursor="Hand"
+                                                                            ToolTip="View authentic AGY CLI /usage report">
+                                                                        <TextBlock Text="📊 /usage" />
+                                                                    </Button>
+                                                                    <Button Command="{Binding ToggleContextInspectionCommand}"
+                                                                            Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
+                                                                            Foreground="{DynamicResource BrushTextPrimary}" FontSize="10" FontWeight="SemiBold" Padding="8,3" Cursor="Hand"
+                                                                            ToolTip="View authentic AGY CLI /context capacity &amp; thread status">
+                                                                        <TextBlock Text="🧠 /context" />
+                                                                    </Button>
+                                                                </StackPanel>
+                                                            </Grid>
+
+                                                            <!-- 2-Box Metric Strip: /usage Overview & /context Window -->
+                                                            <Grid Margin="0,0,0,2">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="10" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <!-- Box 1: /usage Telemetry -->
+                                                                <Border Grid.Column="0" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,8">
+                                                                    <StackPanel>
+                                                                        <Grid Margin="0,0,0,4">
+                                                                            <TextBlock Text="📊 /usage (Session &amp; Token Activity)" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                                            <TextBlock Text="{Binding UsagePercentage, StringFormat='{}{0:F1}% today'}" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" />
+                                                                        </Grid>
+                                                                        <WrapPanel Margin="0,0,0,3">
+                                                                            <TextBlock Text="Daily Tokens: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                            <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                        </WrapPanel>
+                                                                        <WrapPanel>
+                                                                            <TextBlock Text="Active Thread: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                            <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" />
+                                                                        </WrapPanel>
+                                                                    </StackPanel>
+                                                                </Border>
+
+                                                                <!-- Box 2: /context Capacity -->
+                                                                <Border Grid.Column="2" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,8">
+                                                                    <StackPanel>
+                                                                        <Grid Margin="0,0,0,4">
+                                                                            <TextBlock Text="🧠 /context (Model Window &amp; Memory)" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                                            <TextBlock Text="{Binding ContextWindowLabel}" FontSize="9.5" FontWeight="SemiBold" Foreground="#8B5CF6" HorizontalAlignment="Right" />
+                                                                        </Grid>
+                                                                        <ProgressBar Value="{Binding ContextUsagePercentage, Mode=OneWay}" Height="4" Minimum="0" Maximum="100"
+                                                                                     Background="{DynamicResource BrushProgressTrack}" Foreground="#8B5CF6" BorderThickness="0" Margin="0,0,0,4" />
+                                                                        <Grid>
+                                                                            <TextBlock Text="{Binding ContextUsageSummary}" FontSize="9.5" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Left" />
+                                                                            <TextBlock Text="{Binding ContextHeadroomSummary}" FontSize="9.5" Foreground="#10B981" HorizontalAlignment="Right" />
+                                                                        </Grid>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </Grid>
+
+                                                            <!-- Expandable Monospace CLI Terminal Inspector Drawer -->
+                                                            <Border Visibility="{Binding IsInspectorOpen, Converter={StaticResource BoolToVisConverter}}"
+                                                                    Background="#0D1117" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6"
+                                                                    Padding="12,10" Margin="0,8,0,0">
+                                                                <StackPanel>
+                                                                    <Grid Margin="0,0,0,6">
+                                                                        <TextBlock Text="{Binding InspectorTitle}" FontFamily="{StaticResource FontMono}" FontSize="11" FontWeight="Bold" Foreground="#58A6FF" VerticalAlignment="Center" />
+                                                                        <Button Command="{Binding CloseInspectorCommand}"
+                                                                                Background="Transparent" BorderThickness="0" Foreground="#8B949E" FontSize="11" FontWeight="Bold"
+                                                                                HorizontalAlignment="Right" Cursor="Hand" Padding="4,0" ToolTip="Close inspector">
+                                                                            <TextBlock Text="✕ Close" />
+                                                                        </Button>
+                                                                    </Grid>
+                                                                    <TextBox Text="{Binding InspectorContent, Mode=OneWay}" IsReadOnly="True"
+                                                                             FontFamily="{StaticResource FontMono}" FontSize="10" Foreground="#C9D1D9" Background="Transparent"
+                                                                             BorderThickness="0" TextWrapping="Wrap" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </StackPanel>
                                                     </StackPanel>
                                                 </Border>
 
@@ -1262,12 +1386,28 @@
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
 
-                                                    <!-- Left Actions: Launch, Copy, Open Folder -->
-                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <!-- Left Actions: Session Resume/New Chat Selector + Launch, Copy, Open Folder -->
+                                                    <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                                        <!-- Session Selector: New Chat / Continue Recent / Resume Specific -->
+                                                        <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="6,2" Margin="0,0,8,4" VerticalAlignment="Center">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <TextBlock Text="💬 Start:" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="2,0,6,0" />
+                                                                <ComboBox ItemsSource="{Binding AvailableSessions}" SelectedItem="{Binding SelectedSession}"
+                                                                          Width="210" Height="26" VerticalAlignment="Center" FontSize="10.5"
+                                                                          ToolTip="Select whether to start a new chat, continue most recent, or resume a specific past conversation">
+                                                                    <ComboBox.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <TextBlock Text="{Binding DisplayText}" FontSize="10.5" TextTrimming="CharacterEllipsis" />
+                                                                        </DataTemplate>
+                                                                    </ComboBox.ItemTemplate>
+                                                                </ComboBox>
+                                                            </StackPanel>
+                                                        </Border>
+
                                                         <Button Command="{Binding LaunchCommand}"
                                                                 CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                Style="{StaticResource PrimaryButton}" Padding="16,7" Margin="0,0,8,0"
-                                                                ToolTip="Launch Antigravity CLI session in selected terminal">
+                                                                Style="{StaticResource PrimaryButton}" Padding="16,7" Margin="0,0,8,4"
+                                                                ToolTip="Launch Antigravity CLI session with chosen session mode">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <Path Data="{StaticResource HeroIconPlay}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                                                 <TextBlock Text="Launch agy" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
@@ -1275,36 +1415,36 @@
                                                         </Button>
                                                         <Button Command="{Binding CopyCliSnippetCommand}"
                                                                 CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0"
+                                                                Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,4"
                                                                 ToolTip="Copy isolated terminal launch command">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <Path Data="{StaticResource HeroIconClipboard}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                                                 <TextBlock Text="Copy CLI" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
-                                                        <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0" ToolTip="Open profile directory">
+                                                        <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,4" ToolTip="Open profile directory">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <Path Data="{StaticResource HeroIconFolder}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                                                 <TextBlock Text="Open Folder" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
-                                                        <Button Command="{Binding RequestDuplicateCommand}" Style="{StaticResource ModernButton}" Padding="12,7" ToolTip="Duplicate profile and copy all chat history and settings">
+                                                        <Button Command="{Binding RequestDuplicateCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,4" ToolTip="Duplicate profile and copy all chat history and settings">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <Path Data="{StaticResource HeroIconDocumentDuplicate}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                                                 <TextBlock Text="{Binding DataContext.Strings[Accounts_Duplicate], RelativeSource={RelativeSource AncestorType=Window}}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
-                                                    </StackPanel>
+                                                    </WrapPanel>
 
                                                     <!-- Right Actions: Edit, Delete -->
                                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <Button Command="{Binding RequestEditCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0" ToolTip="Edit profile settings">
+                                                        <Button Command="{Binding RequestEditCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,4" ToolTip="Edit profile settings">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <Path Data="{StaticResource HeroIconPencil}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                                                 <TextBlock Text="Edit Profile" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
-                                                        <Button Command="{Binding RequestDeleteCommand}" Style="{StaticResource DangerButton}" Padding="12,7" ToolTip="Remove profile">
+                                                        <Button Command="{Binding RequestDeleteCommand}" Style="{StaticResource DangerButton}" Padding="12,7" Margin="0,0,0,4" ToolTip="Remove profile">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <Path Data="{StaticResource HeroIconTrash}" Stroke="#FFFFFF" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                                                 <TextBlock Text="Delete" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />

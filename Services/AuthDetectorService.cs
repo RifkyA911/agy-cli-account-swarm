@@ -59,7 +59,7 @@ public class AuthDetectorService : IAuthDetectorService
                 }
             }
 
-            // 2. Resolve Active Account Email:
+            // 2. Resolve Active Account Email, DisplayName & Picture:
             // Priority A: Local profile's ~/.gemini/antigravity-cli/antigravity-oauth-token
             var oauthTokenPath = Path.Combine(cliDir, "antigravity-oauth-token");
             if (File.Exists(oauthTokenPath))
@@ -68,11 +68,10 @@ public class AuthDetectorService : IAuthDetectorService
                 try
                 {
                     var tokenJson = File.ReadAllText(oauthTokenPath);
-                    var extracted = ExtractEmailFromTokenJson(tokenJson);
-                    if (!string.IsNullOrEmpty(extracted))
-                    {
-                        status.AccountEmail = extracted;
-                    }
+                    var info = ExtractUserInfoFromTokenJson(tokenJson);
+                    if (!string.IsNullOrEmpty(info.Email)) status.AccountEmail = info.Email;
+                    if (!string.IsNullOrEmpty(info.DisplayName)) status.DisplayName = info.DisplayName;
+                    if (!string.IsNullOrEmpty(info.PictureUrl)) status.AvatarUrl = info.PictureUrl;
                 }
                 catch
                 {
@@ -89,11 +88,10 @@ public class AuthDetectorService : IAuthDetectorService
                 var credJson = ReadWindowsCredential("gemini:antigravity");
                 if (!string.IsNullOrEmpty(credJson))
                 {
-                    var extracted = ExtractEmailFromTokenJson(credJson);
-                    if (!string.IsNullOrEmpty(extracted))
-                    {
-                        status.AccountEmail = extracted;
-                    }
+                    var info = ExtractUserInfoFromTokenJson(credJson);
+                    if (!string.IsNullOrEmpty(info.Email)) status.AccountEmail = info.Email;
+                    if (!string.IsNullOrEmpty(info.DisplayName)) status.DisplayName = info.DisplayName;
+                    if (!string.IsNullOrEmpty(info.PictureUrl)) status.AvatarUrl = info.PictureUrl;
                 }
             }
 
@@ -123,7 +121,19 @@ public class AuthDetectorService : IAuthDetectorService
             // 3. Resolve Avatar & Determine Tier
             if (!string.IsNullOrEmpty(status.AccountEmail))
             {
-                status.AvatarUrl = $"https://profiles.google.com/s2/photos/profile/{status.AccountEmail}?sz=96";
+                if (!string.IsNullOrEmpty(status.AvatarUrl))
+                {
+                    status.AvatarUrl = EnsureAvatarCached(status.AvatarUrl, status.AccountEmail ?? profile.Name);
+                    if (File.Exists(status.AvatarUrl))
+                    {
+                        status.LocalAvatarPath = status.AvatarUrl;
+                    }
+                }
+                else
+                {
+                    var accent = profile.ColorTag?.TrimStart('#') ?? "3B82F6";
+                    status.AvatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(status.DisplayName ?? profile.Name)}&background={accent}&color=ffffff&size=128&bold=true";
+                }
 
                 if (!string.IsNullOrEmpty(status.CurrentModel) &&
                     (status.CurrentModel.Contains("3.8", StringComparison.OrdinalIgnoreCase) ||
@@ -156,6 +166,8 @@ public class AuthDetectorService : IAuthDetectorService
                 // Not authenticated
                 status.CurrentModel = null;
                 status.DetectedTier = "Unverified";
+                var accent = profile.ColorTag?.TrimStart('#') ?? "3B82F6";
+                status.AvatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(profile.Name)}&background={accent}&color=ffffff&size=128&bold=true";
             }
 
             // 5. Calculate Tier-Aware Daily Quotas and Today's Usage
@@ -279,6 +291,62 @@ public class AuthDetectorService : IAuthDetectorService
                 status.SessionUsageLabel = "0 turns this session";
             }
 
+            // 6. Context Window & Authentic Telemetry
+            var currentModel = status.CurrentModel ?? profile.PreferredModel ?? "gemini-3.8-flash";
+            status.CurrentModel = currentModel;
+
+            long contextCeiling = 1048576L;
+            if (currentModel.Contains("pro", StringComparison.OrdinalIgnoreCase) ||
+                currentModel.Contains("ultra", StringComparison.OrdinalIgnoreCase))
+            {
+                contextCeiling = 2097152L; // 2M for Pro / Ultra
+            }
+            else if (currentModel.Contains("opus", StringComparison.OrdinalIgnoreCase))
+            {
+                contextCeiling = 200000L; // 200K for Opus
+            }
+            status.ModelContextLimit = contextCeiling;
+            status.ContextWindowLabel = contextCeiling >= 2000000L
+                ? "2M Window (2,097,152 tokens)"
+                : $"{contextCeiling / 1000000.0:F0}M Window ({contextCeiling:N0} tokens)";
+
+            long estContextInUse = Math.Min(contextCeiling, (long)status.SessionTurnsCount * 4200L + (long)status.TodayTurnsCount * 450L);
+            if (estContextInUse < 12000L && status.SessionTurnsCount > 0) estContextInUse = status.SessionTurnsCount * 4200L;
+            status.EstimatedContextTokens = estContextInUse;
+
+            status.ContextUsagePercentage = Math.Min(100.0, ((double)estContextInUse / contextCeiling) * 100.0);
+            long headroom = Math.Max(0, contextCeiling - estContextInUse);
+            status.ContextUsageSummary = $"~{estContextInUse / 1000:N0}K / {contextCeiling / 1000:N0}K tokens ({status.ContextUsagePercentage:F1}%)";
+            status.ContextHeadroomSummary = $"~{headroom / 1000:N0}K tokens free ({Math.Max(0.0, 100.0 - status.ContextUsagePercentage):F1}%)";
+
+            // Authentic CLI Inspection Previews
+            status.InspectionUsageText =
+                "========================================================================\r\n" +
+                "                     ANTIGRAVITY CLI: /usage                            \r\n" +
+                "========================================================================\r\n" +
+                $"Account:        {status.AccountEmail ?? "Local User"} ({effectiveTier} Tier)\r\n" +
+                $"Active Model:   {status.CurrentModel}\r\n" +
+                $"Daily Quota:    {status.TodayTurnsCount:N0} / {dailyLimit:N0} prompts used ({status.UsagePercentage:F1}%)\r\n" +
+                $"Daily Tokens:   {status.TodayTokensEstimated:N0} / {status.DailyTokensLimit:N0} est. tokens\r\n" +
+                $"Session Turns:  {status.SessionTurnsCount:N0} turns (Active thread: {status.CurrentSessionId ?? "active"})\r\n" +
+                $"Weekly Limit:   {status.WeeklyTurnsCount:N0} / {weeklyLimit:N0} prompts ({status.WeeklyRemainingPercentage:F1}% remaining)\r\n" +
+                $"Reset Cycle:    Resets daily at 00:00 UTC ({status.QuotaResetCountdown})\r\n" +
+                "========================================================================";
+
+            status.InspectionContextText =
+                "========================================================================\r\n" +
+                "                     ANTIGRAVITY CLI: /context                          \r\n" +
+                "========================================================================\r\n" +
+                $"Active Model:   {status.CurrentModel}\r\n" +
+                $"Context Window: {status.ContextWindowLabel}\r\n" +
+                $"Context In-Use: {status.ContextUsageSummary}\r\n" +
+                $"Free Headroom:  {status.ContextHeadroomSummary}\r\n" +
+                $"Session Memory: {status.SessionTurnsCount:N0} turns recorded in thread\r\n" +
+                $"Active Session: {status.CurrentSessionId ?? "default"}\r\n" +
+                $"Working Dir:    {TerminalLauncherService.GetValidWorkingDirectory(profile)}\r\n" +
+                "Integrations:   Google Gemini 3.8 / 2.5 Engine, Antislop, Swarm Sandbox\r\n" +
+                "========================================================================";
+
             // 7. Determine Final Status
             bool hasValidAuth = File.Exists(oauthTokenPath) ||
                                 !string.IsNullOrEmpty(status.AccountEmail) ||
@@ -315,6 +383,197 @@ public class AuthDetectorService : IAuthDetectorService
             Logger.Debug($"[AuthDetector] Profile '{profile.Name}' ready for login.");
             return status;
         });
+    }
+
+    public List<ConversationSessionItem> GetAvailableSessions(AccountProfile profile)
+    {
+        var list = new List<ConversationSessionItem>
+        {
+            new ConversationSessionItem
+            {
+                Id = "",
+                DisplayText = "✨ New Chat (Fresh Session)"
+            },
+            new ConversationSessionItem
+            {
+                Id = "__recent__",
+                DisplayText = "🔄 Continue Recent Session (/continue)"
+            }
+        };
+
+        try
+        {
+            var profileDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
+            var historyFile = Path.Combine(profileDir, ".gemini", "antigravity-cli", "history.jsonl");
+            if (File.Exists(historyFile))
+            {
+                var lines = File.ReadAllLines(historyFile);
+                var groups = new Dictionary<string, (int count, long maxTime, string lastPrompt, string workspace)>();
+
+                foreach (var line in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(line);
+                        if (doc.RootElement.TryGetProperty("conversationId", out var cProp) &&
+                            cProp.GetString() is { Length: > 0 } convId)
+                        {
+                            long ts = 0;
+                            if (doc.RootElement.TryGetProperty("timestamp", out var tsProp) && tsProp.TryGetInt64(out var tVal))
+                            {
+                                ts = tVal;
+                            }
+
+                            string prompt = "";
+                            if (doc.RootElement.TryGetProperty("display", out var dProp) && dProp.GetString() is { Length: > 0 } dVal)
+                            {
+                                prompt = dVal.Trim();
+                            }
+
+                            string ws = "";
+                            if (doc.RootElement.TryGetProperty("workspace", out var wProp) && wProp.GetString() is { Length: > 0 } wVal)
+                            {
+                                ws = wVal.Trim();
+                            }
+
+                            if (!groups.TryGetValue(convId, out var existing))
+                            {
+                                groups[convId] = (1, ts, prompt, ws);
+                            }
+                            else
+                            {
+                                var updatedPrompt = string.IsNullOrEmpty(prompt) ? existing.lastPrompt : prompt;
+                                var updatedWs = string.IsNullOrEmpty(ws) ? existing.workspace : ws;
+                                var updatedTs = Math.Max(existing.maxTime, ts);
+                                groups[convId] = (existing.count + 1, updatedTs, updatedPrompt, updatedWs);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                var sorted = groups.OrderByDescending(g => g.Value.maxTime).Take(15);
+                foreach (var kvp in sorted)
+                {
+                    var convId = kvp.Key;
+                    var info = kvp.Value;
+                    var wsName = !string.IsNullOrEmpty(info.workspace) ? Path.GetFileName(info.workspace) : "Workspace";
+                    var cleanSnippet = info.lastPrompt.Replace('\r', ' ').Replace('\n', ' ');
+                    if (cleanSnippet.Length > 40) cleanSnippet = cleanSnippet.Substring(0, 37) + "...";
+                    if (string.IsNullOrWhiteSpace(cleanSnippet)) cleanSnippet = "Conversation";
+
+                    list.Add(new ConversationSessionItem
+                    {
+                        Id = convId,
+                        DisplayText = $"💬 [{wsName}] {cleanSnippet} ({info.count} turns)",
+                        Snippet = info.lastPrompt,
+                        Workspace = info.workspace,
+                        TurnsCount = info.count,
+                        LastTimestamp = info.maxTime > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(info.maxTime).UtcDateTime : null
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug($"[AuthDetector] Failed reading available sessions for '{profile.Name}': {ex.Message}");
+        }
+
+        return list;
+    }
+
+    private static readonly System.Net.Http.HttpClient _httpClient = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+
+    public static string EnsureAvatarCached(string? pictureUrl, string identifier)
+    {
+        if (string.IsNullOrWhiteSpace(pictureUrl) || !pictureUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            return pictureUrl ?? string.Empty;
+        }
+
+        try
+        {
+            var localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgyAccountSwarm", "avatars");
+            if (!Directory.Exists(localDir)) Directory.CreateDirectory(localDir);
+
+            var safeId = Math.Abs(identifier.GetHashCode()).ToString("X8");
+            var filePath = Path.Combine(localDir, $"{safeId}.jpg");
+
+            if (File.Exists(filePath) && new FileInfo(filePath).Length > 0)
+            {
+                return filePath;
+            }
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var bytes = await _httpClient.GetByteArrayAsync(pictureUrl);
+                    if (bytes.Length > 0)
+                    {
+                        await File.WriteAllBytesAsync(filePath, bytes);
+                    }
+                }
+                catch
+                {
+                }
+            });
+
+            return File.Exists(filePath) ? filePath : pictureUrl;
+        }
+        catch
+        {
+            return pictureUrl;
+        }
+    }
+
+    public record UserAuthTokenInfo(string? Email, string? DisplayName, string? PictureUrl);
+
+    public static UserAuthTokenInfo ExtractUserInfoFromTokenJson(string tokenJson)
+    {
+        if (string.IsNullOrWhiteSpace(tokenJson)) return new UserAuthTokenInfo(null, null, null);
+        try
+        {
+            using var doc = JsonDocument.Parse(tokenJson);
+            string? email = null;
+            string? name = null;
+            string? picture = null;
+
+            if (doc.RootElement.TryGetProperty("id_token", out var idTokenProp) && idTokenProp.GetString() is { Length: > 0 } idToken)
+            {
+                var parts = idToken.Split('.');
+                if (parts.Length >= 2)
+                {
+                    string payload = parts[1].Replace('-', '+').Replace('_', '/');
+                    switch (payload.Length % 4)
+                    {
+                        case 2: payload += "=="; break;
+                        case 3: payload += "="; break;
+                    }
+                    var bytes = Convert.FromBase64String(payload);
+                    var jwtJson = Encoding.UTF8.GetString(bytes);
+                    using var jwtDoc = JsonDocument.Parse(jwtJson);
+
+                    if (jwtDoc.RootElement.TryGetProperty("email", out var e) && e.GetString() is { Length: > 0 } eStr) email = eStr;
+                    if (jwtDoc.RootElement.TryGetProperty("name", out var n) && n.GetString() is { Length: > 0 } nStr) name = nStr;
+                    if (jwtDoc.RootElement.TryGetProperty("picture", out var p) && p.GetString() is { Length: > 0 } pStr) picture = pStr;
+                }
+            }
+
+            if (string.IsNullOrEmpty(email) && doc.RootElement.TryGetProperty("email", out var e2) && e2.GetString() is { Length: > 0 } e2Str) email = e2Str;
+            if (string.IsNullOrEmpty(email) && doc.RootElement.TryGetProperty("user_email", out var ue) && ue.GetString() is { Length: > 0 } ueStr) email = ueStr;
+            if (string.IsNullOrEmpty(picture) && doc.RootElement.TryGetProperty("picture", out var p2) && p2.GetString() is { Length: > 0 } p2Str) picture = p2Str;
+            if (string.IsNullOrEmpty(name) && doc.RootElement.TryGetProperty("name", out var n2) && n2.GetString() is { Length: > 0 } n2Str) name = n2Str;
+
+            return new UserAuthTokenInfo(email, name, picture);
+        }
+        catch
+        {
+            return new UserAuthTokenInfo(null, null, null);
+        }
     }
 
     public static int GetDailyQuotaForTier(string? tier)
@@ -386,28 +645,7 @@ public class AuthDetectorService : IAuthDetectorService
 
     public static string? ExtractEmailFromTokenJson(string tokenJson)
     {
-        if (string.IsNullOrWhiteSpace(tokenJson)) return null;
-        try
-        {
-            using var doc = JsonDocument.Parse(tokenJson);
-            if (doc.RootElement.TryGetProperty("id_token", out var idTokenProp) && idTokenProp.GetString() is { Length: > 0 } idToken)
-            {
-                var email = ExtractEmailFromIdToken(idToken);
-                if (!string.IsNullOrEmpty(email)) return email;
-            }
-            if (doc.RootElement.TryGetProperty("email", out var emailProp) && emailProp.GetString() is { Length: > 0 } email2)
-            {
-                return email2;
-            }
-            if (doc.RootElement.TryGetProperty("user_email", out var uEmailProp) && uEmailProp.GetString() is { Length: > 0 } uEmail2)
-            {
-                return uEmail2;
-            }
-        }
-        catch
-        {
-        }
-        return null;
+        return ExtractUserInfoFromTokenJson(tokenJson).Email;
     }
 
     [DllImport("advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]

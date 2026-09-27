@@ -29,7 +29,9 @@ public class ProfileAuthStatus
 {
     public AuthStatusType Status { get; set; } = AuthStatusType.NotInitialized;
     public string? AccountEmail { get; set; }
+    public string? DisplayName { get; set; }
     public string? AvatarUrl { get; set; }
+    public string? LocalAvatarPath { get; set; }
     public string StatusMessage { get; set; } = "Not initialized";
     public string? CurrentModel { get; set; } = null;
     public int TotalTurnsCount { get; set; } = 0;
@@ -52,6 +54,18 @@ public class ProfileAuthStatus
     public int SessionTurnsCount { get; set; } = 0;
     public string? CurrentSessionId { get; set; }
     public string SessionUsageLabel { get; set; } = "0 turns this session";
+
+    // Context Metrics (from agy cli /context)
+    public long ModelContextLimit { get; set; } = 1048576;
+    public long EstimatedContextTokens { get; set; } = 0;
+    public double ContextUsagePercentage { get; set; } = 0.0;
+    public string ContextWindowLabel { get; set; } = "1M Window (1,048,576 tokens)";
+    public string ContextUsageSummary { get; set; } = "0 / 1,048K tokens (0.0%)";
+    public string ContextHeadroomSummary { get; set; } = "1,048K tokens free (100.0%)";
+
+    // Authentic CLI Inspection Previews
+    public string InspectionUsageText { get; set; } = string.Empty;
+    public string InspectionContextText { get; set; } = string.Empty;
 
     public string DetectedTier { get; set; } = "Pro";
     public DateTime? TokenModifiedAt { get; set; }

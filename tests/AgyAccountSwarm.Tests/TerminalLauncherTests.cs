@@ -238,4 +238,56 @@ public class TerminalLauncherTests
         vm.RequestDuplicateCommand.Execute(null);
         Assert.True(triggered);
     }
+
+    [Fact]
+    public void ExtractUserInfoFromTokenJson_ValidIdToken_ReturnsPictureAndDisplayName()
+    {
+        // Sample id_token JWT with email, name, and picture claims
+        // Payload: {"email":"user@gmail.com","name":"Google User","picture":"https://lh3.googleusercontent.com/a/sample"}
+        string base64Payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("{\"email\":\"user@gmail.com\",\"name\":\"Google User\",\"picture\":\"https://lh3.googleusercontent.com/a/sample\"}")).TrimEnd('=');
+        string tokenJson = $"{{\"id_token\":\"header.{base64Payload}.sig\"}}";
+
+        var info = AuthDetectorService.ExtractUserInfoFromTokenJson(tokenJson);
+
+        Assert.Equal("user@gmail.com", info.Email);
+        Assert.Equal("Google User", info.DisplayName);
+        Assert.Equal("https://lh3.googleusercontent.com/a/sample", info.PictureUrl);
+    }
+
+    [Fact]
+    public void GetAvailableSessions_ReturnsNewChatAndContinueRecent()
+    {
+        var service = new AuthDetectorService();
+        var profile = new AccountProfile { Name = "Temp Profile" };
+        var sessions = service.GetAvailableSessions(profile);
+
+        Assert.NotNull(sessions);
+        Assert.True(sessions.Count >= 2);
+        Assert.True(sessions[0].IsNewChat);
+        Assert.True(sessions[1].IsContinueRecent);
+    }
+
+    [Fact]
+    public void ProfileItemViewModel_ContextMetricsAndInspection_AreAccurate()
+    {
+        var profile = new AccountProfile { Name = "Context Test", PreferredModel = "gemini-1.5-pro" };
+        var vm = new ProfileItemViewModel(profile, new TerminalLauncherService(), new AuthDetectorService(), new AudioService());
+
+        // Context metrics initialized
+        Assert.True(vm.ModelContextLimit >= 1000000L);
+
+        // Toggle /usage inspection
+        vm.ToggleUsageInspectionCommand.Execute(null);
+        Assert.True(vm.IsInspectorOpen);
+        Assert.Equal("usage", vm.InspectorMode);
+
+        // Toggle /context inspection
+        vm.ToggleContextInspectionCommand.Execute(null);
+        Assert.True(vm.IsInspectorOpen);
+        Assert.Equal("context", vm.InspectorMode);
+
+        // Close inspection
+        vm.CloseInspectorCommand.Execute(null);
+        Assert.False(vm.IsInspectorOpen);
+    }
 }

@@ -125,7 +125,7 @@ public class TerminalLauncherService : ITerminalLauncherService
                $"& '{escapedAgy}'{cleanExtra}";
     }
 
-    public Task<Process?> LaunchProfileAsync(AccountProfile profile, TerminalType terminal, bool forceLoginPrompt = false)
+    public Task<Process?> LaunchProfileAsync(AccountProfile profile, TerminalType terminal, bool forceLoginPrompt = false, string? sessionArgs = null)
     {
         return Task.Run(() =>
         {
@@ -138,8 +138,14 @@ public class TerminalLauncherService : ITerminalLauncherService
             var workingDir = GetValidWorkingDirectory(profile);
             var agyBinary = FindAgyExecutablePath() ?? "agy";
             var extraArgs = profile.ExtraArguments?.Trim() ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(sessionArgs))
+            {
+                extraArgs = string.IsNullOrWhiteSpace(extraArgs) ? sessionArgs.Trim() : $"{extraArgs} {sessionArgs.Trim()}";
+            }
+
             var title = $"AGY [{profile.Name}]";
             var scriptPath = EnsureLauncherScript(profile);
+            var scriptCallSuffix = string.IsNullOrWhiteSpace(sessionArgs) ? "" : " " + sessionArgs.Trim();
 
             ProcessStartInfo psi;
 
@@ -149,7 +155,7 @@ public class TerminalLauncherService : ITerminalLauncherService
                 psi = new ProcessStartInfo
                 {
                     FileName = "wt.exe",
-                    Arguments = BuildWindowsTerminalArguments(title, workingDir, scriptPath),
+                    Arguments = BuildWindowsTerminalArguments(title, workingDir, scriptPath) + scriptCallSuffix,
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
@@ -171,7 +177,7 @@ public class TerminalLauncherService : ITerminalLauncherService
                 psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = BuildCmdArguments(scriptPath),
+                    Arguments = BuildCmdArguments(scriptPath) + scriptCallSuffix,
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
@@ -179,7 +185,7 @@ public class TerminalLauncherService : ITerminalLauncherService
 
             profile.LastLaunchedAt = DateTime.UtcNow;
             var proc = Process.Start(psi);
-            Logger.Info($"[TerminalLauncher] Launched profile '{profile.Name}' via {terminal} (PID: {proc?.Id.ToString() ?? "detached"}) in '{workingDir}'");
+            Logger.Info($"[TerminalLauncher] Launched profile '{profile.Name}' via {terminal} (PID: {proc?.Id.ToString() ?? "detached"}) with args '{sessionArgs ?? "none"}' in '{workingDir}'");
             return proc;
         });
     }
