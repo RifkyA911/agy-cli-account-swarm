@@ -66,7 +66,7 @@ public partial class MainWindow : Window
             _notifyIcon = new NotifyIcon
             {
                 Icon = appIcon ?? System.Drawing.SystemIcons.Application,
-                Text = "Agy Account Swarm",
+                Text = "Agy CLI Account Swarm",
                 Visible = true
             };
 
@@ -105,7 +105,7 @@ public partial class MainWindow : Window
         if (WindowState == WindowState.Minimized && _viewModel.MinimizeToTray)
         {
             Hide();
-            _notifyIcon?.ShowBalloonTip(1500, "Agy Account Swarm", "Running in the background tray.", ToolTipIcon.Info);
+            _notifyIcon?.ShowBalloonTip(1500, "Agy CLI Account Swarm", "Running in the background tray.", ToolTipIcon.Info);
         }
     }
 
@@ -115,7 +115,7 @@ public partial class MainWindow : Window
         {
             e.Cancel = true;
             Hide();
-            _notifyIcon?.ShowBalloonTip(1500, "Agy Account Swarm", "Minimized to tray. Double-click cat icon to reopen.", ToolTipIcon.Info);
+            _notifyIcon?.ShowBalloonTip(1500, "Agy CLI Account Swarm", "Minimized to tray. Double-click cat icon to reopen.", ToolTipIcon.Info);
         }
         else
         {

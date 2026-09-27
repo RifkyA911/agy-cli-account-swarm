@@ -1,8 +1,42 @@
 # Changelog
 
-All notable changes to the **Agy Account Swarm** project are documented here.
+All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
-## [v0.9.2-beta] - 2026-09-27
+## [v0.9.3-beta] - 2026-09-27
+### Added
+- **Rebranding to "Agy CLI Account Swarm" & IDE Disambiguation**:
+  - Rebranded the application title bar, sidebar logo, system tray tooltip, vector banner (`docs/assets/banner.svg`), HTML telemetry reports, and documentation from `Agy Account Swarm` to **`Agy CLI Account Swarm`**.
+  - Clarified scope to eliminate confusion: this tool is a dedicated multi-account orchestrator for Google Antigravity CLI (`agy`), not the Antigravity IDE.
+- **Explicit GUI Desktop App Mode Only Specification**:
+  - Emphasized clearly across documentation and UI that the application currently operates exclusively in **GUI Desktop App mode** (built with WPF on .NET 9 for Windows) and **does not yet support a headless CLI-only interface**. It acts as a graphical control tower that launches, isolates, and monitors separate terminal-based Antigravity CLI sessions.
+- **Embedded CLI Telemetry Inspector (`/usage` & `/context`)**:
+  - Added live CLI telemetry inspection cards in Account Cards below a sleek horizontal separator (`<Separator />`).
+  - **`/usage` Tab**: Displays daily prompt quota progress, current session turn counts, estimated swarm tokens consumed, and daily quota reset countdown (00:00 UTC).
+  - **`/context` Tab**: Reports model context window limits (1M / 2M tokens), prompt context headroom, and cached context metrics.
+- **Chat Session Start / Resume Selector**:
+  - Added interactive session dropdown directly on each Account Card before launching:
+    - `✨ Start New Chat Session` (standard launch)
+    - `🔄 Continue Recent Chat (--continue)`
+    - `💬 Resume Specific Conversation (--conversation <id>)` parsed dynamically from local conversation storage.
+- **Authentic Google Profile Avatar Extraction & Disk Caching**:
+  - Decodes Google OAuth JWT `id_token` `picture` claim (`https://lh3.googleusercontent.com/a/...`).
+  - Downloads and caches authentic profile photos to `%LOCALAPPDATA%\AgyAccountSwarm\avatars\` for offline persistence.
+  - Vibrant fallback avatar with user initials and color-coded backgrounds when offline or pending authentication.
+  - Added circular 42x42 avatars to both Account Cards (`/accounts`) and Active Accounts list on Dashboard (`/dashboard`).
+- **Profile Duplication (Clone Profile)**:
+  - Added instant duplicate button (`📋 Duplikat` / `Duplicate`) in Account cards to easily clone profile settings, models, and workspaces with 1 click.
+- **Dynamic Quota Progress Bar Colors**:
+  - Color-coded rate-limit usage bar: Emerald Green (< 70%), Amber Yellow (70% - 90%), Crimson Red (> 90%).
+- **Multi-Platform Installer & Uninstaller System**:
+  - **Windows Installer (`.exe`)**: Built with Inno Setup 6 (`scripts/installer.iss` and `scripts/build-installer.ps1`). Produces `Agy-CLI-Account-Swarm-Setup-v0.9.3-beta.exe` with desktop shortcut, Start Menu folder, and a complete Windows Uninstaller (`unins000.exe`) registered in Windows Settings > Apps & Features.
+  - **Windows Portable Archive**: Generates zero-install `Agy-CLI-Account-Swarm-v0.9.3-beta-win-x64.zip`.
+  - **Linux Distribution Package**: Created `scripts/install-linux.sh` and `scripts/uninstall-linux.sh` with desktop file integration, launcher wrapper, and automatic menu registration.
+  - **macOS Distribution Package**: Created `scripts/install-macos.sh` and `scripts/uninstall-macos.sh` generating `Agy CLI Account Swarm.app` bundle and command symlinks.
+  - **GitHub Actions Release Automation**: Upgraded `.github/workflows/release.yml` to automatically run tests, build all installers, calculate SHA256 checksums, and publish GitHub Releases with prerelease flags upon pushing any `v*-beta` tag.
+- **Keyring Decoupling & Isolation for Concurrent Multi-Account Execution**:
+  - Virtualized SSH and client environment variables (`SSH_CONNECTION`, `SSH_CLIENT`) to instruct `agy` to use isolated file-based token storage (`oauth_credentials.json`), preventing secondary accounts from being overridden by the OS Windows Credential Manager.
+- **Expanded Unit Test Suite**:
+  - Expanded test coverage to 43 passing tests across isolation mechanics, argument escaping, quota formulas, and ViewModel commands with 0 errors and 0 warnings.
 ### Fixed
 - **Terminal Launcher Directory Path with Spaces Quoting**:
   - Fixed CMD argument generation bug (`/k call "{scriptPath}"` instead of consecutive double quotes `\"\"{scriptPath}\"\"`).

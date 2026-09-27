@@ -19,7 +19,7 @@ public partial class App : System.Windows.Application
         // 1. Setup Global Exception Handlers
         SetupExceptionHandling();
 
-        Logger.Info("Agy Account Swarm starting up...");
+        Logger.Info("Agy CLI Account Swarm starting up...");
 
         try
         {
@@ -55,7 +55,7 @@ public partial class App : System.Windows.Application
             Logger.Error("Fatal error during application startup", ex);
             System.Windows.MessageBox.Show(
                 $"Fatal startup error:\n{ex.Message}\n\nCheck logs at:\n{Logger.LogPath}",
-                "Agy Account Swarm Error",
+                "Agy CLI Account Swarm Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
             Shutdown(1);
@@ -70,7 +70,7 @@ public partial class App : System.Windows.Application
             Logger.Error("Unhandled Dispatcher Exception", e.Exception);
             System.Windows.MessageBox.Show(
                 $"An unexpected error occurred:\n{e.Exception.Message}\n\nDetails saved to:\n{Logger.LogPath}",
-                "Agy Account Swarm Error",
+                "Agy CLI Account Swarm Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
             e.Handled = true; // Prevent abrupt app crash

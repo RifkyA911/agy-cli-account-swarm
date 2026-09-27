@@ -1,33 +1,102 @@
-name: Release Build
+name: Release Build & Multi-Platform Packaging
 
 on:
   push:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
-  release:
+  build-and-release:
+    name: Build Installer, Binaries & Publish Release
     runs-on: windows-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
 
-    - name: Publish Binaries
-      run: dotnet publish -c Release -r win-x64 --self-contained false -o release-dist
+      - name: Install Inno Setup
+        uses: joshua-niehus/innosetup-action@v1.0.1
+        with:
+          version: '6.3.3'
 
-    - name: Archive Artifacts
-      shell: pwsh
-      run: Compress-Archive -Path release-dist/* -DestinationPath agy-account-swarm-win-x64.zip
+      - name: Run Unit Tests
+        run: dotnet test --verbosity normal
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        files: agy-account-swarm-win-x64.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish Binaries
+        run: dotnet publish AgyAccountSwarm.csproj -c Release -o publish --nologo
+
+      - name: Extract Tag Name & Version
+        id: vars
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart("v")
+          echo "TAG=$tag" >> $env:GITHUB_OUTPUT
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          $isBeta = $tag -match "beta|alpha|rc"
+          echo "IS_PRERELEASE=$isBeta" >> $env:GITHUB_OUTPUT
+
+      - name: Compile Windows Inno Setup Installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          iscc "/Qp" scripts/installer.iss
+
+      - name: Package Windows Portable ZIP
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.vars.outputs.VERSION }}"
+          Compress-Archive -Path publish/* -DestinationPath "dist/Agy-CLI-Account-Swarm-v$ver-win-x64.zip" -CompressionLevel Optimal
+
+      - name: Package Linux & macOS Distribution Bundles
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.vars.outputs.VERSION }}"
+          
+          # Linux bundle
+          New-Item -ItemType Directory -Path "dist/linux-bundle/bundle" -Force | Out-Null
+          Copy-Item "publish/*" "dist/linux-bundle/bundle/" -Recurse -Force
+          Copy-Item "scripts/install-linux.sh" "dist/linux-bundle/install.sh" -Force
+          Copy-Item "scripts/uninstall-linux.sh" "dist/linux-bundle/uninstall.sh" -Force
+          tar -czf "dist/Agy-CLI-Account-Swarm-v$ver-linux.tar.gz" -C dist/linux-bundle .
+
+          # macOS bundle
+          New-Item -ItemType Directory -Path "dist/macos-bundle/bundle" -Force | Out-Null
+          Copy-Item "publish/*" "dist/macos-bundle/bundle/" -Recurse -Force
+          Copy-Item "scripts/install-macos.sh" "dist/macos-bundle/install.sh" -Force
+          Copy-Item "scripts/uninstall-macos.sh" "dist/macos-bundle/uninstall.sh" -Force
+          tar -czf "dist/Agy-CLI-Account-Swarm-v$ver-macos.tar.gz" -C dist/macos-bundle .
+
+      - name: Compute SHA256 Checksums
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path dist -File | Where-Object { $_.Name -ne "SHA256SUMS.txt" -and $_.Extension -match "exe|zip|gz" }
+          $lines = [System.Collections.Generic.List[string]]::new()
+          foreach ($f in $files) {
+            $hash = (Get-FileHash -Path $f.FullName -Algorithm SHA256).Hash.ToLower()
+            $lines.Add("$hash  $($f.Name)")
+          }
+          [System.IO.File]::WriteAllLines("dist/SHA256SUMS.txt", $lines)
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Agy CLI Account Swarm ${{ steps.vars.outputs.TAG }}"
+          tag_name: ${{ steps.vars.outputs.TAG }}
+          prerelease: ${{ steps.vars.outputs.IS_PRERELEASE == 'True' }}
+          generate_release_notes: true
+          files: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.tar.gz
+            dist/SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

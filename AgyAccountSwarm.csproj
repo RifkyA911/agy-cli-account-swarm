@@ -8,9 +8,12 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
-    <Version>0.9.2-beta</Version>
-    <AssemblyVersion>0.9.2.0</AssemblyVersion>
-    <FileVersion>0.9.2.0</FileVersion>
+    <Version>0.9.3-beta</Version>
+    <AssemblyVersion>0.9.3.0</AssemblyVersion>
+    <FileVersion>0.9.3.0</FileVersion>
+    <AssemblyTitle>Agy CLI Account Swarm</AssemblyTitle>
+    <Product>Agy CLI Account Swarm</Product>
+    <Description>Desktop GUI orchestrator and sandbox session manager for Google Antigravity CLI</Description>
   </PropertyGroup>
 
   <ItemGroup>

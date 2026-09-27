@@ -1825,7 +1825,7 @@ public partial class MainViewModel : ObservableObject
     private string GenerateExecutiveReportHtml()
     {
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Agy Account Swarm - Telemetry Report</title>");
+        sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Agy CLI Account Swarm - Telemetry Report</title>");
         sb.AppendLine("<style>");
         sb.AppendLine("body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; line-height: 1.5; }");
         sb.AppendLine(".card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 18px; margin-bottom: 20px; }");
@@ -1843,7 +1843,7 @@ public partial class MainViewModel : ObservableObject
         sb.AppendLine("</style></head><body>");
 
         sb.AppendLine("<div class='header'>");
-        sb.AppendLine("  <div><div class='title'>⚡ Agy Account Swarm - Executive Telemetry Report</div><div style='color:#94a3b8; font-size:12px; margin-top:4px;'>Google Antigravity Multi-Account Orchestration & Telemetry Audit</div></div>");
+        sb.AppendLine("  <div><div class='title'>⚡ Agy CLI Account Swarm - Executive Telemetry Report</div><div style='color:#94a3b8; font-size:12px; margin-top:4px;'>Google Antigravity CLI Multi-Account Orchestration & Telemetry Audit</div></div>");
         sb.AppendLine($"  <div style='text-align:right; font-size:12px; color:#94a3b8;'>Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}<br>Primary Operator: rifkyakhmad911@gmail.com</div>");
         sb.AppendLine("</div>");
 
@@ -1890,7 +1890,7 @@ public partial class MainViewModel : ObservableObject
         sb.AppendLine("  </tbody></table>");
         sb.AppendLine("</div>");
 
-        sb.AppendLine("<div style='text-align:center; font-size:11px; color:#64748b; margin-top:30px;'>Agy Account Swarm v0.9.0-beta (MIT Open Source) • Authored by RifkyA911 • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
+        sb.AppendLine("<div style='text-align:center; font-size:11px; color:#64748b; margin-top:30px;'>Agy CLI Account Swarm v0.9.3-beta (MIT Open Source) • Authored by RifkyA911 • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
         sb.AppendLine("</body></html>");
         return sb.ToString();
     }

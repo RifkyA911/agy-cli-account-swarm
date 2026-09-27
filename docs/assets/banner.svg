@@ -65,16 +65,16 @@
   <g transform="translate(80, 52)">
     <rect width="336" height="30" rx="15" fill="#172033" stroke="#2B3A5A" stroke-width="1"/>
     <circle cx="16" cy="15" r="4.5" fill="#10B981"/>
-    <text x="28" y="19.5" fill="#93C5FD" class="font-mono" font-size="12" font-weight="600" letter-spacing="0.5">CLI VIRTUALIZATION ENGINE • v0.9.0-beta</text>
+    <text x="28" y="19.5" fill="#93C5FD" class="font-mono" font-size="12" font-weight="600" letter-spacing="0.5">CLI VIRTUALIZATION ENGINE • v0.9.3-beta</text>
   </g>
 
   <!-- Main Hero Brand Title -->
   <g transform="translate(80, 138)">
     <text class="font-sans" font-size="52" font-weight="900" fill="url(#titleGrad)" letter-spacing="-1.2">
-      Agy Account Swarm
+      Agy CLI Account Swarm
     </text>
     <!-- Lightning Icon Accent -->
-    <path d="M496 -34 L476 -6 L490 -6 L470 24 L508 -4 L492 -4 Z" fill="#F59E0B" filter="drop-shadow(0 0 10px rgba(245, 158, 11, 0.6))"/>
+    <path d="M590 -34 L570 -6 L584 -6 L564 24 L602 -4 L586 -4 Z" fill="#F59E0B" filter="drop-shadow(0 0 10px rgba(245, 158, 11, 0.6))"/>
   </g>
 
   <!-- Tagline / Subtitle -->
