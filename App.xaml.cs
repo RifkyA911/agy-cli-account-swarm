@@ -31,6 +31,7 @@ public partial class App : System.Windows.Application
             ILocalizationService localizationService = new LocalizationService();
             IMcpService mcpService = new McpService();
             ITelemetryService telemetryService = new TelemetryService();
+            IAgyModelService modelService = new AgyModelService();
 
             // 3. Setup MainViewModel
             var mainViewModel = new MainViewModel(
@@ -40,7 +41,8 @@ public partial class App : System.Windows.Application
                 audioService,
                 localizationService,
                 mcpService,
-                telemetryService);
+                telemetryService,
+                modelService);
 
             // 4. Show MainWindow
             var mainWindow = new MainWindow(mainViewModel);

@@ -68,16 +68,17 @@ public partial class ProfileEditViewModel : ObservableObject
 
     public event Action<bool>? RequestClose;
 
-    public ProfileEditViewModel()
+    public ProfileEditViewModel(IEnumerable<string>? availableModels = null)
     {
         _dialogTitle = "Add Account Profile";
         IsEditMode = false;
         _tier = "Basic";
-        _preferredModel = "gemini-2.5-flash";
+        _preferredModel = "Gemini 3.8 Flash (Medium)";
         _quotaLimit = 500;
+        PopulateModels(availableModels);
     }
 
-    public ProfileEditViewModel(AccountProfile profileToEdit)
+    public ProfileEditViewModel(AccountProfile profileToEdit, IEnumerable<string>? availableModels = null)
     {
         IsEditMode = true;
         _dialogTitle = $"Edit Profile: {profileToEdit.Name}";
@@ -91,9 +92,51 @@ public partial class ProfileEditViewModel : ObservableObject
         _extraArguments = profileToEdit.ExtraArguments;
         _isSelectedForSwarm = profileToEdit.IsSelectedForSwarm;
         _tier = string.IsNullOrWhiteSpace(profileToEdit.Tier) ? "Pro" : profileToEdit.Tier;
-        _preferredModel = string.IsNullOrWhiteSpace(profileToEdit.PreferredModel) ? "gemini-2.5-flash" : profileToEdit.PreferredModel;
+        _preferredModel = string.IsNullOrWhiteSpace(profileToEdit.PreferredModel) ? "Gemini 3.8 Flash (Medium)" : profileToEdit.PreferredModel;
         _quotaLimit = profileToEdit.QuotaLimit > 0 ? profileToEdit.QuotaLimit : 500;
         _isQuotaExhausted = profileToEdit.IsQuotaExhausted;
+
+        PopulateModels(availableModels);
+    }
+
+    private void PopulateModels(IEnumerable<string>? availableModels)
+    {
+        ModelOptions.Clear();
+        if (availableModels != null && availableModels.Any())
+        {
+            foreach (var m in availableModels)
+            {
+                if (!string.IsNullOrWhiteSpace(m) && !ModelOptions.Contains(m))
+                {
+                    ModelOptions.Add(m);
+                }
+            }
+        }
+        else
+        {
+            var defaults = new[]
+            {
+                "Gemini 3.8 Flash (Medium)",
+                "Gemini 3.8 Flash (High)",
+                "Gemini 3.8 Flash (Low)",
+                "Gemini 3.7 Flash (High)",
+                "Gemini 3.7 Flash (Medium)",
+                "Gemini 3.6 Flash (Medium)",
+                "Gemini 3.1 Pro (High)",
+                "Claude Sonnet 4.6 (Thinking)",
+                "Claude Opus 4.6 (Thinking)",
+                "GPT-OSS 120B (Medium)",
+                "Gemini 2.5 Pro",
+                "Gemini 2.5 Flash",
+                "Gemini 1.5 Pro"
+            };
+            foreach (var d in defaults) ModelOptions.Add(d);
+        }
+
+        if (!string.IsNullOrWhiteSpace(PreferredModel) && !ModelOptions.Contains(PreferredModel))
+        {
+            ModelOptions.Insert(0, PreferredModel);
+        }
     }
 
     [RelayCommand]

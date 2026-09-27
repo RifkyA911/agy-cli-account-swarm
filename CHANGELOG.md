@@ -2,6 +2,30 @@
 
 All notable changes to the **Agy Account Swarm** project are documented here.
 
+## [v1.3.2] - 2026-09-27
+### Added
+- **Dynamic AGY Model Engine (`AgyModelService`)**:
+  - Live model discovery from installed CLI (`agy models`) and profile `settings.json`.
+  - Supports up-to-date 2026 models: `Gemini 3.8 Flash (Medium)`, `Gemini 3.8 Flash (High)`, `Gemini 3.8 Flash (Low)`, `Gemini 3.7 Flash`, `Gemini 3.6 Flash`, `Gemini 3.1 Pro`, `Claude Sonnet 4.6 (Thinking)`, `Claude Opus 4.6 (Thinking)`, and `GPT-OSS 120B`.
+  - Automatically populates dropdowns in Add/Edit Profile Dialog and Telemetry filters.
+- **Normalized Fuzzy Model Matching (`IsModelMatch`)**:
+  - Eliminates model naming discrepancies between display names (e.g. `Gemini 3.8 Flash (Medium)`) and CLI keys (`gemini-3.8-flash-medium` / `gemini-3.8-flash`).
+  - Restores authentic prompt telemetry matching for users operating active Gemini 3.8 models.
+- **Responsive 2-Row Chart Layout (`/dashboard` & `/analytics`)**:
+  - Separated title/subtitle row and filter controls into distinct rows to prevent UI collision and overflow.
+  - Added dedicated filter toolbar container with clean `WrapPanel` organization for Chart Mode (Bar/Line/Area), Account, Period, Model, and Tier filters.
+- **Sidebar Active Indicator & Non-Clipping Badges**:
+  - Added visual active indicator (left accent bar, glowing background, bright text, and bold font) when navigating between pages.
+  - Expanded sidebar width to 250px with auto-stretched layout, eliminating number badge truncation on `/accounts` and `/mcp`.
+- **Enlarged High-Visibility Badges**:
+  - Increased typography, padding, and corner radius on Tier, Status, Model, and Quota badges across Dashboard and Accounts cards.
+- **Prerequisite Installation Checklist**:
+  - Added comprehensive software prerequisites table and WinGet one-liner installation script to `README.md`.
+- **Repository SVG Banner Asset**:
+  - Added vector cyberpunk dark-mode SVG banner (`docs/assets/banner.svg`) to README header.
+
+---
+
 ## [v1.3.1] - 2026-09-26
 ### Added
 - **Tall Analytics Telemetry Chart (`/analytics`)**:

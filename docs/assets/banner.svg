@@ -1,0 +1,176 @@
+<svg width="1280" height="420" viewBox="0 0 1280 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1280" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#090D16" />
+      <stop offset="50%" stop-color="#0F1115" />
+      <stop offset="100%" stop-color="#141B2D" />
+    </linearGradient>
+
+    <!-- Cyber Grid Pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1F293D" stroke-width="1" stroke-opacity="0.35"/>
+    </pattern>
+
+    <!-- Glow Radial Gradients -->
+    <radialGradient id="cyanGlow" cx="200" cy="80" r="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="purpleGlow" cx="1080" cy="340" r="350" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="emeraldGlow" cx="800" cy="100" r="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Text Gradients -->
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#F1F5F9"/>
+      <stop offset="100%" stop-color="#93C5FD"/>
+    </linearGradient>
+
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E293B" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0F172A" stop-opacity="0.95"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    .font-mono { font-family: 'Cascadia Code', 'JetBrains Mono', Consolas, monospace; }
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Display', 'Segoe UI', sans-serif; }
+  </style>
+
+  <!-- Background Layer -->
+  <rect width="1280" height="420" rx="16" fill="url(#bgGrad)" />
+  <rect width="1280" height="420" fill="url(#grid)" />
+
+  <!-- Ambient Glow Orbs -->
+  <circle cx="200" cy="80" r="320" fill="url(#cyanGlow)" />
+  <circle cx="1080" cy="340" r="350" fill="url(#purpleGlow)" />
+  <circle cx="800" cy="100" r="220" fill="url(#emeraldGlow)" />
+
+  <!-- Outer Border Stroke -->
+  <rect x="1" y="1" width="1278" height="418" rx="15" fill="none" stroke="#252D3F" stroke-width="2"/>
+
+  <!-- Top Release Capsule -->
+  <g transform="translate(80, 52)">
+    <rect width="336" height="30" rx="15" fill="#172033" stroke="#2B3A5A" stroke-width="1"/>
+    <circle cx="16" cy="15" r="4.5" fill="#10B981"/>
+    <text x="28" y="19.5" fill="#93C5FD" class="font-mono" font-size="12" font-weight="600" letter-spacing="0.5">CLI VIRTUALIZATION ENGINE • v1.3.1</text>
+  </g>
+
+  <!-- Main Hero Brand Title -->
+  <g transform="translate(80, 138)">
+    <text class="font-sans" font-size="52" font-weight="900" fill="url(#titleGrad)" letter-spacing="-1.2">
+      Agy Account Swarm
+    </text>
+    <!-- Lightning Icon Accent -->
+    <path d="M496 -34 L476 -6 L490 -6 L470 24 L508 -4 L492 -4 Z" fill="#F59E0B" filter="drop-shadow(0 0 10px rgba(245, 158, 11, 0.6))"/>
+  </g>
+
+  <!-- Tagline / Subtitle -->
+  <text x="80" y="180" class="font-sans" font-size="17" font-weight="400" fill="#94A3B8">
+    Multi-Account Orchestrator &amp; Real Telemetry Matrix for Google Antigravity CLI (<tspan fill="#38BDF8" font-family="'Cascadia Code', monospace" font-size="15">agy</tspan>)
+  </text>
+
+  <!-- Core Pillars (Badges Row) -->
+  <g transform="translate(80, 222)">
+    <!-- Badge 1: Sandbox Isolation -->
+    <rect width="180" height="34" rx="8" fill="#121A29" stroke="#1E293B" stroke-width="1.2"/>
+    <text x="14" y="21.5" class="font-mono" font-size="12" fill="#38BDF8" font-weight="600">🛡️ PROFILE SANDBOX</text>
+
+    <!-- Badge 2: Real Telemetry -->
+    <rect x="192" width="180" height="34" rx="8" fill="#121A29" stroke="#1E293B" stroke-width="1.2"/>
+    <text x="206" y="21.5" class="font-mono" font-size="12" fill="#8B5CF6" font-weight="600">📊 REAL TELEMETRY</text>
+
+    <!-- Badge 3: Split Matrix -->
+    <rect x="384" width="180" height="34" rx="8" fill="#121A29" stroke="#1E293B" stroke-width="1.2"/>
+    <text x="398" y="21.5" class="font-mono" font-size="12" fill="#10B981" font-weight="600">🐝 SPLIT PANES (WT)</text>
+
+    <!-- Badge 4: Native PDF -->
+    <rect x="576" width="168" height="34" rx="8" fill="#121A29" stroke="#1E293B" stroke-width="1.2"/>
+    <text x="590" y="21.5" class="font-mono" font-size="12" fill="#F59E0B" font-weight="600">📥 HEADLESS PDF</text>
+  </g>
+
+  <!-- Bottom Tech Stack Specs -->
+  <g transform="translate(80, 345)">
+    <text class="font-mono" font-size="12.5" fill="#64748B">
+      POWERED BY:
+      <tspan fill="#CBD5E1"> .NET 9.0 (C# 13)</tspan> •
+      <tspan fill="#CBD5E1"> WPF MVVM Toolkit</tspan> •
+      <tspan fill="#CBD5E1"> SQLite DDL/DML</tspan> •
+      <tspan fill="#CBD5E1"> MCP stdio</tspan>
+    </text>
+  </g>
+
+  <!-- Right Hero Visual: Terminal Matrix Window Mockup -->
+  <g transform="translate(800, 60)">
+    <!-- Terminal Window Container -->
+    <rect width="410" height="295" rx="10" fill="url(#cardGrad)" stroke="#334155" stroke-width="1.5" filter="drop-shadow(0 16px 32px rgba(0,0,0,0.6))"/>
+
+    <!-- Terminal Header Bar -->
+    <rect width="410" height="34" rx="10" fill="#0B0F19"/>
+    <path d="M0 24 L0 34 L410 34 L410 24 Z" fill="#0B0F19"/>
+    <line x1="0" y1="34" x2="410" y2="34" stroke="#1E293B" stroke-width="1"/>
+
+    <!-- Window Dots -->
+    <circle cx="20" cy="17" r="5" fill="#EF4444" opacity="0.8"/>
+    <circle cx="36" cy="17" r="5" fill="#F59E0B" opacity="0.8"/>
+    <circle cx="52" cy="17" r="5" fill="#10B981" opacity="0.8"/>
+    <text x="145" y="21" class="font-mono" font-size="11" fill="#64748B">wt.exe [Matrix Swarm]</text>
+
+    <!-- Split Pane Horizontal Division -->
+    <line x1="205" y1="35" x2="205" y2="295" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="4 2"/>
+
+    <!-- Left Pane: Worker 1 (Main Profile / Pro Tier) -->
+    <g transform="translate(16, 48)">
+      <rect width="70" height="18" rx="4" fill="rgba(16, 185, 129, 0.15)"/>
+      <text x="6" y="13" class="font-mono" font-size="10" fill="#10B981" font-weight="700">P1: PRO</text>
+      
+      <text x="0" y="38" class="font-mono" font-size="10" fill="#38BDF8">$ env:USERPROFILE</text>
+      <text x="0" y="52" class="font-mono" font-size="9" fill="#94A3B8">~/.gemini/ (Default)</text>
+
+      <text x="0" y="74" class="font-mono" font-size="10" fill="#CBD5E1">> agy --model</text>
+      <text x="0" y="88" class="font-mono" font-size="9" fill="#A855F7">claude-3-opus</text>
+
+      <!-- Simulated Real Histogram Bar -->
+      <text x="0" y="112" class="font-mono" font-size="9" fill="#64748B">QUOTA (420/1000):</text>
+      <rect y="120" width="168" height="6" rx="3" fill="#1E293B"/>
+      <rect y="120" width="70" height="6" rx="3" fill="#10B981"/>
+      <text x="0" y="142" class="font-mono" font-size="9.5" fill="#10B981">● AGENT ENGAGED</text>
+    </g>
+
+    <!-- Right Pane: Worker 2 (worker-alpha / Sandboxed) -->
+    <g transform="translate(222, 48)">
+      <rect width="90" height="18" rx="4" fill="rgba(56, 189, 248, 0.15)"/>
+      <text x="6" y="13" class="font-mono" font-size="10" fill="#38BDF8" font-weight="700">P2: ISOLATED</text>
+
+      <text x="0" y="38" class="font-mono" font-size="10" fill="#38BDF8">$ env:USERPROFILE</text>
+      <text x="0" y="52" class="font-mono" font-size="9" fill="#94A3B8">~/.gemini-profiles/a</text>
+
+      <text x="0" y="74" class="font-mono" font-size="10" fill="#CBD5E1">> agy --model</text>
+      <text x="0" y="88" class="font-mono" font-size="9" fill="#38BDF8">gemini-2.5-pro</text>
+
+      <!-- Simulated Real Histogram Bar -->
+      <text x="0" y="112" class="font-mono" font-size="9" fill="#64748B">QUOTA (180/500):</text>
+      <rect y="120" width="168" height="6" rx="3" fill="#1E293B"/>
+      <rect y="120" width="60" height="6" rx="3" fill="#38BDF8"/>
+      <text x="0" y="142" class="font-mono" font-size="9.5" fill="#38BDF8">● STANDBY IDLE</text>
+    </g>
+
+    <!-- Terminal Status Footer -->
+    <g transform="translate(16, 260)">
+      <rect width="378" height="24" rx="4" fill="#090D16" stroke="#1E293B" stroke-width="1"/>
+      <text x="12" y="16" class="font-mono" font-size="10" fill="#94A3B8">MCP Servers: <tspan fill="#10B981">context7</tspan>, <tspan fill="#38BDF8">filesystem</tspan> [OK]</text>
+    </g>
+  </g>
+</svg>

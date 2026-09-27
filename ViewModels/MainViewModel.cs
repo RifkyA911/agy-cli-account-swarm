@@ -79,6 +79,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IAudioService _audioService;
     private readonly IMcpService _mcpService;
     private readonly ITelemetryService _telemetryService;
+    private readonly IAgyModelService _modelService;
 
     public ILocalizationService Strings { get; }
 
@@ -271,7 +272,8 @@ public partial class MainViewModel : ObservableObject
         IAudioService audioService,
         ILocalizationService localizationService,
         IMcpService mcpService,
-        ITelemetryService telemetryService)
+        ITelemetryService telemetryService,
+        IAgyModelService? modelService = null)
     {
         _storageService = storageService;
         _launcherService = launcherService;
@@ -280,6 +282,7 @@ public partial class MainViewModel : ObservableObject
         Strings = localizationService;
         _mcpService = mcpService;
         _telemetryService = telemetryService;
+        _modelService = modelService ?? new AgyModelService();
 
         _autoSyncTimer.Tick += OnAutoSyncTimerTick;
 
@@ -609,6 +612,9 @@ public partial class MainViewModel : ObservableObject
             // Load real history entries from disk
             _cachedRealHistory = await _telemetryService.LoadAllProfileHistoryAsync(Profiles.Select(p => p.Profile));
 
+            // Discover live up-to-date AGY models
+            await RefreshDynamicModelsAsync();
+
             // Check if any profile has exhausted its quota
             var exhausted = Profiles.FirstOrDefault(p => p.HasExhaustedQuota);
             if (exhausted != null)
@@ -631,6 +637,53 @@ public partial class MainViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    public async Task RefreshDynamicModelsAsync()
+    {
+        try
+        {
+            var profilePaths = Profiles.Select(p => p.EffectiveProfilePath).ToList();
+            var discovered = await _modelService.DiscoverModelsAsync(profilePaths);
+
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            Action updateAction = () =>
+            {
+                var currentSelection = SelectedModelFilter;
+                ModelFilterOptions.Clear();
+                ModelFilterOptions.Add("All Models");
+
+                foreach (var m in discovered)
+                {
+                    if (!ModelFilterOptions.Contains(m.DisplayName))
+                    {
+                        ModelFilterOptions.Add(m.DisplayName);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(currentSelection) && ModelFilterOptions.Contains(currentSelection))
+                {
+                    SelectedModelFilter = currentSelection;
+                }
+                else
+                {
+                    SelectedModelFilter = "All Models";
+                }
+            };
+
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.Invoke(updateAction);
+            }
+            else
+            {
+                updateAction();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Failed to refresh dynamic models", ex);
         }
     }
 
@@ -915,9 +968,9 @@ public partial class MainViewModel : ObservableObject
             entries = entries.Where(e => e.ProfileName.Equals(SelectedAccountFilter, StringComparison.OrdinalIgnoreCase));
         }
 
-        if (SelectedModelFilter != "All Models")
+        if (!string.IsNullOrWhiteSpace(SelectedModelFilter) && SelectedModelFilter != "All Models")
         {
-            entries = entries.Where(e => e.ModelName.Contains(SelectedModelFilter, StringComparison.OrdinalIgnoreCase));
+            entries = entries.Where(e => _modelService.IsModelMatch(e.ModelName, SelectedModelFilter));
         }
 
         if (SelectedTierFilter != "All Tiers")

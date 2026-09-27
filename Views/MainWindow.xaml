@@ -5,8 +5,8 @@
         xmlns:models="clr-namespace:AgyAccountSwarm.Models"
         Title="Agy Account Swarm — Antigravity CLI Orchestrator (MIT Open Source)"
         Icon="../Resources/favicon.ico"
-        Height="820" Width="1240"
-        MinHeight="660" MinWidth="1020"
+        Height="880" Width="1340"
+        MinHeight="700" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BrushBg}"
         Foreground="{DynamicResource BrushTextPrimary}"
@@ -27,7 +27,7 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <!-- Left Sidebar Navigation -->
-                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="250" />
                 <!-- Main Content Area -->
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
@@ -39,7 +39,7 @@
                     Background="{DynamicResource BrushSurface}"
                     BorderBrush="{DynamicResource BrushCardBorder}"
                     BorderThickness="0,0,1,0"
-                    Padding="16,20">
+                    Padding="14,20">
                 <Grid>
                     <Grid.RowDefinitions>
                         <!-- App Logo & Title -->
@@ -69,90 +69,218 @@
                     <!-- Navigation Menu Items -->
                     <StackPanel Grid.Row="1">
                         <!-- /dashboard -->
-                        <Button Command="{Binding NavigateCommand}" CommandParameter="Dashboard"
-                                Style="{StaticResource SidebarButton}"
-                                Margin="0,0,0,3">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📊" Margin="0,0,12,0" FontSize="14" />
-                                <TextBlock Text="{Binding Strings[Nav_Dashboard]}" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
+                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Dashboard}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Dashboard}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,0,0,4">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Dashboard"
+                                    Style="{StaticResource SidebarButton}">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
+                                            Background="#3B82F6" Margin="0,0,10,0"
+                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="📊" Margin="0,0,10,0" FontSize="15" />
+                                        <TextBlock Text="{Binding Strings[Nav_Dashboard]}"
+                                                   FontSize="13"
+                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Dashboard}"
+                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dashboard}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </Border>
 
                         <!-- /accounts -->
-                        <Button Command="{Binding NavigateCommand}" CommandParameter="Accounts"
-                                Style="{StaticResource SidebarButton}"
-                                Margin="0,0,0,3">
-                            <Grid Width="170">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                    <TextBlock Text="👥" Margin="0,0,12,0" FontSize="14" />
-                                    <TextBlock Text="{Binding Strings[Nav_Accounts]}" VerticalAlignment="Center" />
-                                </StackPanel>
-                                <Border Background="{DynamicResource BrushBadgeBg}"
-                                        CornerRadius="10" Padding="6,1"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding TotalCount}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushBadgeText}" />
-                                </Border>
-                            </Grid>
-                        </Button>
+                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Accounts}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Accounts}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,0,0,4">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Accounts"
+                                    Style="{StaticResource SidebarButton}">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
+                                            Background="#3B82F6" Margin="0,0,10,0"
+                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Accounts}" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="👥" Margin="0,0,10,0" FontSize="15" />
+                                        <TextBlock Text="{Binding Strings[Nav_Accounts]}"
+                                                   FontSize="13"
+                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Accounts}"
+                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Accounts}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Background="{DynamicResource BrushBadgeBg}"
+                                            BorderBrush="{DynamicResource BrushBadgeBorder}"
+                                            BorderThickness="1"
+                                            CornerRadius="10" Padding="8,2"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding TotalCount}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushBadgeText}" />
+                                    </Border>
+                                </Grid>
+                            </Button>
+                        </Border>
 
                         <!-- /analytic -->
-                        <Button Command="{Binding NavigateCommand}" CommandParameter="Analytics"
-                                Style="{StaticResource SidebarButton}"
-                                Margin="0,0,0,3">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📈" Margin="0,0,12,0" FontSize="14" />
-                                <TextBlock Text="{Binding Strings[Nav_Analytics]}" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
+                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Analytics}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Analytics}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,0,0,4">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Analytics"
+                                    Style="{StaticResource SidebarButton}">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
+                                            Background="#3B82F6" Margin="0,0,10,0"
+                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="📈" Margin="0,0,10,0" FontSize="15" />
+                                        <TextBlock Text="{Binding Strings[Nav_Analytics]}"
+                                                   FontSize="13"
+                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Analytics}"
+                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Analytics}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </Border>
 
                         <!-- /mcp -->
-                        <Button Command="{Binding NavigateCommand}" CommandParameter="Mcp"
-                                Style="{StaticResource SidebarButton}"
-                                Margin="0,0,0,3">
-                            <Grid Width="170">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                    <TextBlock Text="🧩" Margin="0,0,12,0" FontSize="14" />
-                                    <TextBlock Text="{Binding Strings[Nav_Mcp]}" VerticalAlignment="Center" />
-                                </StackPanel>
-                                <Border Background="{DynamicResource BrushBadgeBg}"
-                                        CornerRadius="10" Padding="6,1"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding McpServersCount}" FontSize="10" FontWeight="Bold" Foreground="#3B82F6" />
-                                </Border>
-                            </Grid>
-                        </Button>
+                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Mcp}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Mcp}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,0,0,4">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Mcp"
+                                    Style="{StaticResource SidebarButton}">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
+                                            Background="#3B82F6" Margin="0,0,10,0"
+                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Mcp}" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="🧩" Margin="0,0,10,0" FontSize="15" />
+                                        <TextBlock Text="{Binding Strings[Nav_Mcp]}"
+                                                   FontSize="13"
+                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Mcp}"
+                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Mcp}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Background="{DynamicResource BrushBadgeBg}"
+                                            BorderBrush="{DynamicResource BrushBadgeBorder}"
+                                            BorderThickness="1"
+                                            CornerRadius="10" Padding="8,2"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding McpServersCount}" FontSize="11" FontWeight="Bold" Foreground="#3B82F6" />
+                                    </Border>
+                                </Grid>
+                            </Button>
+                        </Border>
 
                         <!-- /docs -->
-                        <Button Command="{Binding NavigateCommand}" CommandParameter="Docs"
-                                Style="{StaticResource SidebarButton}"
-                                Margin="0,0,0,3">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📖" Margin="0,0,12,0" FontSize="14" />
-                                <TextBlock Text="{Binding Strings[Nav_Docs]}" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
+                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Docs}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Docs}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,0,0,4">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Docs"
+                                    Style="{StaticResource SidebarButton}">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
+                                            Background="#3B82F6" Margin="0,0,10,0"
+                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Docs}" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="📖" Margin="0,0,10,0" FontSize="15" />
+                                        <TextBlock Text="{Binding Strings[Nav_Docs]}"
+                                                   FontSize="13"
+                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Docs}"
+                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Docs}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </Border>
 
                         <!-- /logs -->
-                        <Button Command="{Binding NavigateCommand}" CommandParameter="Logs"
-                                Style="{StaticResource SidebarButton}"
-                                Margin="0,0,0,3">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📋" Margin="0,0,12,0" FontSize="14" />
-                                <TextBlock Text="{Binding Strings[Nav_Logs]}" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
+                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Logs}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Logs}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,0,0,4">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Logs"
+                                    Style="{StaticResource SidebarButton}">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
+                                            Background="#3B82F6" Margin="0,0,10,0"
+                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Logs}" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="📋" Margin="0,0,10,0" FontSize="15" />
+                                        <TextBlock Text="{Binding Strings[Nav_Logs]}"
+                                                   FontSize="13"
+                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Logs}"
+                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Logs}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </Border>
 
                         <!-- /settings -->
-                        <Button Command="{Binding NavigateCommand}" CommandParameter="Settings"
-                                Style="{StaticResource SidebarButton}"
-                                Margin="0,0,0,3">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⚙️" Margin="0,0,12,0" FontSize="14" />
-                                <TextBlock Text="{Binding Strings[Nav_Settings]}" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
+                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Settings}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Settings}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="0,0,0,4">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Settings"
+                                    Style="{StaticResource SidebarButton}">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
+                                            Background="#3B82F6" Margin="0,0,10,0"
+                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="⚙️" Margin="0,0,10,0" FontSize="15" />
+                                        <TextBlock Text="{Binding Strings[Nav_Settings]}"
+                                                   FontSize="13"
+                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Settings}"
+                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Settings}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </Border>
                     </StackPanel>
 
                     <!-- Bottom Sidebar Controls -->
@@ -417,8 +545,8 @@
                         <!-- ========================================== -->
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,20">
                             <StackPanel>
-                                <!-- Chart Header & Filters Row -->
-                                <Grid Margin="0,0,0,14">
+                                <!-- Chart Title & Action Row (Row 0) -->
+                                <Grid Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
@@ -426,56 +554,74 @@
 
                                     <!-- Chart Title & Subtitle -->
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Strings[Chart_Title]}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
-                                        <TextBlock Text="{Binding Strings[Chart_Subtitle]}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                        <TextBlock Text="{Binding Strings[Chart_Title]}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="{Binding Strings[Chart_Subtitle]}" FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
                                     </StackPanel>
 
-                                    <!-- Controls: Chart Mode (Bar/Line/Area) + Filters -->
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Header Action Button -->
+                                    <Button Grid.Column="1" Command="{Binding ExportPdfReportCommand}"
+                                            Style="{StaticResource ModernButton}"
+                                            Padding="12,7"
+                                            VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="📥 " FontSize="12" />
+                                            <TextBlock Text="Download PDF Report" FontWeight="SemiBold" FontSize="12" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+
+                                <!-- Dedicated Filter Toolbar Row (Row 1) -->
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,16">
+                                    <WrapPanel VerticalAlignment="Center">
                                         <!-- Chart Mode Switcher -->
-                                        <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="3" Margin="0,0,12,0">
+                                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="3" Margin="0,0,14,0" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
                                                 <Button Content="📊 Bar" Command="{Binding SetChartModeCommand}" CommandParameter="Bar"
-                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" Margin="0,0,2,0" />
+                                                        Style="{StaticResource ModernButton}" Padding="10,5" FontSize="12" Margin="0,0,2,0" />
                                                 <Button Content="📈 Line" Command="{Binding SetChartModeCommand}" CommandParameter="Line"
-                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" Margin="0,0,2,0" />
+                                                        Style="{StaticResource ModernButton}" Padding="10,5" FontSize="12" Margin="0,0,2,0" />
                                                 <Button Content="🏔️ Area" Command="{Binding SetChartModeCommand}" CommandParameter="Area"
-                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" />
+                                                        Style="{StaticResource ModernButton}" Padding="10,5" FontSize="12" />
                                             </StackPanel>
                                         </Border>
 
                                         <!-- Account Filter -->
-                                        <TextBlock Text="Account:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <ComboBox ItemsSource="{Binding AccountFilterOptions}"
-                                                  SelectedItem="{Binding SelectedAccountFilter}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="130"
-                                                  Margin="0,0,8,0" />
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                            <TextBlock Text="Account:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <ComboBox ItemsSource="{Binding AccountFilterOptions}"
+                                                      SelectedItem="{Binding SelectedAccountFilter}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="140" />
+                                        </StackPanel>
 
                                         <!-- Period Filter -->
-                                        <TextBlock Text="{Binding Strings[Chart_Filter_Period]}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <ComboBox ItemsSource="{Binding TimeframeOptions}"
-                                                  SelectedItem="{Binding SelectedTimeframe}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="125"
-                                                  Margin="0,0,8,0" />
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                            <TextBlock Text="{Binding Strings[Chart_Filter_Period]}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <ComboBox ItemsSource="{Binding TimeframeOptions}"
+                                                      SelectedItem="{Binding SelectedTimeframe}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="130" />
+                                        </StackPanel>
 
                                         <!-- Model Filter -->
-                                        <TextBlock Text="{Binding Strings[Chart_Filter_Model]}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <ComboBox ItemsSource="{Binding ModelFilterOptions}"
-                                                  SelectedItem="{Binding SelectedModelFilter}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="140"
-                                                  Margin="0,0,8,0" />
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                            <TextBlock Text="{Binding Strings[Chart_Filter_Model]}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <ComboBox ItemsSource="{Binding ModelFilterOptions}"
+                                                      SelectedItem="{Binding SelectedModelFilter}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="180" />
+                                        </StackPanel>
 
                                         <!-- Tier Filter -->
-                                        <TextBlock Text="{Binding Strings[Chart_Filter_Tier]}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <ComboBox ItemsSource="{Binding TierFilterOptions}"
-                                                  SelectedItem="{Binding SelectedTierFilter}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="95" />
-                                    </StackPanel>
-                                </Grid>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Strings[Chart_Filter_Tier]}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <ComboBox ItemsSource="{Binding TierFilterOptions}"
+                                                      SelectedItem="{Binding SelectedTierFilter}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="110" />
+                                        </StackPanel>
+                                    </WrapPanel>
+                                </Border>
 
                                 <!-- Visual Chart Canvas Area -->
                                 <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="20,16,20,12" Height="290">
@@ -608,34 +754,38 @@
                                             <!-- Info -->
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
 
                                                     <!-- Tier Badge (Pending Login for unauthenticated) -->
-                                                    <Border CornerRadius="4" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="10,3" Margin="10,0,0,0" VerticalAlignment="Center"
                                                             Background="{Binding TierBadgeBackground, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" />
                                                     </Border>
 
                                                     <!-- Status Badge -->
-                                                    <Border CornerRadius="4" Padding="8,2" Margin="8,0,0,0" VerticalAlignment="Center" Background="{DynamicResource BrushSurface}">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <Ellipse Width="6" Height="6" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                    <Border CornerRadius="6" Padding="10,3" Margin="8,0,0,0" VerticalAlignment="Center" Background="{DynamicResource BrushSurface}"
+                                                            BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Ellipse Width="8" Height="8" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Border>
 
                                                     <!-- Model Badge -->
-                                                    <Border CornerRadius="4" Padding="8,2" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="10,3" Margin="8,0,0,0" VerticalAlignment="Center"
                                                             Background="{DynamicResource BrushModelBadgeBg}"
                                                             BorderBrush="{DynamicResource BrushModelBadgeBorder}"
                                                             BorderThickness="1">
-                                                        <TextBlock Text="{Binding CurrentModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" />
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="🧠 " FontSize="11" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding CurrentModel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
+                                                        </StackPanel>
                                                     </Border>
 
                                                     <!-- Quota Status Badge -->
-                                                    <Border CornerRadius="4" Padding="7,2" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center"
                                                             Background="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
                                                     </Border>
                                                 </StackPanel>
 
@@ -762,37 +912,38 @@
                                             <!-- Profile Info -->
                                             <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
 
                                                     <!-- Tier Badge (Pending Login if unauthenticated) -->
-                                                    <Border CornerRadius="4" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="10,3" Margin="10,0,0,0" VerticalAlignment="Center"
                                                             Background="{Binding TierBadgeBackground, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" />
                                                     </Border>
 
                                                     <!-- Status Badge -->
-                                                    <Border CornerRadius="4" Padding="8,2" Margin="8,0,0,0" VerticalAlignment="Center" Background="{DynamicResource BrushSurface}">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <Ellipse Width="7" Height="7" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                    <Border CornerRadius="6" Padding="10,3" Margin="8,0,0,0" VerticalAlignment="Center" Background="{DynamicResource BrushSurface}"
+                                                            BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Ellipse Width="8" Height="8" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Border>
 
                                                     <!-- Model Badge -->
-                                                    <Border CornerRadius="4" Padding="8,2" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="10,3" Margin="8,0,0,0" VerticalAlignment="Center"
                                                             Background="{DynamicResource BrushModelBadgeBg}"
                                                             BorderBrush="{DynamicResource BrushModelBadgeBorder}"
                                                             BorderThickness="1">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="🧠 " FontSize="10" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding CurrentModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="🧠 " FontSize="11" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding CurrentModel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Border>
 
                                                     <!-- Quota Badge -->
-                                                    <Border CornerRadius="4" Padding="7,2" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center"
                                                             Background="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
                                                     </Border>
                                                 </StackPanel>
 
@@ -942,64 +1093,82 @@
                         <!-- ============================================================== -->
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,20">
                             <StackPanel>
-                                <!-- Header & Multi-Dimensional Filters -->
-                                <Grid Margin="0,0,0,14">
+                                <!-- Header Row (Row 0) -->
+                                <Grid Margin="0,0,0,12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="📈 Real Telemetry Trends &amp; Consumption" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
-                                        <TextBlock Text="Multi-dimensional filtering across account sandboxes, LLM models, and authentic prompt activity" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                        <TextBlock Text="📈 Real Telemetry Trends &amp; Consumption" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Multi-dimensional filtering across account sandboxes, LLM models, and authentic prompt activity" FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
                                     </StackPanel>
 
-                                    <!-- Chart Mode + Filters -->
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Download PDF Report CTA -->
+                                    <Button Grid.Column="1" Command="{Binding ExportPdfReportCommand}"
+                                            Style="{StaticResource ModernButton}"
+                                            Padding="14,8"
+                                            VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="📥 " FontSize="13" />
+                                            <TextBlock Text="Download PDF Report" FontWeight="SemiBold" FontSize="12" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+
+                                <!-- Dedicated Filter Toolbar Row (Row 1) -->
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,16">
+                                    <WrapPanel VerticalAlignment="Center">
                                         <!-- Chart Mode Switcher -->
-                                        <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="3" Margin="0,0,12,0">
+                                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="3" Margin="0,0,14,0" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
                                                 <Button Content="📊 Bar" Command="{Binding SetChartModeCommand}" CommandParameter="Bar"
-                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" Margin="0,0,2,0" />
+                                                        Style="{StaticResource ModernButton}" Padding="10,5" FontSize="12" Margin="0,0,2,0" />
                                                 <Button Content="📈 Line" Command="{Binding SetChartModeCommand}" CommandParameter="Line"
-                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" Margin="0,0,2,0" />
+                                                        Style="{StaticResource ModernButton}" Padding="10,5" FontSize="12" Margin="0,0,2,0" />
                                                 <Button Content="🏔️ Area" Command="{Binding SetChartModeCommand}" CommandParameter="Area"
-                                                        Style="{StaticResource ModernButton}" Padding="8,4" FontSize="11" />
+                                                        Style="{StaticResource ModernButton}" Padding="10,5" FontSize="12" />
                                             </StackPanel>
                                         </Border>
 
                                         <!-- Account Filter -->
-                                        <TextBlock Text="Account:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <ComboBox ItemsSource="{Binding AccountFilterOptions}"
-                                                  SelectedItem="{Binding SelectedAccountFilter}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="130"
-                                                  Margin="0,0,8,0" />
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                            <TextBlock Text="Account:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <ComboBox ItemsSource="{Binding AccountFilterOptions}"
+                                                      SelectedItem="{Binding SelectedAccountFilter}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="140" />
+                                        </StackPanel>
 
                                         <!-- Period Filter -->
-                                        <TextBlock Text="Period:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <ComboBox ItemsSource="{Binding TimeframeOptions}"
-                                                  SelectedItem="{Binding SelectedTimeframe}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="120"
-                                                  Margin="0,0,8,0" />
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                            <TextBlock Text="Period:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <ComboBox ItemsSource="{Binding TimeframeOptions}"
+                                                      SelectedItem="{Binding SelectedTimeframe}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="130" />
+                                        </StackPanel>
 
                                         <!-- Model Filter -->
-                                        <TextBlock Text="Model:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <ComboBox ItemsSource="{Binding ModelFilterOptions}"
-                                                  SelectedItem="{Binding SelectedModelFilter}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="140"
-                                                  Margin="0,0,8,0" />
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                            <TextBlock Text="Model:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <ComboBox ItemsSource="{Binding ModelFilterOptions}"
+                                                      SelectedItem="{Binding SelectedModelFilter}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="180" />
+                                        </StackPanel>
 
                                         <!-- Tier Filter -->
-                                        <TextBlock Text="Tier:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                                        <ComboBox ItemsSource="{Binding TierFilterOptions}"
-                                                  SelectedItem="{Binding SelectedTierFilter}"
-                                                  Style="{StaticResource ModernComboBox}"
-                                                  Width="90" />
-                                    </StackPanel>
-                                </Grid>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="Tier:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                            <ComboBox ItemsSource="{Binding TierFilterOptions}"
+                                                      SelectedItem="{Binding SelectedTierFilter}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Width="110" />
+                                        </StackPanel>
+                                    </WrapPanel>
+                                </Border>
 
                                 <!-- Visual Tall Canvas Area (Height 340) -->
                                 <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="20,16,20,12" Height="340">

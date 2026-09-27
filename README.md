@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="Agy Account Swarm Banner" width="100%" />
+</p>
+
 # Agy Account Swarm ⚡
 
 > **A minimalist, high-performance desktop orchestrator & multi-account manager for Google Antigravity CLI (`agy`).**  
@@ -92,11 +96,27 @@ graph TD
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Windows 10 / 11 (64-bit)
-- [.NET 9.0 Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) (or [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0))
-- [Antigravity CLI (`agy`)](https://antigravity.google/docs/cli) installed and in `PATH`
-- *(Recommended)* [Windows Terminal](https://aka.ms/terminal) for split-pane matrix orchestration
+### 📋 Prerequisites & Installation Checklist
+
+Before running or building **Agy Account Swarm**, ensure your Windows system meets the following software requirements:
+
+| Component | Minimum Version | Installation / Verification Command | Purpose |
+|:---|:---|:---|:---|
+| **Operating System** | Windows 10 (1903+) / Windows 11 | *(Built-in)* 64-bit architecture | Host system environment |
+| **.NET Desktop Runtime** | 9.0.0 or newer | `winget install Microsoft.DotNet.DesktopRuntime.9` | Required to execute the WPF desktop application |
+| **.NET SDK** *(Dev only)* | 9.0.100 or newer | `winget install Microsoft.DotNet.SDK.9` | Required to compile source code and release builds |
+| **Google Antigravity CLI** | Latest (`agy`) | Installed at `%LOCALAPPDATA%\agy\bin\agy.exe` or in `PATH` (`agy --version`) | Core AI agent engine orchestrated by Swarm |
+| **Windows Terminal** *(Recommended)* | 1.18 or newer | `winget install Microsoft.WindowsTerminal` | Powers native split-pane matrix tiling (`wt.exe`) |
+| **PowerShell** | 7.x or Windows PowerShell 5.1 | `winget install Microsoft.PowerShell` | Script execution & process bootstrapping engine |
+| **Microsoft Edge** | Chromium engine | Pre-installed on Windows 10/11 (`msedge.exe`) | Powers headless native PDF report generator (`--print-to-pdf`) |
+| **Git** *(Optional)* | 2.40+ | `winget install Git.Git` | For cloning repository and version control |
+
+> [!TIP]
+> **Quick One-Liner Install for All Prerequisites via WinGet (Run in Admin PowerShell):**
+> ```powershell
+> winget install Microsoft.DotNet.DesktopRuntime.9 Microsoft.WindowsTerminal Microsoft.PowerShell Git.Git --accept-package-agreements --accept-source-agreements
+> ```
+
 
 ### Running from Published Output
 Pre-built executable binaries are located in the `publish/` directory:

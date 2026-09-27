@@ -16,6 +16,10 @@
             <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisConverter" />
             <converters:NullOrEmptyToVisibilityConverter x:Key="NotNullOrEmptyToVisConverter" Invert="True" />
             <converters:EqualityToVisibilityConverter x:Key="EqualityToVisConverter" />
+            <converters:PageToActiveBgConverter x:Key="PageToActiveBgConverter" />
+            <converters:PageToActiveBorderConverter x:Key="PageToActiveBorderConverter" />
+            <converters:PageToActiveTextConverter x:Key="PageToActiveTextConverter" />
+            <converters:PageToFontWeightConverter x:Key="PageToFontWeightConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

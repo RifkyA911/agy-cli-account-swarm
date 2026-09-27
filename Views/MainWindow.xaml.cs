@@ -127,9 +127,10 @@ public partial class MainWindow : Window
 
     private Task<AccountProfile?> OnShowEditDialogAsync(AccountProfile? profileToEdit)
     {
+        var availableModels = _viewModel.ModelFilterOptions.Where(m => m != "All Models").ToList();
         var editVm = profileToEdit != null
-            ? new ProfileEditViewModel(profileToEdit)
-            : new ProfileEditViewModel();
+            ? new ProfileEditViewModel(profileToEdit, availableModels)
+            : new ProfileEditViewModel(availableModels);
 
         var dialog = new ProfileEditDialog(editVm)
         {
