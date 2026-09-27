@@ -116,6 +116,18 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _closeToTray = true;
 
+    public bool ExitOnClose
+    {
+        get => !CloseToTray;
+        set
+        {
+            if (value)
+            {
+                CloseToTray = false;
+            }
+        }
+    }
+
     [ObservableProperty]
     private bool _minimizeToTray = true;
 
@@ -207,10 +219,10 @@ public partial class MainViewModel : ObservableObject
 
     // Theme appearance options
     public ObservableCollection<string> ThemeOptions { get; } =
-        ["Dark", "Light", "Cyberpunk", "Matrix"];
+        ["System", "Dark", "Light", "Cyberpunk", "Matrix"];
 
     [ObservableProperty]
-    private string _selectedThemeOption = "Dark";
+    private string _selectedThemeOption = "System";
 
     // Chart Zoom & Interactive Scale
     [ObservableProperty]
@@ -238,6 +250,21 @@ public partial class MainViewModel : ObservableObject
     private int _yTick0 = 0;
 
     // 24-Hour Swarm Hourly Activity
+    [ObservableProperty]
+    private int _heatmapYTick100 = 20;
+
+    [ObservableProperty]
+    private int _heatmapYTick75 = 15;
+
+    [ObservableProperty]
+    private int _heatmapYTick50 = 10;
+
+    [ObservableProperty]
+    private int _heatmapYTick25 = 5;
+
+    [ObservableProperty]
+    private int _heatmapYTick0 = 0;
+
     [ObservableProperty]
     private string _heatmapPeakHour = "None";
 
@@ -675,6 +702,7 @@ public partial class MainViewModel : ObservableObject
 
     partial void OnCloseToTrayChanged(bool value)
     {
+        OnPropertyChanged(nameof(ExitOnClose));
         _ = SaveSettingsAsync();
     }
 
@@ -1419,7 +1447,19 @@ public partial class MainViewModel : ObservableObject
         HeatmapActiveWindow = firstActive >= 0 ? $"{firstActive:D2}:00 – {lastActive:D2}:59" : "Quiet";
         HeatmapAveragePerHour = total24h > 0 ? $"{((double)total24h / 24.0):F1} / hr" : "0.0 / hr";
 
-        double heatmapMaxHeight = 180.0;
+        int safeHeatmapMax = maxHourCount == 0 ? 10 : (int)Math.Ceiling(maxHourCount * 1.35);
+        if (safeHeatmapMax > 10 && safeHeatmapMax % 5 != 0)
+        {
+            safeHeatmapMax += (5 - (safeHeatmapMax % 5));
+        }
+
+        HeatmapYTick100 = safeHeatmapMax;
+        HeatmapYTick75 = (int)Math.Round(safeHeatmapMax * 0.75);
+        HeatmapYTick50 = (int)Math.Round(safeHeatmapMax * 0.50);
+        HeatmapYTick25 = (int)Math.Round(safeHeatmapMax * 0.25);
+        HeatmapYTick0 = 0;
+
+        double plotHeight = 140.0;
         for (int h = 0; h < 24; h++)
         {
             int cnt = hourlyCounts[h];
@@ -1428,7 +1468,7 @@ public partial class MainViewModel : ObservableObject
                 ? "#252B3B" 
                 : (intensity > 0.75 ? "#8B5CF6" : (intensity > 0.4 ? "#3B82F6" : "#06B6D4"));
 
-            double hHeight = cnt == 0 ? 8.0 : Math.Clamp(12.0 + intensity * (heatmapMaxHeight - 20.0), 12.0, heatmapMaxHeight);
+            double hHeight = cnt == 0 ? 6.0 : Math.Clamp(((double)cnt / safeHeatmapMax) * plotHeight, 8.0, plotHeight);
             long estTokens = (long)cnt * 1950L;
             string tokStr = estTokens >= 1000 ? $"{estTokens / 1000}K tok" : $"{estTokens} tok";
 

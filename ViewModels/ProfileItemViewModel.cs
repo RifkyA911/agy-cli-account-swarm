@@ -200,6 +200,30 @@ public partial class ProfileItemViewModel : ObservableObject
         _ => "Not Initialized"
     };
 
+    public string AvatarInitial
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(Name)) return Name.Substring(0, 1).ToUpperInvariant();
+            if (!string.IsNullOrWhiteSpace(AccountEmail)) return AccountEmail.Substring(0, 1).ToUpperInvariant();
+            return "G";
+        }
+    }
+
+    public string? AccountEmail => AuthStatus.AccountEmail;
+    public string? AvatarUrl => AuthStatus.AvatarUrl;
+    public bool HasAvatarUrl => !string.IsNullOrEmpty(AvatarUrl);
+
+    public int DailyQuotaLimit => AuthStatus.DailyQuotaLimit > 0 ? AuthStatus.DailyQuotaLimit : AuthDetectorService.GetDailyQuotaForTier(TierBadgeText);
+    public int TodayTurnsCount => AuthStatus.TodayTurnsCount;
+    public int TotalTurnsCount => AuthStatus.TotalTurnsCount;
+    public long TodayTokensEstimated => AuthStatus.TodayTokensEstimated;
+    public long DailyTokensLimit => AuthStatus.DailyTokensLimit;
+    public string QuotaResetCountdown => AuthStatus.QuotaResetCountdown;
+    public string TodayQuotaFormatted => $"{TodayTurnsCount:N0} / {DailyQuotaLimit:N0} prompts today ({UsagePercentage:F1}%)";
+    public string TodayTokensFormatted => $"{TodayTokensEstimated / 1000:N0}K / {DailyTokensLimit / 1000:N0}K est. tokens";
+    public string TierDailySummary => $"{TierBadgeText} Tier ({DailyQuotaLimit:N0} prompts/day)";
+
     public async Task RefreshAuthStatusAsync()
     {
         IsBusy = true;
@@ -219,6 +243,19 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(QuotaStatusColor));
             OnPropertyChanged(nameof(UsageLabel));
             OnPropertyChanged(nameof(UsagePercentage));
+            OnPropertyChanged(nameof(AvatarInitial));
+            OnPropertyChanged(nameof(AccountEmail));
+            OnPropertyChanged(nameof(AvatarUrl));
+            OnPropertyChanged(nameof(HasAvatarUrl));
+            OnPropertyChanged(nameof(DailyQuotaLimit));
+            OnPropertyChanged(nameof(TodayTurnsCount));
+            OnPropertyChanged(nameof(TotalTurnsCount));
+            OnPropertyChanged(nameof(TodayTokensEstimated));
+            OnPropertyChanged(nameof(DailyTokensLimit));
+            OnPropertyChanged(nameof(QuotaResetCountdown));
+            OnPropertyChanged(nameof(TodayQuotaFormatted));
+            OnPropertyChanged(nameof(TodayTokensFormatted));
+            OnPropertyChanged(nameof(TierDailySummary));
         }
         finally
         {

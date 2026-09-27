@@ -10,7 +10,22 @@ public static class ThemeManager
 {
     public static string CurrentTheme { get; private set; } = "Dark";
 
-    public static readonly string[] AvailableThemes = ["Dark", "Light", "Cyberpunk", "Matrix"];
+    public static readonly string[] AvailableThemes = ["System", "Dark", "Light", "Cyberpunk", "Matrix"];
+
+    public static string DetectWindowsTheme()
+    {
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+            var val = key?.GetValue("AppsUseLightTheme");
+            if (val is int intVal && intVal == 1)
+            {
+                return "Light";
+            }
+        }
+        catch { }
+        return "Dark";
+    }
 
     public static void ApplyTheme(string theme)
     {
@@ -18,6 +33,16 @@ public static class ThemeManager
         if (app == null) return;
 
         CurrentTheme = theme;
+
+        if (string.Equals(theme, "System", StringComparison.OrdinalIgnoreCase))
+        {
+            string osTheme = DetectWindowsTheme();
+            if (osTheme == "Light")
+                ApplyLightTheme(app);
+            else
+                ApplyDarkTheme(app);
+            return;
+        }
 
         switch (theme)
         {

@@ -8,9 +8,15 @@
         Height="880" Width="1340"
         MinHeight="700" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
         Background="{DynamicResource BrushBg}"
         Foreground="{DynamicResource BrushTextPrimary}"
         FontFamily="{StaticResource FontMain}">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="0" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <LinearGradientBrush x:Key="AreaChartGradient" StartPoint="0,0" EndPoint="0,1">
@@ -372,6 +378,8 @@
                                 <ColumnDefinition Width="*" />
                                 <!-- Action Buttons: Refresh/Sync & Swarm Launch -->
                                 <ColumnDefinition Width="Auto" />
+                                <!-- Window Caption Buttons: Minimize, Maximize, Close -->
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <!-- Title based on navigation -->
@@ -403,7 +411,7 @@
                             </StackPanel>
 
                             <!-- Right CTA: Refresh/Sync and Launch Swarm -->
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
                                 <!-- Refresh / Sync Swarm Button -->
                                 <Button Command="{Binding SyncSwarmCommand}"
                                         Style="{StaticResource ModernButton}"
@@ -428,6 +436,13 @@
                                         <TextBlock Text=")" FontWeight="Bold" />
                                     </StackPanel>
                                 </Button>
+                            </StackPanel>
+
+                            <!-- Window Caption Control Buttons -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Click="MinimizeButton_Click" Style="{StaticResource WindowCaptionButton}" Content="🗕" ToolTip="Minimize" Margin="0,0,2,0" />
+                                <Button Click="MaximizeButton_Click" Style="{StaticResource WindowCaptionButton}" Content="🗖" ToolTip="Maximize / Restore" Margin="0,0,2,0" />
+                                <Button Click="CloseButton_Click" Style="{StaticResource WindowCloseButton}" Content="✕" ToolTip="Close" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -970,117 +985,189 @@
                                     <Border Background="{DynamicResource BrushCard}"
                                             BorderBrush="{DynamicResource BrushCardBorder}"
                                             BorderThickness="1"
-                                            CornerRadius="8"
-                                            Margin="0,0,0,12"
-                                            Padding="16,14">
+                                            CornerRadius="10"
+                                            Margin="0,0,0,16"
+                                            Padding="18,16">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
+                                                <!-- Checkbox & Color Accent Bar -->
                                                 <ColumnDefinition Width="Auto" />
+                                                <!-- Google Account Avatar / Circular Brand Badge -->
                                                 <ColumnDefinition Width="Auto" />
+                                                <!-- Card Multi-Row Content Body -->
                                                 <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- Swarm Checkbox -->
-                                            <CheckBox Grid.Column="0"
-                                                      IsChecked="{Binding IsSelectedForSwarm}"
-                                                      Style="{StaticResource ModernCheckBox}"
-                                                      Margin="0,0,14,0"
-                                                      VerticalAlignment="Center"
-                                                      ToolTip="Include in Swarm Launch" />
+                                            <!-- Column 0: Checkbox & Accent Bar -->
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                                                <CheckBox IsChecked="{Binding IsSelectedForSwarm}"
+                                                          Style="{StaticResource ModernCheckBox}"
+                                                          Margin="0,0,10,0"
+                                                          VerticalAlignment="Center"
+                                                          ToolTip="Include profile in Swarm Launch" />
+                                                <Border Width="4" Height="74"
+                                                        CornerRadius="2"
+                                                        Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}" />
+                                            </StackPanel>
 
-                                            <!-- Color Accent Line -->
-                                            <Border Grid.Column="1"
-                                                    Width="4"
-                                                    CornerRadius="2"
-                                                    Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
-                                                    Margin="0,0,16,0" />
+                                            <!-- Column 1: Google Account Avatar with Google G Badge -->
+                                            <Border Grid.Column="1" Width="52" Height="52" CornerRadius="26"
+                                                    Background="{DynamicResource BrushSurface}"
+                                                    BorderBrush="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                    BorderThickness="2"
+                                                    Margin="0,0,16,0"
+                                                    VerticalAlignment="Center"
+                                                    ClipToBounds="True">
+                                                <Grid>
+                                                    <!-- Online Google Profile Picture (if available) -->
+                                                    <Image Source="{Binding AvatarUrl}"
+                                                           Stretch="UniformToFill"
+                                                           Width="52" Height="52"
+                                                           Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}" />
 
-                                            <!-- Profile Info -->
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                    <!-- Fallback Google Circular Initial Badge -->
+                                                    <Grid Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}">
+                                                        <TextBlock Text="{Binding AvatarInitial}"
+                                                                   FontWeight="Bold" FontSize="20"
+                                                                   Foreground="{DynamicResource BrushTextPrimary}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Grid>
 
-                                                    <!-- Tier Badge (Pending Login if unauthenticated) -->
-                                                    <Border CornerRadius="6" Padding="10,3" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                    <!-- Mini Google 'G' Accent Dot in bottom right -->
+                                                    <Border Width="16" Height="16" CornerRadius="8"
+                                                            Background="#FFFFFF"
+                                                            BorderBrush="#4285F4" BorderThickness="1.5"
+                                                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                            Margin="0,0,1,1">
+                                                        <TextBlock Text="G" FontSize="10" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- Column 2: Multi-Row Content -->
+                                            <StackPanel Grid.Column="2">
+                                                <!-- Row 1: Profile Name, Tier Badge, Status Badge, Model Badge, and Quick Email -->
+                                                <WrapPanel VerticalAlignment="Center" Margin="0,0,0,6">
+                                                    <!-- Name -->
+                                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" />
+
+                                                    <!-- Tier Badge -->
+                                                    <Border CornerRadius="6" Padding="10,3" Margin="0,0,8,0" VerticalAlignment="Center"
                                                             Background="{Binding TierBadgeBackground, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
                                                     </Border>
 
-                                                    <!-- Status Badge -->
-                                                    <Border CornerRadius="6" Padding="10,3" Margin="8,0,0,0" VerticalAlignment="Center" Background="{DynamicResource BrushSurface}"
+                                                    <!-- Status Badge (Logged in email or Needs Login) -->
+                                                    <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,0" VerticalAlignment="Center"
+                                                            Background="{DynamicResource BrushSurface}"
                                                             BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                             <Ellipse Width="8" Height="8" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Border>
 
                                                     <!-- Model Badge -->
-                                                    <Border CornerRadius="6" Padding="10,3" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,0" VerticalAlignment="Center"
                                                             Background="{DynamicResource BrushModelBadgeBg}"
-                                                            BorderBrush="{DynamicResource BrushModelBadgeBorder}"
-                                                            BorderThickness="1">
+                                                            BorderBrush="{DynamicResource BrushModelBadgeBorder}" BorderThickness="1">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="🧠 " FontSize="11" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding CurrentModel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
+                                                            <TextBlock Text="🧠 " FontSize="10" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding CurrentModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Border>
 
-                                                    <!-- Quota Badge -->
-                                                    <Border CornerRadius="6" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    <!-- Quota Health Badge -->
+                                                    <Border CornerRadius="6" Padding="9,3" VerticalAlignment="Center"
                                                             Background="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
                                                     </Border>
+                                                </WrapPanel>
+
+                                                <!-- Row 2: Description (if any) & Sandbox Paths -->
+                                                <StackPanel Margin="0,0,0,8">
+                                                    <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,4"
+                                                               Visibility="{Binding Description, Converter={StaticResource NullOrEmptyToVisConverter}}" />
+                                                    <WrapPanel VerticalAlignment="Center">
+                                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="6,2" Margin="0,0,8,4">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="📁 Sandbox: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                <TextBlock Text="{Binding EffectiveProfilePath}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="{DynamicResource BrushMonoPath}" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="6,2" Margin="0,0,8,4">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="📂 Workspace: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                <TextBlock Text="{Binding DisplayWorkspace}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </WrapPanel>
                                                 </StackPanel>
 
-                                                <!-- Description -->
-                                                <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,3,0,4"
-                                                           Visibility="{Binding Description, Converter={StaticResource NullOrEmptyToVisConverter}}" />
+                                                <!-- Row 3: Dedicated Quota Usage Bar & Tier Rate-Limit Strip -->
+                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,8" Margin="0,0,0,10">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
 
-                                                <!-- Paths & Activity Meter -->
-                                                <Grid Margin="0,4,0,0">
+                                                        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                                            <Grid Margin="0,0,0,4">
+                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                                                    <TextBlock Text="⚡ DAILY QUOTA USAGE:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                    <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" Margin="6,0,0,0" />
+                                                                    <TextBlock Text="  •  " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                    <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                </StackPanel>
+                                                                <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
+                                                            </Grid>
+
+                                                            <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
+                                                                         Height="7" Minimum="0" Maximum="100"
+                                                                         Background="{DynamicResource BrushProgressTrack}"
+                                                                         Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                         BorderThickness="0" />
+                                                        </StackPanel>
+
+                                                        <!-- Reset Countdown -->
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="⏱️ RESET CYCLE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" />
+                                                            <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" Margin="0,2,0,0" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+
+                                                <!-- Row 4: Action Toolbar (Separated cleanly, never cramped!) -->
+                                                <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="220" />
+                                                        <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
+
+                                                    <!-- Left Actions: Launch, Copy, Open Folder -->
                                                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <TextBlock Text="Profile Dir: " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
-                                                        <TextBlock Text="{Binding EffectiveProfilePath}" FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{DynamicResource BrushMonoPath}" />
-                                                        <TextBlock Text="  •  Workspace: " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="8,0,0,0" />
-                                                        <TextBlock Text="{Binding DisplayWorkspace}" FontFamily="{StaticResource FontMono}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                        <Button Command="{Binding LaunchCommand}"
+                                                                CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                Style="{StaticResource PrimaryButton}" Padding="16,7" Margin="0,0,8,0"
+                                                                ToolTip="Launch Antigravity CLI session in selected terminal">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="▶ Launch agy" FontWeight="Bold" FontSize="12" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                        <Button Command="{Binding CopyCliSnippetCommand}"
+                                                                CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                Style="{StaticResource ModernButton}" Content="📋 Copy CLI" Padding="12,7" Margin="0,0,8,0"
+                                                                ToolTip="Copy isolated terminal launch command" />
+                                                        <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Content="📁 Open Folder" Padding="12,7" ToolTip="Open profile directory" />
                                                     </StackPanel>
 
-                                                    <!-- Usage Progress Bar -->
-                                                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                                                        <Grid>
-                                                            <TextBlock Text="Quota Usage" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Left" />
-                                                            <TextBlock Text="{Binding UsageLabel}" FontSize="10" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
-                                                        </Grid>
-                                                        <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
-                                                                     Height="5" Minimum="0" Maximum="100"
-                                                                     Background="{DynamicResource BrushProgressTrack}"
-                                                                     Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                     BorderThickness="0" Margin="0,2,0,0" />
+                                                    <!-- Right Actions: Edit, Delete -->
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button Command="{Binding RequestEditCommand}" Style="{StaticResource ModernButton}" Content="✏️ Edit Profile" Padding="12,7" Margin="0,0,8,0" ToolTip="Edit profile settings" />
+                                                        <Button Command="{Binding RequestDeleteCommand}" Style="{StaticResource DangerButton}" Content="🗑️ Delete" Padding="12,7" ToolTip="Remove profile" />
                                                     </StackPanel>
                                                 </Grid>
-                                            </StackPanel>
-
-                                            <!-- Actions -->
-                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
-                                                <Button Command="{Binding LaunchCommand}"
-                                                        CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                        Style="{StaticResource PrimaryButton}" Padding="14,6" Margin="0,0,8,0"
-                                                        ToolTip="Launch Antigravity CLI session in selected terminal">
-                                                    <TextBlock Text="▶ Launch agy" FontWeight="Bold" />
-                                                </Button>
-                                                <Button Command="{Binding CopyCliSnippetCommand}"
-                                                        CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                        Style="{StaticResource ModernButton}" Content="📋 Copy" Margin="0,0,6,0"
-                                                        ToolTip="Copy isolated terminal launch command" />
-                                                <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Content="📁 Folder" Margin="0,0,6,0" ToolTip="Open profile directory" />
-                                                <Button Command="{Binding RequestEditCommand}" Style="{StaticResource ModernButton}" Content="✏️" Margin="0,0,6,0" ToolTip="Edit profile settings" />
-                                                <Button Command="{Binding RequestDeleteCommand}" Style="{StaticResource DangerButton}" Content="🗑️" ToolTip="Remove profile" />
                                             </StackPanel>
                                         </Grid>
                                     </Border>
@@ -1549,42 +1636,85 @@
                                     </Border>
                                 </UniformGrid>
 
-                                <!-- Heatmap Canvas Surface (Height 230) -->
-                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="16,16,16,10" Height="230">
-                                    <ItemsControl ItemsSource="{Binding HourlyHeatmap}" HorizontalAlignment="Center" VerticalAlignment="Bottom">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <StackPanel Orientation="Horizontal" />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Width="32" Margin="3,0" VerticalAlignment="Bottom" Cursor="Hand">
-                                                    <StackPanel.ToolTip>
-                                                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10">
-                                                            <TextBlock Text="{Binding Tooltip}" FontSize="11" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                        </Border>
-                                                    </StackPanel.ToolTip>
+                                <!-- Heatmap Canvas Surface (Height 280 with Y-Axis and Headroom) -->
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="14,14,14,10" Height="280">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <!-- Left Y-Axis Scale -->
+                                            <ColumnDefinition Width="38" />
+                                            <!-- Heatmap Plot Area -->
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
 
-                                                    <!-- Prompt count label shown if > 0 -->
-                                                    <TextBlock Text="{Binding PromptCount}"
-                                                               Visibility="{Binding PromptCount, Converter={StaticResource IntToVisConverter}}"
-                                                               FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextSecondary}"
-                                                               HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                        <!-- Y-Axis Labels -->
+                                        <Grid Grid.Column="0" Margin="0,12,6,34">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+                                            <TextBlock Grid.Row="0" Text="{Binding HeatmapYTick100}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                            <TextBlock Grid.Row="1" Text="{Binding HeatmapYTick75}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                            <TextBlock Grid.Row="2" Text="{Binding HeatmapYTick50}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                            <TextBlock Grid.Row="3" Text="{Binding HeatmapYTick25}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                            <TextBlock Grid.Row="4" Text="{Binding HeatmapYTick0}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                                        </Grid>
 
-                                                    <!-- Heatmap Bar -->
-                                                    <Border Height="{Binding Height}" Width="20" CornerRadius="4,4,0,0"
-                                                            Background="{Binding Color, Converter={StaticResource HexToBrushConverter}}"
-                                                            HorizontalAlignment="Center" />
+                                        <!-- Plot Canvas Area with Gridlines and Bars -->
+                                        <Grid Grid.Column="1">
+                                            <!-- Horizontal Dashed Gridlines -->
+                                            <Grid Margin="0,18,0,38">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                                <Border Grid.Row="0" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,1,0,0" Opacity="0.5" />
+                                                <Border Grid.Row="1" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,1,0,0" Opacity="0.5" />
+                                                <Border Grid.Row="2" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,1,0,0" Opacity="0.5" />
+                                                <Border Grid.Row="3" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,1,0,0" Opacity="0.5" />
+                                            </Grid>
 
-                                                    <!-- Hour Label -->
-                                                    <TextBlock Text="{Binding HourLabel}" FontSize="10" FontWeight="SemiBold"
-                                                               Foreground="{DynamicResource BrushTextMuted}"
-                                                               HorizontalAlignment="Center" Margin="0,6,0,0" />
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                            <!-- 24-Hour Bars Stack -->
+                                            <ItemsControl ItemsSource="{Binding HourlyHeatmap}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,6">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Width="32" Margin="3,0" VerticalAlignment="Bottom" Cursor="Hand">
+                                                            <StackPanel.ToolTip>
+                                                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10">
+                                                                    <TextBlock Text="{Binding Tooltip}" FontSize="11" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                                </Border>
+                                                            </StackPanel.ToolTip>
+
+                                                            <!-- Prompt count label shown if > 0 (always safely below the ceiling!) -->
+                                                            <TextBlock Text="{Binding PromptCount}"
+                                                                       Visibility="{Binding PromptCount, Converter={StaticResource IntToVisConverter}}"
+                                                                       FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextSecondary}"
+                                                                       HorizontalAlignment="Center" Margin="0,0,0,4" />
+
+                                                            <!-- Heatmap Bar -->
+                                                            <Border Height="{Binding Height}" Width="20" CornerRadius="4,4,0,0"
+                                                                    Background="{Binding Color, Converter={StaticResource HexToBrushConverter}}"
+                                                                    HorizontalAlignment="Center" />
+
+                                                            <!-- Hour Label (X-Axis) -->
+                                                            <TextBlock Text="{Binding HourLabel}" FontSize="10" FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource BrushTextMuted}"
+                                                                       HorizontalAlignment="Center" Margin="0,6,0,0" />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </Grid>
+                                    </Grid>
                                 </Border>
                             </StackPanel>
                         </Border>
@@ -1896,6 +2026,14 @@
 
                                 <!-- Visual Palette Selector Chips -->
                                 <WrapPanel Margin="0,4,0,0">
+                                    <!-- System Chip -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="System" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="16" Height="16" CornerRadius="8" Background="#334155" BorderBrush="#94A3B8" BorderThickness="2" Margin="0,0,8,0" />
+                                            <TextBlock Text="🖥️ System (Auto OS)" FontWeight="SemiBold" FontSize="11" />
+                                        </StackPanel>
+                                    </Button>
+
                                     <!-- Dark Chip -->
                                     <Button Command="{Binding SetThemeCommand}" CommandParameter="Dark" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -1972,10 +2110,34 @@
                                     <TextBlock Text="{Binding Strings[Settings_TrayGroup]}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                 </StackPanel>
 
-                                <CheckBox IsChecked="{Binding CloseToTray}" Style="{StaticResource ModernCheckBox}"
-                                          Content="Close button hides window directly into system tray" Margin="0,0,0,10" />
+                                <TextBlock Text="Window Close [✕] Behavior" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,4" />
+                                <TextBlock Text="Choose what happens when the titlebar close button [✕] is clicked." FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,8" />
+
+                                <StackPanel Margin="0,0,0,14">
+                                    <RadioButton GroupName="CloseActionGroup"
+                                                 IsChecked="{Binding CloseToTray, Mode=TwoWay}"
+                                                 Style="{StaticResource ModernRadioButton}"
+                                                 Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="📥 Minimize to System Tray" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                            <TextBlock Text=" (Runs silently in background with tray icon &amp; periodic sync)" Foreground="{DynamicResource BrushTextMuted}" FontSize="11" Margin="6,0,0,0" />
+                                        </StackPanel>
+                                    </RadioButton>
+                                    <RadioButton GroupName="CloseActionGroup"
+                                                 IsChecked="{Binding ExitOnClose, Mode=TwoWay}"
+                                                 Style="{StaticResource ModernRadioButton}">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="🛑 Exit Application Completely" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                            <TextBlock Text=" (Closes all background threads and terminates swarm immediately)" Foreground="{DynamicResource BrushTextMuted}" FontSize="11" Margin="6,0,0,0" />
+                                        </StackPanel>
+                                    </RadioButton>
+                                </StackPanel>
+
+                                <Separator Background="{DynamicResource BrushBorder}" Margin="0,0,0,12" />
+
+                                <TextBlock Text="Window Minimize [🗕] Behavior" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,4" />
                                 <CheckBox IsChecked="{Binding MinimizeToTray}" Style="{StaticResource ModernCheckBox}"
-                                          Content="Minimize button minimizes window to background notification tray" Margin="0,0,0,6" />
+                                          Content="Minimize button [🗕] hides window to system tray instead of taskbar" Margin="0,4,0,6" />
                             </StackPanel>
                         </Border>
 

@@ -11,21 +11,24 @@ All notable changes to the **Agy Account Swarm** project are documented here.
   - Interactive Zoom controls (`➖`, `➕`, `100%`) with horizontal `ScrollViewer` canvas expansion.
   - Accurate Y-Axis scale metrics (safeMax, 75%, 50%, 25%, 0) with horizontal dashed guide lines.
   - Generous top ceiling headroom (+30%) preventing highest bars or peak data points from colliding with the chart ceiling.
-- **Upgraded 24-Hour Swarm Activity Heatmap (`/analytics`)**:
-  - Taller canvas (230px) with per-hour prompt counts and rounded intensity-colored bars.
-  - Account filter dropdown to isolate 24-hour activity per profile or aggregate across swarm.
-  - KPI summary strip: Peak Hour, 24h Total Turns, Active Working Window, and Hourly Average Rate.
-  - Detailed hover cards showing exact prompt counts and token estimates per hour bucket.
-- **Dynamic AI Model Performance & Efficiency Matrix (`/analytics`)**:
-  - Removed static hardcoded model entries; dynamically computes model efficiency, token volume, share percent, and status directly from real session history (`history.jsonl`) and discovered AGY models.
-- **4 Appearance Color Palettes (`/settings` & Sidebar)**:
-  - Added 4 distinct themes in `ThemeManager`: **Obsidian Dark**, **Daylight Clean (Light)**, **Cyberpunk Neon**, and **Matrix Emerald**.
-  - Tuned contrast ratios and dynamic navigation brushes (`BrushNavActiveBg`, `BrushNavActiveBorder`, `BrushNavActiveText`, `BrushNavHoverBg`, `BrushNavInactiveText`) to eliminate white-on-white text clipping in Light theme.
-  - Added visual color palette selector chips in `/settings`.
-- **Language & Theme Dropdown Selectors**:
-  - Modern `ComboBox` selectors in sidebar and `/settings` for seamless language (`🇬🇧 English`, `🇮🇩 Bahasa Indonesia`) and theme switching.
-- **Window Dragging Support**:
-  - Enabled native window dragging (`DragMove()`) across the top header toolbar and sidebar branding.
+- **System (Auto OS) Theme Mode**:
+  - Automatically reads the Windows OS theme setting from registry (`HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize` -> `AppsUseLightTheme`) and switches dynamically between Light and Dark modes.
+  - Added visual "🖥️ System (Auto OS)" selector chip in Settings and updated palette options.
+- **Window Chrome & Window Lifecycle Settings**:
+  - Integrated custom window caption controls: `🗕` Minimize, `🗖` Maximize/Restore, and `✕` Close.
+  - Header drag support (`DragMove()`) and double-click to maximize/restore.
+  - Configurable Close Button behavior in `/settings`: choose between **Minimize to System Tray** (runs silently in background) and **Exit Application Completely** (terminates swarm immediately).
+- **Professional Multi-Row Account Cards (`/accounts`)**:
+  - Replaced cramped single-row card layout with an expansive multi-row structure.
+  - Circular Google Account avatar with online photo loading and initials fallback.
+  - Clear row separation: Profile identity & tier badge row, directory & sandbox pills row, dedicated daily quota progress bar, and bottom action toolbar (`▶ Launch`, `📋 Copy CLI`, `📁 Folder`, `✏️ Edit`, `🗑️ Delete`).
+- **Tier-Aware Dynamic Daily Quota Engine**:
+  - Quota calculation now accurately measures **today's prompts** from `history.jsonl` timestamps against the tier's daily allowance (Basic: 100, Plus: 300, Pro: 1,000, Ultra: 2,500 turns), with countdown to 00:00 UTC reset.
+- **24-Hour Swarm Activity Heatmap Y-Axis Scale & Headroom**:
+  - Added Y-axis numeric scale labels (safeMax, 75%, 50%, 25%, 0) and horizontal dashed gridlines.
+  - Clamped bar heights to 140px on a 280px canvas, guaranteeing >50px headroom so bar tops and count labels never collide with the ceiling.
+- **Engineering Excellence & Thorough Craftsman Skill**:
+  - Added `GEMINI.md` and `.agents/skills/thorough-craftsman/SKILL.md` to enforce unconstrained, generous development, complete edge-case handling, and end-to-end verification.
 
 ### Fixed
 - **Duplicate Icon Glitch**:
