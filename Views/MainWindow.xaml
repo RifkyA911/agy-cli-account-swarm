@@ -926,18 +926,18 @@
                                                     </Border>
                                                 </StackPanel>
 
-                                                <!-- Activity Meter (Clean Spaced Horizontal Row - No Collision!) -->
-                                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding UsageLabel}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                    <Border Background="#1538BDF8" BorderBrush="#3038BDF8" BorderThickness="1" CornerRadius="4" Padding="5,1" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                <!-- Activity Meter (Clean Spaced Responsive WrapPanel - No Collision!) -->
+                                                <WrapPanel Margin="0,6,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding UsageLabel}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,8,4" />
+                                                    <Border Background="#1538BDF8" BorderBrush="#3038BDF8" BorderThickness="1" CornerRadius="4" Padding="5,1" Margin="0,0,10,4" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" />
                                                     </Border>
                                                     <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}" Height="6" Width="140"
                                                                  Background="{DynamicResource BrushProgressTrack}"
                                                                  Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                 BorderThickness="0" VerticalAlignment="Center" />
-                                                    <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="12,0,0,0" VerticalAlignment="Center" />
-                                                </StackPanel>
+                                                                 BorderThickness="0" VerticalAlignment="Center" Margin="0,0,12,4" />
+                                                    <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,0,4" />
+                                                </WrapPanel>
                                             </StackPanel>
 
                                             <!-- Quick Launch Action -->
@@ -1146,86 +1146,113 @@
                                                 </StackPanel>
 
                                                 <!-- Row 3: Dedicated Quota Usage Bar & Weekly Limit Remaining Strip -->
-                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,10">
-                                                    <Grid>
-                                                        <Grid.RowDefinitions>
-                                                            <!-- Daily Quota -->
-                                                            <RowDefinition Height="Auto" />
-                                                            <!-- Clean Divider -->
-                                                            <RowDefinition Height="Auto" />
-                                                            <!-- Weekly Quota Remaining -->
-                                                            <RowDefinition Height="Auto" />
-                                                        </Grid.RowDefinitions>
+                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,0,0,12">
+                                                    <StackPanel>
+                                                        <!-- Daily Quota Section (Generous 3-Row Layout) -->
+                                                        <StackPanel Margin="0,0,0,0">
+                                                            <!-- Row 1: Section Header + Tier Badge Pill (Left) & Reset Countdown (Right) -->
+                                                            <Grid Margin="0,0,0,8">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
 
-                                                        <!-- Daily Quota -->
-                                                        <Grid Grid.Row="0">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="Auto" />
-                                                            </Grid.ColumnDefinitions>
+                                                                <!-- Left: Section Title & Tier Badge -->
+                                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="⚡ DAILY QUOTA USAGE" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <Border Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                                        <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                    </Border>
+                                                                </WrapPanel>
 
-                                                            <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                                                                <Grid Margin="0,0,0,4">
-                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                                        <TextBlock Text="⚡ DAILY QUOTA USAGE:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                        <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" Margin="6,0,0,0" />
-                                                                        <TextBlock Text="  •  " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                        <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" />
-                                                                        <Border Background="#1538BDF8" BorderBrush="#3038BDF8" BorderThickness="1" CornerRadius="4" Padding="5,1" Margin="8,0,0,0" VerticalAlignment="Center">
-                                                                            <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" />
-                                                                        </Border>
-                                                                    </StackPanel>
-                                                                    <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
-                                                                </Grid>
+                                                                <!-- Right: Reset Countdown -->
+                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="⏱️ Reset: " FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Grid>
 
-                                                                <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
-                                                                             Height="7" Minimum="0" Maximum="100"
-                                                                             Background="{DynamicResource BrushProgressTrack}"
-                                                                             Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                             BorderThickness="0" />
-                                                            </StackPanel>
+                                                            <!-- Row 2: Full-width Progress Bar -->
+                                                            <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
+                                                                         Height="7" Minimum="0" Maximum="100"
+                                                                         Background="{DynamicResource BrushProgressTrack}"
+                                                                         Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                         BorderThickness="0"
+                                                                         Margin="0,0,0,8" />
 
-                                                            <!-- Reset Countdown -->
-                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                                <TextBlock Text="⏱️ RESET CYCLE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" />
-                                                                <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" Margin="0,2,0,0" />
-                                                            </StackPanel>
-                                                        </Grid>
+                                                            <!-- Row 3: Prompts Today & Tokens (Left) & Dedicated Session Turns Badge (Right) -->
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
 
-                                                        <!-- Clean Divider -->
-                                                        <Separator Grid.Row="1" Background="{DynamicResource BrushCardBorder}" Margin="0,8" />
+                                                                <!-- Left: Prompts Today & Tokens Breakdown -->
+                                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                    <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                    <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                                                </WrapPanel>
 
-                                                        <!-- Weekly Limit Remaining -->
-                                                        <Grid Grid.Row="2">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="Auto" />
-                                                            </Grid.ColumnDefinitions>
+                                                                <!-- Right: Dedicated Session Turns Badge -->
+                                                                <Border Grid.Column="1" Background="#1838BDF8" BorderBrush="#4038BDF8" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10.5" FontWeight="SemiBold" Foreground="#38BDF8" />
+                                                                </Border>
+                                                            </Grid>
+                                                        </StackPanel>
 
-                                                            <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                                                                <Grid Margin="0,0,0,4">
-                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                                                        <TextBlock Text="📅 WEEKLY LIMIT REMAINING:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                        <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0">
-                                                                            <TextBlock Text="{Binding WeeklyRemainingPercentage, StringFormat='{}{0:F1}% remaining'}" FontSize="10.5" FontWeight="Bold" Foreground="#10B981" />
-                                                                        </Border>
-                                                                    </StackPanel>
-                                                                    <TextBlock Text="{Binding WeeklySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                                                </Grid>
+                                                        <!-- Clean Divider with Breathing Room -->
+                                                        <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,12" />
 
-                                                                <ProgressBar Value="{Binding WeeklyRemainingPercentage, Mode=OneWay}"
-                                                                             Height="6" Minimum="0" Maximum="100"
-                                                                             Background="{DynamicResource BrushProgressTrack}"
-                                                                             Foreground="#10B981"
-                                                                             BorderThickness="0" />
-                                                            </StackPanel>
+                                                        <!-- Weekly Quota Section (Generous 3-Row Layout) -->
+                                                        <StackPanel>
+                                                            <!-- Row 1: Section Header + Remaining Pill (Left) & Past 7 Days Usage (Right) -->
+                                                            <Grid Margin="0,0,0,8">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
 
-                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                                <TextBlock Text="PAST 7 DAYS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" />
-                                                                <TextBlock Text="{Binding WeeklyTurnsCount, StringFormat='{}{0:N0} turns used'}" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" Margin="0,2,0,0" />
-                                                            </StackPanel>
-                                                        </Grid>
-                                                    </Grid>
+                                                                <!-- Left: Title & Remaining Badge -->
+                                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="📅 WEEKLY LIMIT" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding WeeklyRemainingPercentage, StringFormat='{}{0:F1}% remaining'}" FontSize="10" FontWeight="Bold" Foreground="#10B981" />
+                                                                    </Border>
+                                                                </WrapPanel>
+
+                                                                <!-- Right: Past 7 Days Usage -->
+                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="📊 Past 7 Days: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding WeeklyTurnsCount, StringFormat='{}{0:N0} turns'}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Grid>
+
+                                                            <!-- Row 2: Full-width Progress Bar -->
+                                                            <ProgressBar Value="{Binding WeeklyRemainingPercentage, Mode=OneWay}"
+                                                                         Height="6" Minimum="0" Maximum="100"
+                                                                         Background="{DynamicResource BrushProgressTrack}"
+                                                                         Foreground="#10B981"
+                                                                         BorderThickness="0"
+                                                                         Margin="0,0,0,8" />
+
+                                                            <!-- Row 3: Remaining / Total Breakdown (Left) & Ceiling (Right) -->
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <!-- Left: Remaining Breakdown -->
+                                                                <TextBlock Grid.Column="0" Text="{Binding WeeklySummary}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+
+                                                                <!-- Right: Weekly Ceiling Badge -->
+                                                                <Border Grid.Column="1" Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding WeeklyQuotaLimit, StringFormat='{}Weekly Ceiling: {0:N0} prompts'}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                </Border>
+                                                            </Grid>
+                                                        </StackPanel>
+                                                    </StackPanel>
                                                 </Border>
 
                                                 <!-- Row 4: Action Toolbar (Separated cleanly, never cramped!) -->
