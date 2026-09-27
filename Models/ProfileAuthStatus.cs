@@ -40,6 +40,14 @@ public class ProfileAuthStatus
     public double UsagePercentage { get; set; } = 0; // 0 to 100
     public string UsageLabel { get; set; } = "0 prompts today";
     public string QuotaResetCountdown { get; set; } = "Resets at 00:00 UTC";
+
+    // Weekly Quota Metrics
+    public int WeeklyTurnsCount { get; set; } = 0;
+    public int WeeklyQuotaLimit { get; set; } = 5000;
+    public double WeeklyUsagePercentage { get; set; } = 0; // 0 to 100
+    public double WeeklyRemainingPercentage { get; set; } = 100.0;
+    public string WeeklyRemainingLabel { get; set; } = "100% remaining";
+
     public string DetectedTier { get; set; } = "Pro";
     public DateTime? TokenModifiedAt { get; set; }
     public bool IsExhausted => Status == AuthStatusType.QuotaExhausted || UsagePercentage >= 100.0;

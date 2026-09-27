@@ -224,6 +224,15 @@ public partial class ProfileItemViewModel : ObservableObject
     public string TodayTokensFormatted => $"{TodayTokensEstimated / 1000:N0}K / {DailyTokensLimit / 1000:N0}K est. tokens";
     public string TierDailySummary => $"{TierBadgeText} Tier ({DailyQuotaLimit:N0} prompts/day)";
 
+    // Weekly Quota Indicators
+    public int WeeklyQuotaLimit => AuthStatus.WeeklyQuotaLimit > 0 ? AuthStatus.WeeklyQuotaLimit : (DailyQuotaLimit * 5);
+    public int WeeklyTurnsCount => AuthStatus.WeeklyTurnsCount;
+    public double WeeklyUsagePercentage => AuthStatus.WeeklyUsagePercentage;
+    public double WeeklyRemainingPercentage => AuthStatus.WeeklyRemainingPercentage;
+    public string WeeklyRemainingLabel => AuthStatus.WeeklyRemainingLabel;
+    public string WeeklyRemainingFormatted => $"{WeeklyRemainingPercentage:F0}% remaining";
+    public string WeeklySummary => $"Weekly Quota: {WeeklyRemainingPercentage:F0}% remaining ({Math.Max(0, WeeklyQuotaLimit - WeeklyTurnsCount):N0} / {WeeklyQuotaLimit:N0} left)";
+
     public async Task RefreshAuthStatusAsync()
     {
         IsBusy = true;
@@ -256,6 +265,13 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(TodayQuotaFormatted));
             OnPropertyChanged(nameof(TodayTokensFormatted));
             OnPropertyChanged(nameof(TierDailySummary));
+            OnPropertyChanged(nameof(WeeklyQuotaLimit));
+            OnPropertyChanged(nameof(WeeklyTurnsCount));
+            OnPropertyChanged(nameof(WeeklyUsagePercentage));
+            OnPropertyChanged(nameof(WeeklyRemainingPercentage));
+            OnPropertyChanged(nameof(WeeklyRemainingLabel));
+            OnPropertyChanged(nameof(WeeklyRemainingFormatted));
+            OnPropertyChanged(nameof(WeeklySummary));
         }
         finally
         {

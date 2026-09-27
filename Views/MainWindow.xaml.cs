@@ -10,6 +10,8 @@ using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
 using MessageBoxResult = System.Windows.MessageBoxResult;
+using ScrollViewer = System.Windows.Controls.ScrollViewer;
+using VisualTreeHelper = System.Windows.Media.VisualTreeHelper;
 
 namespace AgyAccountSwarm.Views;
 
@@ -152,32 +154,27 @@ public partial class MainWindow : Window
         return Task.FromResult(result == MessageBoxResult.Yes);
     }
 
-    private void WindowHeader_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void ChartScrollViewer_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
     {
-        if (e.ClickCount == 2)
+        if (!e.Handled)
         {
-            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-            return;
+            e.Handled = true;
+            var eventArg = new System.Windows.Input.MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
+            {
+                RoutedEvent = UIElement.MouseWheelEvent,
+                Source = sender
+            };
+
+            DependencyObject? current = VisualTreeHelper.GetParent((DependencyObject)sender);
+            while (current != null && current is not ScrollViewer)
+            {
+                current = VisualTreeHelper.GetParent(current);
+            }
+
+            if (current is ScrollViewer parentScrollViewer)
+            {
+                parentScrollViewer.RaiseEvent(eventArg);
+            }
         }
-
-        if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
-        {
-            DragMove();
-        }
-    }
-
-    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState.Minimized;
-    }
-
-    private void MaximizeButton_Click(object sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-    }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        Close();
     }
 }

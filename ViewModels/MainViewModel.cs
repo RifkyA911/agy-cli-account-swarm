@@ -65,11 +65,16 @@ public class ModelEfficiencyItem
 public class SwarmHealthItem
 {
     public string AccountName { get; set; } = string.Empty;
+    public string AccountEmail { get; set; } = string.Empty;
+    public string AvatarInitial { get; set; } = "G";
     public string Tier { get; set; } = "Basic";
     public string TierColor { get; set; } = "#64748B";
     public string CurrentModel { get; set; } = string.Empty;
     public string UsageLabel { get; set; } = string.Empty;
     public double UsagePercent { get; set; }
+    public string TodayQuotaFormatted { get; set; } = string.Empty;
+    public string WeeklySummary { get; set; } = string.Empty;
+    public string QuotaResetCountdown { get; set; } = string.Empty;
     public string StatusText { get; set; } = "HEALTHY";
     public string StatusColor { get; set; } = "#10B981";
 }
@@ -203,6 +208,9 @@ public partial class MainViewModel : ObservableObject
     // Auto-Sync settings
     [ObservableProperty]
     private string _autoSyncInterval = "5 Minutes";
+
+    [ObservableProperty]
+    private bool _autoSyncAudioEnabled = false;
 
     public ObservableCollection<string> AutoSyncOptions { get; } =
         ["Manual", "1 Minute", "5 Minutes", "15 Minutes", "30 Minutes"];
@@ -414,6 +422,7 @@ public partial class MainViewModel : ObservableObject
             Strings.SetLanguage(CurrentLanguage);
             SelectedChartMode = settings.PreferredChartMode ?? "Bar";
             AutoSyncInterval = settings.AutoSyncInterval ?? "5 Minutes";
+            AutoSyncAudioEnabled = settings.AutoSyncAudioEnabled;
             ConfigureAutoSyncTimer();
 
             if (!string.IsNullOrWhiteSpace(settings.CustomAgyExecutablePath) && File.Exists(settings.CustomAgyExecutablePath))
@@ -690,6 +699,11 @@ public partial class MainViewModel : ObservableObject
         _ = SaveSettingsAsync();
     }
 
+    partial void OnAutoSyncAudioEnabledChanged(bool value)
+    {
+        _ = SaveSettingsAsync();
+    }
+
     partial void OnSelectedTerminalChanged(TerminalType value)
     {
         _ = SaveSettingsAsync();
@@ -778,11 +792,16 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public async Task RefreshAllAuthAsync()
     {
-        await SyncSwarmAsync();
+        await ExecuteSyncSwarmAsync(isAutoSync: false);
     }
 
     [RelayCommand]
     public async Task SyncSwarmAsync()
+    {
+        await ExecuteSyncSwarmAsync(isAutoSync: false);
+    }
+
+    public async Task ExecuteSyncSwarmAsync(bool isAutoSync = false)
     {
         IsLoading = true;
         try
@@ -806,9 +825,15 @@ public partial class MainViewModel : ObservableObject
             }
 
             LastSyncedAtText = $"Synced {DateTime.Now:HH:mm:ss}";
-            _audioService.PlaySync();
+            if (!isAutoSync || AutoSyncAudioEnabled)
+            {
+                _audioService.PlaySync();
+            }
             UpdateStats();
-            ShowNotification("Swarm state and real history synchronized.");
+            if (!isAutoSync)
+            {
+                ShowNotification("Swarm state and real history synchronized.");
+            }
         }
         catch (Exception ex)
         {
@@ -1398,11 +1423,16 @@ public partial class MainViewModel : ObservableObject
             SwarmHealthRecords.Add(new SwarmHealthItem
             {
                 AccountName = p.Name,
+                AccountEmail = p.AccountEmail ?? "Pending Auth",
+                AvatarInitial = p.AvatarInitial,
                 Tier = p.TierBadgeText,
                 TierColor = p.TierBadgeBackground,
                 CurrentModel = p.CurrentModel,
                 UsageLabel = p.UsageLabel,
                 UsagePercent = p.UsagePercentage,
+                TodayQuotaFormatted = p.TodayQuotaFormatted,
+                WeeklySummary = p.WeeklySummary,
+                QuotaResetCountdown = p.QuotaResetCountdown,
                 StatusText = p.QuotaStatusText,
                 StatusColor = p.QuotaStatusColor
             });
@@ -1502,7 +1532,7 @@ public partial class MainViewModel : ObservableObject
 
     private async void OnAutoSyncTimerTick(object? sender, EventArgs e)
     {
-        await SyncSwarmAsync();
+        await ExecuteSyncSwarmAsync(isAutoSync: true);
         await LoadMcpServersAsync();
     }
 
@@ -1759,7 +1789,8 @@ public partial class MainViewModel : ObservableObject
             CustomAgyExecutablePath = DetectedAgyPath,
             Language = CurrentLanguage,
             PreferredChartMode = SelectedChartMode,
-            AutoSyncInterval = AutoSyncInterval
+            AutoSyncInterval = AutoSyncInterval,
+            AutoSyncAudioEnabled = AutoSyncAudioEnabled
         };
         await _storageService.SaveSettingsAsync(settings);
     }

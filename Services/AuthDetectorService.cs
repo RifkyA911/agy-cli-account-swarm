@@ -154,8 +154,13 @@ public class AuthDetectorService : IAuthDetectorService
                 ? profile.QuotaLimit
                 : GetDailyQuotaForTier(effectiveTier);
 
+            int weeklyLimit = profile.QuotaLimit > 0 && profile.QuotaLimit != 500
+                ? profile.QuotaLimit * 5
+                : GetWeeklyQuotaForTier(effectiveTier);
+
             long dailyTokensLimit = GetDailyTokensLimitForTier(effectiveTier);
             status.DailyQuotaLimit = dailyLimit;
+            status.WeeklyQuotaLimit = weeklyLimit;
             status.DailyTokensLimit = dailyTokensLimit;
 
             // Countdown to 00:00 UTC
@@ -171,7 +176,9 @@ public class AuthDetectorService : IAuthDetectorService
                 {
                     int totalCount = 0;
                     int todayCount = 0;
+                    int weeklyCount = 0;
                     var today = DateTime.Today;
+                    var weekStart = today.AddDays(-6);
 
                     using (var stream = new FileStream(historyFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var reader = new StreamReader(stream))
@@ -192,6 +199,10 @@ public class AuthDetectorService : IAuthDetectorService
                                     {
                                         todayCount++;
                                     }
+                                    if (dt.Date >= weekStart && dt.Date <= today)
+                                    {
+                                        weeklyCount++;
+                                    }
                                 }
                             }
                             catch { }
@@ -200,19 +211,27 @@ public class AuthDetectorService : IAuthDetectorService
 
                     status.TotalTurnsCount = totalCount;
                     status.TodayTurnsCount = todayCount;
+                    status.WeeklyTurnsCount = weeklyCount;
                     status.TodayTokensEstimated = (long)todayCount * 1950L;
 
                     status.UsagePercentage = Math.Min(100.0, ((double)todayCount / dailyLimit) * 100.0);
                     status.UsageLabel = $"{todayCount:N0} / {dailyLimit:N0} prompts today ({status.UsagePercentage:F1}%)";
+
+                    status.WeeklyUsagePercentage = Math.Min(100.0, ((double)weeklyCount / weeklyLimit) * 100.0);
+                    int remainingWeekly = Math.Max(0, weeklyLimit - weeklyCount);
+                    status.WeeklyRemainingPercentage = Math.Max(0.0, Math.Min(100.0, ((double)remainingWeekly / weeklyLimit) * 100.0));
+                    status.WeeklyRemainingLabel = $"{status.WeeklyRemainingPercentage:F1}% remaining ({remainingWeekly:N0} / {weeklyLimit:N0} left this week)";
                 }
                 catch
                 {
                     status.UsageLabel = $"0 / {dailyLimit:N0} prompts today";
+                    status.WeeklyRemainingLabel = "100% remaining";
                 }
             }
             else
             {
                 status.UsageLabel = $"0 / {dailyLimit:N0} prompts today";
+                status.WeeklyRemainingLabel = "100% remaining";
             }
 
             // 7. Determine Final Status
@@ -265,6 +284,17 @@ public class AuthDetectorService : IAuthDetectorService
             "plus" => 1500000L,
             "basic" or "free" or "unverified" => 500000L,
             _ => 5000000L // Pro default (5M tokens/day)
+        };
+    }
+
+    public static int GetWeeklyQuotaForTier(string? tier)
+    {
+        return tier?.ToLowerInvariant() switch
+        {
+            "ultra" or "enterprise" => 12500,
+            "plus" => 1500,
+            "basic" or "free" or "unverified" => 500,
+            _ => 5000 // Pro default (5,000 prompts/week)
         };
     }
 }

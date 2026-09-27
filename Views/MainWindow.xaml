@@ -5,18 +5,12 @@
         xmlns:models="clr-namespace:AgyAccountSwarm.Models"
         Title="Agy Account Swarm — Antigravity CLI Orchestrator (MIT Open Source)"
         Icon="../Resources/favicon.ico"
-        Height="880" Width="1340"
-        MinHeight="700" MinWidth="1100"
+        Height="760" Width="1240"
+        MinHeight="640" MinWidth="1050"
         WindowStartupLocation="CenterScreen"
-        WindowStyle="None"
-        ResizeMode="CanResizeWithGrip"
         Background="{DynamicResource BrushBg}"
         Foreground="{DynamicResource BrushTextPrimary}"
         FontFamily="{StaticResource FontMain}">
-
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="0" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
-    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <LinearGradientBrush x:Key="AreaChartGradient" StartPoint="0,0" EndPoint="0,1">
@@ -57,7 +51,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- Header / Branding -->
-                    <StackPanel Grid.Row="0" Margin="4,0,0,22" Background="Transparent" MouseLeftButtonDown="WindowHeader_MouseLeftButtonDown">
+                    <StackPanel Grid.Row="0" Margin="4,0,0,22">
                         <StackPanel Orientation="Horizontal">
                             <Image Source="../Resources/favicon.ico" Width="28" Height="28" Margin="0,0,10,0" VerticalAlignment="Center" />
                             <StackPanel VerticalAlignment="Center">
@@ -91,7 +85,10 @@
                                             Background="#3B82F6" Margin="0,0,10,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="📊" Margin="0,0,10,0" FontSize="15" />
+                                        <Path Data="{StaticResource HeroIconSquares2x2}"
+                                              Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dashboard}"
+                                              StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Dashboard]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Dashboard}"
@@ -120,7 +117,10 @@
                                             Background="#3B82F6" Margin="0,0,10,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Accounts}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="👥" Margin="0,0,10,0" FontSize="15" />
+                                        <Path Data="{StaticResource HeroIconUsers}"
+                                              Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Accounts}"
+                                              StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Accounts]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Accounts}"
@@ -156,7 +156,10 @@
                                             Background="#3B82F6" Margin="0,0,10,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="📈" Margin="0,0,10,0" FontSize="15" />
+                                        <Path Data="{StaticResource HeroIconChartBar}"
+                                              Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Analytics}"
+                                              StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Analytics]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Analytics}"
@@ -185,7 +188,10 @@
                                             Background="#3B82F6" Margin="0,0,10,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Mcp}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="🧩" Margin="0,0,10,0" FontSize="15" />
+                                        <Path Data="{StaticResource HeroIconCpuChip}"
+                                              Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Mcp}"
+                                              StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Mcp]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Mcp}"
@@ -221,7 +227,10 @@
                                             Background="#3B82F6" Margin="0,0,10,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Docs}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="📖" Margin="0,0,10,0" FontSize="15" />
+                                        <Path Data="{StaticResource HeroIconBookOpen}"
+                                              Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Docs}"
+                                              StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Docs]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Docs}"
@@ -249,7 +258,10 @@
                                             Background="#3B82F6" Margin="0,0,10,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Logs}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="📋" Margin="0,0,10,0" FontSize="15" />
+                                        <Path Data="{StaticResource HeroIconCommandLine}"
+                                              Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Logs}"
+                                              StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Logs]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Logs}"
@@ -277,7 +289,10 @@
                                             Background="#3B82F6" Margin="0,0,10,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="⚙️" Margin="0,0,10,0" FontSize="15" />
+                                        <Path Data="{StaticResource HeroIconCog6Tooth}"
+                                              Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Settings}"
+                                              StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Settings]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Settings}"
@@ -370,21 +385,18 @@
                     <Border Background="{DynamicResource BrushSurface}"
                             BorderBrush="{DynamicResource BrushCardBorder}"
                             BorderThickness="0,0,0,1"
-                            Padding="24,14"
-                            MouseLeftButtonDown="WindowHeader_MouseLeftButtonDown">
+                            Padding="24,14">
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <!-- Current Page Title -->
+                                <!-- Current Page Title & Status -->
                                 <ColumnDefinition Width="*" />
                                 <!-- Action Buttons: Refresh/Sync & Swarm Launch -->
                                 <ColumnDefinition Width="Auto" />
-                                <!-- Window Caption Buttons: Minimize, Maximize, Close -->
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- Title based on navigation -->
+                            <!-- Title based on navigation & Live Sync Dot -->
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding CurrentPage}"
                                                FontSize="18"
                                                FontWeight="Bold"
@@ -396,11 +408,38 @@
                                             CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Strings[App_VersionBadge]}" Foreground="{DynamicResource BrushBadgeText}" FontSize="11" FontWeight="SemiBold" />
                                     </Border>
+
+                                    <!-- Live Pulsing Green Sync Dot -->
+                                    <Grid Width="14" Height="14" Margin="12,0,4,0" VerticalAlignment="Center">
+                                        <Ellipse Width="12" Height="12" Fill="#10B981" Opacity="0.3">
+                                            <Ellipse.Triggers>
+                                                <EventTrigger RoutedEvent="Loaded">
+                                                    <BeginStoryboard>
+                                                        <Storyboard RepeatBehavior="Forever">
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.7" To="0.0" Duration="0:0:1.6" AutoReverse="False" />
+                                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)" From="1.0" To="2.0" Duration="0:0:1.6" AutoReverse="False" />
+                                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)" From="1.0" To="2.0" Duration="0:0:1.6" AutoReverse="False" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </EventTrigger>
+                                            </Ellipse.Triggers>
+                                            <Ellipse.RenderTransform>
+                                                <ScaleTransform CenterX="6" CenterY="6" />
+                                            </Ellipse.RenderTransform>
+                                        </Ellipse>
+                                        <Ellipse Width="6" Height="6" Fill="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
+
+                                    <!-- Auto-Sync Status Badge -->
+                                    <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" VerticalAlignment="Center">
+                                        <TextBlock Text="SUCCESS • AUTO-SYNC ACTIVE" Foreground="#10B981" FontSize="10" FontWeight="Bold" />
+                                    </Border>
+
                                     <!-- Last Synced Tag -->
                                     <Border Background="{DynamicResource BrushSurfaceHover}"
                                             BorderBrush="{DynamicResource BrushCardBorder}"
                                             BorderThickness="1"
-                                            CornerRadius="4" Padding="6,2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding LastSyncedAtText}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
                                     </Border>
                                 </StackPanel>
@@ -411,16 +450,18 @@
                             </StackPanel>
 
                             <!-- Right CTA: Refresh/Sync and Launch Swarm -->
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <!-- Refresh / Sync Swarm Button -->
                                 <Button Command="{Binding SyncSwarmCommand}"
                                         Style="{StaticResource ModernButton}"
                                         Padding="12,8"
                                         Margin="0,0,8,0"
                                         ToolTip="Check profile tokens, detect model sessions, and verify quota limits">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="🔄 " FontSize="12" />
-                                        <TextBlock Text="{Binding Strings[Btn_SyncSwarm]}" FontWeight="SemiBold" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconArrowPath}"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                              StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Strings[Btn_SyncSwarm]}" FontWeight="SemiBold" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
 
@@ -428,21 +469,14 @@
                                 <Button Command="{Binding LaunchSwarmCommand}"
                                         Style="{StaticResource SwarmButton}"
                                         Padding="14,8">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="⚡ " FontWeight="Bold" />
-                                        <TextBlock Text="{Binding Strings[Btn_LaunchSwarm]}" FontWeight="Bold" />
-                                        <TextBlock Text=" (" FontWeight="Bold" />
-                                        <TextBlock Text="{Binding SelectedSwarmCount}" FontWeight="Bold" />
-                                        <TextBlock Text=")" FontWeight="Bold" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconBolt}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Strings[Btn_LaunchSwarm]}" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <TextBlock Text=" (" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding SelectedSwarmCount}" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <TextBlock Text=")" FontWeight="Bold" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
-                            </StackPanel>
-
-                            <!-- Window Caption Control Buttons -->
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Click="MinimizeButton_Click" Style="{StaticResource WindowCaptionButton}" Content="🗕" ToolTip="Minimize" Margin="0,0,2,0" />
-                                <Button Click="MaximizeButton_Click" Style="{StaticResource WindowCaptionButton}" Content="🗖" ToolTip="Maximize / Restore" Margin="0,0,2,0" />
-                                <Button Click="CloseButton_Click" Style="{StaticResource WindowCloseButton}" Content="✕" ToolTip="Close" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -495,7 +529,7 @@
                 <!-- ============================================================== -->
                 <!-- VIEW 1: DASHBOARD (/dashboard)                                 -->
                 <!-- ============================================================== -->
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24"
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,24,60"
                               Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}">
                     <StackPanel>
                         <!-- Top KPI Metrics Row -->
@@ -691,7 +725,8 @@
                                                 </Grid>
 
                                                 <!-- Horizontal Scrollable Chart Content -->
-                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                                              PreviewMouseWheel="ChartScrollViewer_PreviewMouseWheel">
                                                     <Grid MinWidth="{Binding ChartCanvasWidth}" Height="300" HorizontalAlignment="Left">
                                                         <!-- 1. BAR CHART MODE -->
                                                         <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" HorizontalAlignment="Left"
@@ -891,18 +926,15 @@
                                                     </Border>
                                                 </StackPanel>
 
-                                                <!-- Activity Meter -->
-                                                <Grid Margin="0,4,0,0" MaxWidth="500" HorizontalAlignment="Left">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="140" />
-                                                        <ColumnDefinition Width="*" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0" Text="{Binding UsageLabel}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
-                                                    <ProgressBar Grid.Column="1" Value="{Binding UsagePercentage, Mode=OneWay}" Height="5" Width="180"
+                                                <!-- Activity Meter (Clean Spaced Horizontal Row - No Collision!) -->
+                                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding UsageLabel}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                                    <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}" Height="6" Width="160"
                                                                  Background="{DynamicResource BrushProgressTrack}"
                                                                  Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
                                                                  BorderThickness="0" VerticalAlignment="Center" />
-                                                </Grid>
+                                                    <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                                </StackPanel>
                                             </StackPanel>
 
                                             <!-- Quick Launch Action -->
@@ -910,15 +942,23 @@
                                                 <Button Command="{Binding LaunchCommand}"
                                                         CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         Style="{StaticResource PrimaryButton}" Padding="12,5" Margin="0,0,6,0">
-                                                    <TextBlock Text="▶ Launch" FontWeight="Bold" FontSize="11" />
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Path Data="{StaticResource HeroIconPlay}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="Launch" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
+                                                    </StackPanel>
                                                 </Button>
-                                                <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Content="📁" Padding="8,5" ToolTip="Open Profile Folder" />
+                                                <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="8,5" ToolTip="Open Profile Folder">
+                                                    <Path Data="{StaticResource HeroIconFolder}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                                                </Button>
                                             </StackPanel>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+
+                        <!-- Bottom Breathing Room Spacer -->
+                        <Border Height="60" />
                     </StackPanel>
                 </ScrollViewer>
 
@@ -964,22 +1004,30 @@
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Command="{Binding SyncSwarmCommand}"
                                         Style="{StaticResource ModernButton}"
-                                        Margin="0,0,8,0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="🔄 " />
-                                        <TextBlock Text="{Binding Strings[Btn_SyncSwarm]}" FontWeight="SemiBold" />
+                                        Margin="0,0,8,0" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconArrowPath}"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}"
+                                              StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Strings[Btn_SyncSwarm]}" FontWeight="SemiBold" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
-                                <Button Content="{Binding Strings[Accounts_NewProfile]}"
-                                        Command="{Binding AddProfileCommand}"
-                                        Style="{StaticResource PrimaryButton}" />
+                                <Button Command="{Binding AddProfileCommand}"
+                                        Style="{StaticResource PrimaryButton}" Padding="14,6">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconPlus}"
+                                              Stroke="#FFFFFF" StrokeThickness="2.2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Strings[Accounts_NewProfile]}" FontWeight="Bold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </Border>
 
                     <!-- Accounts Cards List -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,16">
-                        <ItemsControl ItemsSource="{Binding FilteredProfiles}">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,16,24,60">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding FilteredProfiles}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="{DynamicResource BrushCard}"
@@ -1104,37 +1152,83 @@
                                                     </WrapPanel>
                                                 </StackPanel>
 
-                                                <!-- Row 3: Dedicated Quota Usage Bar & Tier Rate-Limit Strip -->
-                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,8" Margin="0,0,0,10">
+                                                <!-- Row 3: Dedicated Quota Usage Bar & Weekly Limit Remaining Strip -->
+                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,10">
                                                     <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="Auto" />
-                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <!-- Daily Quota -->
+                                                            <RowDefinition Height="Auto" />
+                                                            <!-- Clean Divider -->
+                                                            <RowDefinition Height="Auto" />
+                                                            <!-- Weekly Quota Remaining -->
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
 
-                                                        <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                                                            <Grid Margin="0,0,0,4">
-                                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                                                    <TextBlock Text="⚡ DAILY QUOTA USAGE:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                    <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" Margin="6,0,0,0" />
-                                                                    <TextBlock Text="  •  " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                    <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" />
-                                                                </StackPanel>
-                                                                <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
-                                                            </Grid>
+                                                        <!-- Daily Quota -->
+                                                        <Grid Grid.Row="0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
 
-                                                            <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
-                                                                         Height="7" Minimum="0" Maximum="100"
-                                                                         Background="{DynamicResource BrushProgressTrack}"
-                                                                         Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                         BorderThickness="0" />
-                                                        </StackPanel>
+                                                            <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                                                <Grid Margin="0,0,0,4">
+                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                                                        <TextBlock Text="⚡ DAILY QUOTA USAGE:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                        <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" Margin="6,0,0,0" />
+                                                                        <TextBlock Text="  •  " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                        <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                    </StackPanel>
+                                                                    <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
+                                                                </Grid>
 
-                                                        <!-- Reset Countdown -->
-                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                            <TextBlock Text="⏱️ RESET CYCLE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" />
-                                                            <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" Margin="0,2,0,0" />
-                                                        </StackPanel>
+                                                                <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
+                                                                             Height="7" Minimum="0" Maximum="100"
+                                                                             Background="{DynamicResource BrushProgressTrack}"
+                                                                             Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                             BorderThickness="0" />
+                                                            </StackPanel>
+
+                                                            <!-- Reset Countdown -->
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                <TextBlock Text="⏱️ RESET CYCLE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" />
+                                                                <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" Margin="0,2,0,0" />
+                                                            </StackPanel>
+                                                        </Grid>
+
+                                                        <!-- Clean Divider -->
+                                                        <Separator Grid.Row="1" Background="{DynamicResource BrushCardBorder}" Margin="0,8" />
+
+                                                        <!-- Weekly Limit Remaining -->
+                                                        <Grid Grid.Row="2">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                                                                <Grid Margin="0,0,0,4">
+                                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                                        <TextBlock Text="📅 WEEKLY LIMIT REMAINING:" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                        <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0">
+                                                                            <TextBlock Text="{Binding WeeklyRemainingPercentage, StringFormat='{}{0:F1}% remaining'}" FontSize="10.5" FontWeight="Bold" Foreground="#10B981" />
+                                                                        </Border>
+                                                                    </StackPanel>
+                                                                    <TextBlock Text="{Binding WeeklySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                                                </Grid>
+
+                                                                <ProgressBar Value="{Binding WeeklyRemainingPercentage, Mode=OneWay}"
+                                                                             Height="6" Minimum="0" Maximum="100"
+                                                                             Background="{DynamicResource BrushProgressTrack}"
+                                                                             Foreground="#10B981"
+                                                                             BorderThickness="0" />
+                                                            </StackPanel>
+
+                                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                <TextBlock Text="PAST 7 DAYS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" />
+                                                                <TextBlock Text="{Binding WeeklyTurnsCount, StringFormat='{}{0:N0} turns used'}" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" Margin="0,2,0,0" />
+                                                            </StackPanel>
+                                                        </Grid>
                                                     </Grid>
                                                 </Border>
 
@@ -1151,21 +1245,42 @@
                                                                 CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
                                                                 Style="{StaticResource PrimaryButton}" Padding="16,7" Margin="0,0,8,0"
                                                                 ToolTip="Launch Antigravity CLI session in selected terminal">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="▶ Launch agy" FontWeight="Bold" FontSize="12" />
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <Path Data="{StaticResource HeroIconPlay}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                <TextBlock Text="Launch agy" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
                                                         <Button Command="{Binding CopyCliSnippetCommand}"
                                                                 CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                Style="{StaticResource ModernButton}" Content="📋 Copy CLI" Padding="12,7" Margin="0,0,8,0"
-                                                                ToolTip="Copy isolated terminal launch command" />
-                                                        <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Content="📁 Open Folder" Padding="12,7" ToolTip="Open profile directory" />
+                                                                Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0"
+                                                                ToolTip="Copy isolated terminal launch command">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <Path Data="{StaticResource HeroIconClipboard}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                <TextBlock Text="Copy CLI" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                        <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="12,7" ToolTip="Open profile directory">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <Path Data="{StaticResource HeroIconFolder}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                <TextBlock Text="Open Folder" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Button>
                                                     </StackPanel>
 
                                                     <!-- Right Actions: Edit, Delete -->
                                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <Button Command="{Binding RequestEditCommand}" Style="{StaticResource ModernButton}" Content="✏️ Edit Profile" Padding="12,7" Margin="0,0,8,0" ToolTip="Edit profile settings" />
-                                                        <Button Command="{Binding RequestDeleteCommand}" Style="{StaticResource DangerButton}" Content="🗑️ Delete" Padding="12,7" ToolTip="Remove profile" />
+                                                        <Button Command="{Binding RequestEditCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0" ToolTip="Edit profile settings">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <Path Data="{StaticResource HeroIconPencil}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                <TextBlock Text="Edit Profile" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                        <Button Command="{Binding RequestDeleteCommand}" Style="{StaticResource DangerButton}" Padding="12,7" ToolTip="Remove profile">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <Path Data="{StaticResource HeroIconTrash}" Stroke="#FFFFFF" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                <TextBlock Text="Delete" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Button>
                                                     </StackPanel>
                                                 </Grid>
                                             </StackPanel>
@@ -1174,13 +1289,17 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </ScrollViewer>
+
+                        <!-- Bottom Breathing Room Spacer -->
+                        <Border Height="60" />
+                    </StackPanel>
+                </ScrollViewer>
                 </Grid>
 
                 <!-- ============================================================== -->
                 <!-- VIEW 3: ANALYTICS (/analytic)                                  -->
                 <!-- ============================================================== -->
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24"
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,24,60"
                               Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}">
                     <StackPanel>
                         <!-- Analytics Header -->
@@ -1191,15 +1310,15 @@
                             </StackPanel>
                             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Command="{Binding ExportPdfReportCommand}" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Padding="14,6">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="📥 " />
-                                        <TextBlock Text="Download PDF Report" FontWeight="Bold" />
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Download PDF Report" FontWeight="Bold" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
-                                <Button Command="{Binding SyncSwarmCommand}" Style="{StaticResource ModernButton}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="🔄 " />
-                                        <TextBlock Text="{Binding Strings[Analytics_Recalculate]}" FontWeight="SemiBold" />
+                                <Button Command="{Binding SyncSwarmCommand}" Style="{StaticResource ModernButton}" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconArrowPath}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Strings[Analytics_Recalculate]}" FontWeight="SemiBold" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
@@ -1406,7 +1525,7 @@
                                                 </Grid>
 
                                                 <!-- Horizontal Scrollable Chart Content -->
-                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" PreviewMouseWheel="ChartScrollViewer_PreviewMouseWheel">
                                                     <Grid MinWidth="{Binding ChartCanvasWidth}" Height="320" HorizontalAlignment="Left">
                                                         <!-- 1. BAR CHART MODE (TALL) -->
                                                         <ItemsControl ItemsSource="{Binding DashboardChartPoints}" VerticalAlignment="Bottom" HorizontalAlignment="Left"
@@ -1719,44 +1838,105 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Section 3: Account Quota & Health Status -->
-                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18">
+                        <!-- Section 3: Account Quota & Health Status (Revamped Spacious Layout) -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
                             <StackPanel>
-                                <TextBlock Text="{Binding Strings[Analytics_AccountHealth]}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,12" />
+                                <Grid Margin="0,0,0,14">
+                                    <TextBlock Text="{Binding Strings[Analytics_AccountHealth]}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                    <TextBlock Text="Detailed quota allocation, real-time rate limit consumption &amp; health telemetry" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+
                                 <ItemsControl ItemsSource="{Binding SwarmHealthRecords}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Margin="0,0,0,12">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="220" />
-                                                    <ColumnDefinition Width="90" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="140" />
-                                                    <ColumnDefinition Width="120" />
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock Text="{Binding AccountName}" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                    <TextBlock Text="{Binding CurrentModel}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
-                                                </StackPanel>
-                                                <Border Grid.Column="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                                        Background="{Binding TierColor, Converter={StaticResource HexToBrushConverter}}">
-                                                    <TextBlock Text="{Binding Tier}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
-                                                </Border>
-                                                <ProgressBar Grid.Column="2" Value="{Binding UsagePercent, Mode=OneWay}" Height="7"
-                                                             Minimum="0" Maximum="100" Background="{DynamicResource BrushProgressTrack}"
-                                                             Foreground="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}"
-                                                             BorderThickness="0" VerticalAlignment="Center" Margin="10,0" />
-                                                <TextBlock Grid.Column="3" Text="{Binding UsageLabel}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
-                                                <Border Grid.Column="4" CornerRadius="4" Padding="7,2" VerticalAlignment="Center" HorizontalAlignment="Right"
-                                                        Background="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}">
-                                                    <TextBlock Text="{Binding StatusText}" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF" />
-                                                </Border>
-                                            </Grid>
+                                            <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="16,14" Margin="0,0,0,12">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <!-- Row 1: Identity & Badges & Reset Countdown -->
+                                                        <RowDefinition Height="Auto" />
+                                                        <!-- Row 2: Full Width Progress Bar & Usage Metrics -->
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+
+                                                    <!-- Row 1: Identity & Status -->
+                                                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <!-- Left: Avatar + Names + Badges -->
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <!-- Mini Avatar Initial Badge -->
+                                                            <Border Width="34" Height="34" CornerRadius="17"
+                                                                    Background="{Binding TierColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                    Margin="0,0,12,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            </Border>
+
+                                                            <!-- Name & Email -->
+                                                            <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                                                                <TextBlock Text="{Binding AccountName}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                                <TextBlock Text="{Binding AccountEmail}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,1,0,0" />
+                                                            </StackPanel>
+
+                                                            <!-- Tier Badge -->
+                                                            <Border CornerRadius="5" Padding="8,3" Margin="0,0,8,0" VerticalAlignment="Center"
+                                                                    Background="{Binding TierColor, Converter={StaticResource HexToBrushConverter}}">
+                                                                <TextBlock Text="{Binding Tier}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            </Border>
+
+                                                            <!-- Model Badge -->
+                                                            <Border CornerRadius="5" Padding="8,3" Margin="0,0,8,0" VerticalAlignment="Center"
+                                                                    Background="{DynamicResource BrushModelBadgeBg}"
+                                                                    BorderBrush="{DynamicResource BrushModelBadgeBorder}" BorderThickness="1">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="🧠 " FontSize="10" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding CurrentModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Border>
+
+                                                            <!-- Health Status Badge -->
+                                                            <Border CornerRadius="5" Padding="9,3" VerticalAlignment="Center"
+                                                                    Background="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}">
+                                                                <TextBlock Text="{Binding StatusText}" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <!-- Right: Reset Countdown -->
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                            <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
+                                                            <TextBlock Text="{Binding WeeklySummary}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" Margin="0,2,0,0" />
+                                                        </StackPanel>
+                                                    </Grid>
+
+                                                    <!-- Row 2: Full-Width Usage Meter & Detailed Prompt Count -->
+                                                    <Grid Grid.Row="1">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+
+                                                        <Grid Grid.Row="0" Margin="0,0,0,5">
+                                                            <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Left" />
+                                                            <TextBlock Text="{Binding UsagePercent, StringFormat='{}{0:F1}% of daily quota consumed'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
+                                                        </Grid>
+
+                                                        <ProgressBar Grid.Row="1" Value="{Binding UsagePercent, Mode=OneWay}" Height="7"
+                                                                     Minimum="0" Maximum="100" Background="{DynamicResource BrushProgressTrack}"
+                                                                     Foreground="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                     BorderThickness="0" />
+                                                    </Grid>
+                                                </Grid>
+                                            </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </StackPanel>
                         </Border>
+
+                        <!-- Bottom Breathing Room Spacer -->
+                        <Border Height="60" />
                     </StackPanel>
                 </ScrollViewer>
 
@@ -1982,7 +2162,7 @@
                 <!-- ============================================================== -->
                 <!-- VIEW 7: SETTINGS (/settings) - CENTERED MODERN CARDS           -->
                 <!-- ============================================================== -->
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24"
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,24,60"
                               Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}">
                     <!-- Centered Settings Cards Stack -->
                     <StackPanel MaxWidth="840" HorizontalAlignment="Center">
@@ -2014,58 +2194,110 @@
                                     <TextBlock Text="🎨 " FontSize="16" VerticalAlignment="Center" />
                                     <TextBlock Text="Theme Appearance &amp; Color Palette" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                 </StackPanel>
-                                <TextBlock Text="Choose your preferred color scheme across the application. Contrast and borders are automatically tuned for maximum legibility." FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,14" />
+                                <TextBlock Text="Choose your preferred color palette. Surface contrasts, glowing badges, and borders are mathematically calibrated for maximum readability." FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,16" />
 
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
-                                    <TextBlock Text="Active Palette:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                    <ComboBox ItemsSource="{Binding ThemeOptions}"
-                                              SelectedItem="{Binding SelectedThemeOption}"
-                                              Style="{StaticResource ModernComboBox}"
-                                              Width="220" />
-                                </StackPanel>
-
-                                <!-- Visual Palette Selector Chips -->
-                                <WrapPanel Margin="0,4,0,0">
-                                    <!-- System Chip -->
-                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="System" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Border Width="16" Height="16" CornerRadius="8" Background="#334155" BorderBrush="#94A3B8" BorderThickness="2" Margin="0,0,8,0" />
-                                            <TextBlock Text="🖥️ System (Auto OS)" FontWeight="SemiBold" FontSize="11" />
-                                        </StackPanel>
+                                <!-- 5 Rich Theme Palette Cards Grid -->
+                                <UniformGrid Columns="2" Margin="0,0,0,6">
+                                    <!-- Card 1: System (Auto OS) -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="System"
+                                            Style="{StaticResource ModernButton}" Margin="0,0,8,12" Padding="14,12" HorizontalContentAlignment="Stretch">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <Ellipse Width="14" Height="14" Fill="#0F1115" Stroke="#334155" StrokeThickness="1.5" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#FFFFFF" Stroke="#94A3B8" StrokeThickness="1.5" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#38BDF8" Margin="0,0,4,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="🖥️ System (Auto OS)" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                <TextBlock Text="Syncs with Windows dark/light mode" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </Grid>
                                     </Button>
 
-                                    <!-- Dark Chip -->
-                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Dark" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Border Width="16" Height="16" CornerRadius="8" Background="#0F1115" BorderBrush="#38BDF8" BorderThickness="2" Margin="0,0,8,0" />
-                                            <TextBlock Text="🌙 Obsidian Dark" FontWeight="SemiBold" FontSize="11" />
-                                        </StackPanel>
+                                    <!-- Card 2: Obsidian Dark -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Dark"
+                                            Style="{StaticResource ModernButton}" Margin="0,0,0,12" Padding="14,12" HorizontalContentAlignment="Stretch">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <Ellipse Width="14" Height="14" Fill="#090D16" Stroke="#1E293B" StrokeThickness="1.5" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#1E293B" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#38BDF8" Margin="0,0,4,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="🌙 Obsidian Dark" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                <TextBlock Text="Deep midnight navy with electric cyan" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </Grid>
                                     </Button>
 
-                                    <!-- Light Chip -->
-                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Light" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Border Width="16" Height="16" CornerRadius="8" Background="#FFFFFF" BorderBrush="#0284C7" BorderThickness="2" Margin="0,0,8,0" />
-                                            <TextBlock Text="☀️ Daylight Clean" FontWeight="SemiBold" FontSize="11" />
-                                        </StackPanel>
+                                    <!-- Card 3: Daylight Clean -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Light"
+                                            Style="{StaticResource ModernButton}" Margin="0,0,8,12" Padding="14,12" HorizontalContentAlignment="Stretch">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <Ellipse Width="14" Height="14" Fill="#F8FAFC" Stroke="#CBD5E1" StrokeThickness="1.5" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#FFFFFF" Stroke="#CBD5E1" StrokeThickness="1.5" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#0284C7" Margin="0,0,4,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="☀️ Daylight Clean" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                <TextBlock Text="Crisp white surface with cerulean blue" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </Grid>
                                     </Button>
 
-                                    <!-- Cyberpunk Chip -->
-                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Cyberpunk" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Border Width="16" Height="16" CornerRadius="8" Background="#0C0A1D" BorderBrush="#EC4899" BorderThickness="2" Margin="0,0,8,0" />
-                                            <TextBlock Text="🔮 Cyberpunk Neon" FontWeight="SemiBold" FontSize="11" />
-                                        </StackPanel>
+                                    <!-- Card 4: Cyberpunk Neon -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Cyberpunk"
+                                            Style="{StaticResource ModernButton}" Margin="0,0,0,12" Padding="14,12" HorizontalContentAlignment="Stretch">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <Ellipse Width="14" Height="14" Fill="#0C0A1D" Stroke="#2D1B4E" StrokeThickness="1.5" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#1A1435" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#EC4899" Margin="0,0,4,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="🔮 Cyberpunk Neon" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                <TextBlock Text="Neon pink, ultraviolet &amp; cyber blue" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </Grid>
                                     </Button>
 
-                                    <!-- Matrix Chip -->
-                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Matrix" Style="{StaticResource ModernButton}" Margin="0,0,10,8" Padding="12,8">
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Border Width="16" Height="16" CornerRadius="8" Background="#05130B" BorderBrush="#10B981" BorderThickness="2" Margin="0,0,8,0" />
-                                            <TextBlock Text="📟 Matrix Emerald" FontWeight="SemiBold" FontSize="11" />
-                                        </StackPanel>
+                                    <!-- Card 5: Matrix Emerald -->
+                                    <Button Command="{Binding SetThemeCommand}" CommandParameter="Matrix"
+                                            Style="{StaticResource ModernButton}" Margin="0,0,8,0" Padding="14,12" HorizontalContentAlignment="Stretch">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <Ellipse Width="14" Height="14" Fill="#05130B" Stroke="#0B2B18" StrokeThickness="1.5" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#0B2014" Margin="0,0,4,0" />
+                                                <Ellipse Width="14" Height="14" Fill="#10B981" Margin="0,0,4,0" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="📟 Matrix Emerald" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                <TextBlock Text="Terminal phosphor green with CRT glow" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                            </StackPanel>
+                                        </Grid>
                                     </Button>
-                                </WrapPanel>
+                                </UniformGrid>
                             </StackPanel>
                         </Border>
 
@@ -2150,7 +2382,10 @@
                                 </StackPanel>
 
                                 <CheckBox IsChecked="{Binding SoundEnabled}" Style="{StaticResource ModernCheckBox}"
-                                          Content="Enable synthesized audio tones on user transactions (clicks, launches, chimes)" Margin="0,0,0,14" />
+                                          Content="Enable synthesized audio tones on user transactions (clicks, launches, chimes)" Margin="0,0,0,8" />
+
+                                <CheckBox IsChecked="{Binding AutoSyncAudioEnabled}" Style="{StaticResource ModernCheckBox}"
+                                          Content="Play subtle droplet chime when periodic auto-sync completes in background" Margin="0,0,0,14" />
 
                                 <TextBlock Text="Test Sound Effects:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,8" />
                                 <StackPanel Orientation="Horizontal">
@@ -2222,6 +2457,9 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
+
+                        <!-- Bottom Breathing Room Spacer -->
+                        <Border Height="60" />
                     </StackPanel>
                 </ScrollViewer>
             </Grid>

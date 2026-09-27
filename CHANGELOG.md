@@ -2,6 +2,29 @@
 
 All notable changes to the **Agy Account Swarm** project are documented here.
 
+## [v0.9.1-beta] - 2026-09-27
+### Added
+- **Native OS Window Frame & Proper Desktop Breathing Room**:
+  - Restored standard native OS window chrome with native caption bar, minimize, maximize/restore, close buttons, and Windows Aero Snap compatibility.
+  - Resolved taskbar collision bug when maximized; default window size centered comfortably at `1240x760` with customizable resizing.
+  - Added generous 60px bottom breathing room and content padding (`Padding="24,24,24,60"`) across all pages (`/dashboard`, `/accounts`, `/analytics`, `/settings`), eliminating content truncation when scrolling to the bottom.
+- **Chart Mouse Wheel Event Passthrough (`PreviewMouseWheel`)**:
+  - Intercepted nested horizontal chart scroll events and re-dispatched them to the parent vertical `ScrollViewer`. Hovering over charts or heatmaps no longer blocks vertical page scrolling.
+- **Weekly Limit Remaining % in Account Cards (`/accounts`)**:
+  - Calculated authentic 7-day usage from local `history.jsonl` against tier weekly allowances (Basic: 500, Plus: 1,500, Pro: 5,000, Ultra: 12,500 turns).
+  - Integrated dedicated Row 3 weekly rate-limit strip displaying remaining percentage badge, remaining prompt numbers, and past 7 days turns count.
+- **Comprehensive Tailwind Heroicons Vector Suite**:
+  - Replaced emoji buttons and sidebar icons with clean SVG vector paths from Tailwind Heroicons (`HeroIconSquares2x2`, `HeroIconUsers`, `HeroIconCpuChip`, `HeroIconChartBar`, `HeroIconCommandLine`, `HeroIconCog6Tooth`, `HeroIconArrowPath`, `HeroIconBolt`, `HeroIconPlay`, `HeroIconFolder`, `HeroIconClipboard`, `HeroIconPencil`, `HeroIconTrash`, `HeroIconArrowDownTray`, `HeroIconPlus`, `HeroIconCheck`).
+- **Live Sync Navbar Pulse Indicator & Audio Synced Toggle**:
+  - Added continuous pulsing emerald green beacon in the top header beside the "SUCCESS • AUTO-SYNC ACTIVE" badge.
+  - Added `AutoSyncAudioEnabled` configuration in `AppSettings` and `/settings` allowing users to toggle background sync droplet chime on or off.
+- **Revamped Account Swarm Health Cards (`/analytics`)**:
+  - Completely redesigned Section 3 from cramped single-row layout into spacious cards featuring circular Avatar initials, profile name, email, Tier badge, Model badge, glowing Health badge, reset countdown, full-width daily progress bar, and weekly quota summary.
+- **Rich Theme Palette Selection Cards (`/settings`)**:
+  - Replaced redundant dropdown combobox with 5 interactive Theme Palette Cards (`System`, `Dark`, `Light`, `Cyberpunk`, `Matrix`) displaying color swatches and descriptive subtitles.
+- **Dashboard Meter Overlap Resolution (`/dashboard`)**:
+  - Replaced fixed-width columns in Active Accounts with responsive horizontal StackPanels, preventing collision between `prompts today (1,5%)`, the progress bar, and the reset countdown.
+
 ## [v0.9.0-beta] - 2026-09-27
 ### Added
 - **Semantic Versioning Beta Realignment**:

@@ -13,4 +13,5 @@ public class AppSettings
     public string Language { get; set; } = "en";
     public string PreferredChartMode { get; set; } = "Bar";
     public string AutoSyncInterval { get; set; } = "5 Minutes";
+    public bool AutoSyncAudioEnabled { get; set; } = false;
 }
