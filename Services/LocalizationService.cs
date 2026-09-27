@@ -71,7 +71,8 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         // Accounts
         ["Accounts_SearchPlaceholder"] = "Filter accounts by name, notes, email, model, or tier...",
         ["Accounts_SelectAll"] = "Select / Deselect All Swarm",
-        ["Accounts_NewProfile"] = "+ New Profile",
+        ["Accounts_NewProfile"] = "New Profile",
+        ["Accounts_Duplicate"] = "Duplicate",
         ["Accounts_LaunchAgy"] = "▶ Launch agy",
         ["Accounts_CopyCli"] = "📋 Copy",
         ["Accounts_Folder"] = "📁 Folder",
@@ -165,7 +166,8 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         // Accounts
         ["Accounts_SearchPlaceholder"] = "Cari profil berdasarkan nama, catatan, email, model, atau tier...",
         ["Accounts_SelectAll"] = "Pilih / Batalkan Semua Swarm",
-        ["Accounts_NewProfile"] = "+ Tambah Profil",
+        ["Accounts_NewProfile"] = "Tambah Profil",
+        ["Accounts_Duplicate"] = "Duplikat",
         ["Accounts_LaunchAgy"] = "▶ Buka agy",
         ["Accounts_CopyCli"] = "📋 Salin",
         ["Accounts_Folder"] = "📁 Folder",

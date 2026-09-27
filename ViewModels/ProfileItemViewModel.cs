@@ -45,6 +45,7 @@ public partial class ProfileItemViewModel : ObservableObject
 
     public event Action<ProfileItemViewModel>? OnEditRequested;
     public event Action<ProfileItemViewModel>? OnDeleteRequested;
+    public event Action<ProfileItemViewModel>? OnDuplicateRequested;
     public event Action<string>? OnNotificationRequested;
 
     public ProfileItemViewModel(
@@ -159,13 +160,15 @@ public partial class ProfileItemViewModel : ObservableObject
 
     public string QuotaStatusText => HasExhaustedQuota
         ? "QUOTA EXHAUSTED"
-        : (UsagePercentage >= 80.0 ? "NEARING LIMIT" : "HEALTHY");
+        : (UsagePercentage >= 85.0 ? "CRITICAL LIMIT" : (UsagePercentage >= 65.0 ? "NEARING LIMIT" : "HEALTHY"));
 
     public string QuotaStatusColor => HasExhaustedQuota
         ? "#EF4444"
-        : (UsagePercentage >= 80.0 ? "#F59E0B" : "#10B981");
+        : (UsagePercentage >= 85.0 ? "#EF4444" : (UsagePercentage >= 65.0 ? "#F59E0B" : "#10B981"));
 
     public string UsageLabel => AuthStatus.UsageLabel;
+    public int SessionTurnsCount => AuthStatus.SessionTurnsCount;
+    public string SessionUsageLabel => AuthStatus.SessionUsageLabel;
     
     public double UsagePercentage
     {
@@ -251,6 +254,8 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(QuotaStatusText));
             OnPropertyChanged(nameof(QuotaStatusColor));
             OnPropertyChanged(nameof(UsageLabel));
+            OnPropertyChanged(nameof(SessionTurnsCount));
+            OnPropertyChanged(nameof(SessionUsageLabel));
             OnPropertyChanged(nameof(UsagePercentage));
             OnPropertyChanged(nameof(AvatarInitial));
             OnPropertyChanged(nameof(AccountEmail));
@@ -334,6 +339,13 @@ public partial class ProfileItemViewModel : ObservableObject
     {
         _audioService.PlayClick();
         OnEditRequested?.Invoke(this);
+    }
+
+    [RelayCommand]
+    public void RequestDuplicate()
+    {
+        _audioService.PlayClick();
+        OnDuplicateRequested?.Invoke(this);
     }
 
     [RelayCommand]

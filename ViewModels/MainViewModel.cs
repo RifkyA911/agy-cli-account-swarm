@@ -647,6 +647,7 @@ public partial class MainViewModel : ObservableObject
     {
         var vm = new ProfileItemViewModel(profile, _launcherService, _authDetector, _audioService);
         vm.OnEditRequested += async item => await EditProfileAsync(item);
+        vm.OnDuplicateRequested += async item => await DuplicateProfileAsync(item);
         vm.OnDeleteRequested += async item => await DeleteProfileAsync(item);
         vm.OnNotificationRequested += ShowNotification;
         vm.PropertyChanged += (s, e) =>
@@ -964,6 +965,116 @@ public partial class MainViewModel : ObservableObject
         UpdateStats();
         _audioService.PlayDelete();
         ShowNotification($"Removed profile '{item.Name}'");
+    }
+
+    public async Task DuplicateProfileAsync(ProfileItemViewModel item)
+    {
+        _audioService.PlayClick();
+        try
+        {
+            var baseName = $"{item.Name} (Copy)";
+            var candidateName = baseName;
+            int counter = 2;
+            while (Profiles.Any(p => p.Name.Equals(candidateName, StringComparison.OrdinalIgnoreCase)))
+            {
+                candidateName = $"{item.Name} (Copy {counter++})";
+            }
+
+            var newProfile = new AccountProfile
+            {
+                Name = candidateName,
+                Description = string.IsNullOrWhiteSpace(item.Description)
+                    ? $"Cloned chats & configuration from {item.Name}"
+                    : $"Copy of {item.Description}",
+                ColorTag = item.ColorTag,
+                Tier = item.Tier,
+                PreferredModel = item.PreferredModel,
+                QuotaLimit = item.QuotaLimit,
+                ExtraArguments = item.ExtraArguments,
+                DefaultWorkspace = item.DefaultWorkspace,
+                IsSelectedForSwarm = true
+            };
+
+            var sourceDir = item.Profile.GetEffectiveProfileDirectory().TrimEnd('\\', '/');
+            var targetDir = newProfile.GetEffectiveProfileDirectory().TrimEnd('\\', '/');
+
+            // Clone chat history, SQLite databases, and configurations (excluding token so new session is clean)
+            if (Directory.Exists(sourceDir))
+            {
+                await Task.Run(() => CopyProfileData(sourceDir, targetDir));
+            }
+
+            var itemVm = CreateItemViewModel(newProfile);
+            Profiles.Add(itemVm);
+            await SaveProfilesAsync();
+            await itemVm.RefreshAuthStatusAsync();
+
+            _audioService.PlaySuccess();
+            ShowNotification($"Duplicated profile '{item.Name}' with chat history to '{candidateName}'");
+            Logger.Info($"[Profile] Duplicated '{item.Name}' -> '{candidateName}' at '{targetDir}'");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Failed to duplicate profile '{item.Name}'", ex);
+            ShowNotification($"Failed to duplicate profile: {ex.Message}");
+        }
+    }
+
+    private static void CopyProfileData(string sourceDir, string targetDir)
+    {
+        if (!Directory.Exists(targetDir))
+        {
+            Directory.CreateDirectory(targetDir);
+        }
+
+        var sourceCli = Path.Combine(sourceDir, ".gemini", "antigravity-cli");
+        var targetCli = Path.Combine(targetDir, ".gemini", "antigravity-cli");
+
+        if (!Directory.Exists(sourceCli)) return;
+        Directory.CreateDirectory(targetCli);
+
+        // 1. Copy history.jsonl
+        var srcHistory = Path.Combine(sourceCli, "history.jsonl");
+        if (File.Exists(srcHistory))
+        {
+            try { File.Copy(srcHistory, Path.Combine(targetCli, "history.jsonl"), true); } catch { }
+        }
+
+        // 2. Copy settings.json & keybindings.json
+        var srcSettings = Path.Combine(sourceCli, "settings.json");
+        if (File.Exists(srcSettings))
+        {
+            try { File.Copy(srcSettings, Path.Combine(targetCli, "settings.json"), true); } catch { }
+        }
+        var srcKeybindings = Path.Combine(sourceCli, "keybindings.json");
+        if (File.Exists(srcKeybindings))
+        {
+            try { File.Copy(srcKeybindings, Path.Combine(targetCli, "keybindings.json"), true); } catch { }
+        }
+
+        // 3. Copy conversation summaries DB
+        var srcDb = Path.Combine(sourceCli, "conversation_summaries.db");
+        if (File.Exists(srcDb))
+        {
+            try { File.Copy(srcDb, Path.Combine(targetCli, "conversation_summaries.db"), true); } catch { }
+        }
+
+        // 4. Copy conversations folder (chat databases)
+        var srcConversations = Path.Combine(sourceCli, "conversations");
+        var targetConversations = Path.Combine(targetCli, "conversations");
+        if (Directory.Exists(srcConversations))
+        {
+            Directory.CreateDirectory(targetConversations);
+            foreach (var file in Directory.GetFiles(srcConversations))
+            {
+                try
+                {
+                    var dest = Path.Combine(targetConversations, Path.GetFileName(file));
+                    File.Copy(file, dest, true);
+                }
+                catch { }
+            }
+        }
     }
 
     [RelayCommand]

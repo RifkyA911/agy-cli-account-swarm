@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AgyAccountSwarm.Models;
@@ -28,7 +32,7 @@ public class AuthDetectorService : IAuthDetectorService
             if (!Directory.Exists(geminiDir))
             {
                 status.Status = AuthStatusType.NeedsLogin;
-                status.StatusMessage = "Needs initial login";
+                status.StatusMessage = profile.IsMainDefaultProfile() ? "Needs initial login" : "Ready for login (Separate Account)";
                 Logger.Debug($"[AuthDetector] Profile '{profile.Name}' needs login (.gemini missing).");
                 return status;
             }
@@ -55,27 +59,8 @@ public class AuthDetectorService : IAuthDetectorService
                 }
             }
 
-            // 2. Check ~/.gemini/google_accounts.json
-            var googleAccountsPath = Path.Combine(geminiDir, "google_accounts.json");
-            if (File.Exists(googleAccountsPath))
-            {
-                try
-                {
-                    var json = File.ReadAllText(googleAccountsPath);
-                    using var doc = JsonDocument.Parse(json);
-                    if (doc.RootElement.TryGetProperty("active", out var activeProp) &&
-                        activeProp.GetString() is { Length: > 0 } email)
-                    {
-                        status.AccountEmail = email;
-                    }
-                }
-                catch
-                {
-                    // Ignore parse errors
-                }
-            }
-
-            // 3. Check ~/.gemini/antigravity-cli/antigravity-oauth-token
+            // 2. Resolve Active Account Email:
+            // Priority A: Local profile's ~/.gemini/antigravity-cli/antigravity-oauth-token
             var oauthTokenPath = Path.Combine(cliDir, "antigravity-oauth-token");
             if (File.Exists(oauthTokenPath))
             {
@@ -83,18 +68,10 @@ public class AuthDetectorService : IAuthDetectorService
                 try
                 {
                     var tokenJson = File.ReadAllText(oauthTokenPath);
-                    using var doc = JsonDocument.Parse(tokenJson);
-                    
-                    if (string.IsNullOrEmpty(status.AccountEmail))
+                    var extracted = ExtractEmailFromTokenJson(tokenJson);
+                    if (!string.IsNullOrEmpty(extracted))
                     {
-                        if (doc.RootElement.TryGetProperty("user_email", out var emailProp))
-                        {
-                            status.AccountEmail = emailProp.GetString();
-                        }
-                        else if (doc.RootElement.TryGetProperty("email", out var emailProp2))
-                        {
-                            status.AccountEmail = emailProp2.GetString();
-                        }
+                        status.AccountEmail = extracted;
                     }
                 }
                 catch
@@ -106,19 +83,52 @@ public class AuthDetectorService : IAuthDetectorService
                 }
             }
 
-            // 4. Resolve Avatar & Determine Tier
+            // Priority B: If Main/Default profile and no email yet, read Windows Credential Manager "gemini:antigravity"
+            if (string.IsNullOrEmpty(status.AccountEmail) && profile.IsMainDefaultProfile())
+            {
+                var credJson = ReadWindowsCredential("gemini:antigravity");
+                if (!string.IsNullOrEmpty(credJson))
+                {
+                    var extracted = ExtractEmailFromTokenJson(credJson);
+                    if (!string.IsNullOrEmpty(extracted))
+                    {
+                        status.AccountEmail = extracted;
+                    }
+                }
+            }
+
+            // Priority C: Check ~/.gemini/google_accounts.json
+            if (string.IsNullOrEmpty(status.AccountEmail))
+            {
+                var googleAccountsPath = Path.Combine(geminiDir, "google_accounts.json");
+                if (File.Exists(googleAccountsPath))
+                {
+                    try
+                    {
+                        var json = File.ReadAllText(googleAccountsPath);
+                        using var doc = JsonDocument.Parse(json);
+                        if (doc.RootElement.TryGetProperty("active", out var activeProp) &&
+                            activeProp.GetString() is { Length: > 0 } email)
+                        {
+                            status.AccountEmail = email;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore parse errors
+                    }
+                }
+            }
+
+            // 3. Resolve Avatar & Determine Tier
             if (!string.IsNullOrEmpty(status.AccountEmail))
             {
                 status.AvatarUrl = $"https://profiles.google.com/s2/photos/profile/{status.AccountEmail}?sz=96";
 
-                if (status.AccountEmail.Contains("rifkyakhmad911@gmail.com", StringComparison.OrdinalIgnoreCase))
-                {
-                    status.DetectedTier = "Pro";
-                }
-                else if (!string.IsNullOrEmpty(status.CurrentModel) &&
-                         (status.CurrentModel.Contains("3.8", StringComparison.OrdinalIgnoreCase) ||
-                          status.CurrentModel.Contains("pro", StringComparison.OrdinalIgnoreCase) ||
-                          status.CurrentModel.Contains("opus", StringComparison.OrdinalIgnoreCase)))
+                if (!string.IsNullOrEmpty(status.CurrentModel) &&
+                    (status.CurrentModel.Contains("3.8", StringComparison.OrdinalIgnoreCase) ||
+                     status.CurrentModel.Contains("pro", StringComparison.OrdinalIgnoreCase) ||
+                     status.CurrentModel.Contains("opus", StringComparison.OrdinalIgnoreCase)))
                 {
                     status.DetectedTier = "Pro";
                 }
@@ -180,6 +190,8 @@ public class AuthDetectorService : IAuthDetectorService
                     int totalCount = 0;
                     int todayCount = 0;
                     int weeklyCount = 0;
+                    var conversationCountsToday = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                    string? lastConversationId = null;
                     var today = DateTime.Today;
                     var weekStart = today.AddDays(-6);
 
@@ -195,12 +207,26 @@ public class AuthDetectorService : IAuthDetectorService
                             try
                             {
                                 using var doc = JsonDocument.Parse(line);
+                                string? convId = null;
+                                if (doc.RootElement.TryGetProperty("conversationId", out var cProp))
+                                {
+                                    convId = cProp.GetString();
+                                    if (!string.IsNullOrEmpty(convId))
+                                    {
+                                        lastConversationId = convId;
+                                    }
+                                }
+
                                 if (doc.RootElement.TryGetProperty("timestamp", out var tsProp) && tsProp.TryGetInt64(out var ts) && ts > 0)
                                 {
                                     var dt = DateTimeOffset.FromUnixTimeMilliseconds(ts).LocalDateTime;
                                     if (dt.Date == today)
                                     {
                                         todayCount++;
+                                        if (!string.IsNullOrEmpty(convId))
+                                        {
+                                            conversationCountsToday[convId] = conversationCountsToday.GetValueOrDefault(convId, 0) + 1;
+                                        }
                                     }
                                     if (dt.Date >= weekStart && dt.Date <= today)
                                     {
@@ -211,6 +237,20 @@ public class AuthDetectorService : IAuthDetectorService
                             catch { }
                         }
                     }
+
+                    int currentSessionCount = 0;
+                    if (!string.IsNullOrEmpty(lastConversationId) && conversationCountsToday.TryGetValue(lastConversationId, out var sCount))
+                    {
+                        currentSessionCount = sCount;
+                        status.CurrentSessionId = lastConversationId;
+                    }
+                    else if (conversationCountsToday.Count > 0)
+                    {
+                        currentSessionCount = conversationCountsToday.Values.Last();
+                    }
+
+                    status.SessionTurnsCount = currentSessionCount;
+                    status.SessionUsageLabel = $"{currentSessionCount:N0} turns this session";
 
                     status.TotalTurnsCount = totalCount;
                     status.TodayTurnsCount = todayCount;
@@ -229,16 +269,22 @@ public class AuthDetectorService : IAuthDetectorService
                 {
                     status.UsageLabel = $"0 / {dailyLimit:N0} prompts today";
                     status.WeeklyRemainingLabel = "100% remaining";
+                    status.SessionUsageLabel = "0 turns this session";
                 }
             }
             else
             {
                 status.UsageLabel = $"0 / {dailyLimit:N0} prompts today";
                 status.WeeklyRemainingLabel = "100% remaining";
+                status.SessionUsageLabel = "0 turns this session";
             }
 
             // 7. Determine Final Status
-            if (File.Exists(oauthTokenPath) || !string.IsNullOrEmpty(status.AccountEmail))
+            bool hasValidAuth = File.Exists(oauthTokenPath) ||
+                                !string.IsNullOrEmpty(status.AccountEmail) ||
+                                (profile.IsMainDefaultProfile() && !string.IsNullOrEmpty(ReadWindowsCredential("gemini:antigravity")));
+
+            if (hasValidAuth)
             {
                 if (profile.IsQuotaExhausted || status.UsagePercentage >= 100.0)
                 {
@@ -259,13 +305,13 @@ public class AuthDetectorService : IAuthDetectorService
             if (Directory.Exists(cliDir))
             {
                 status.Status = AuthStatusType.NeedsLogin;
-                status.StatusMessage = "Session initialized, awaiting auth";
+                status.StatusMessage = profile.IsMainDefaultProfile() ? "Session initialized, awaiting auth" : "Ready for login (Separate Account)";
                 Logger.Debug($"[AuthDetector] Profile '{profile.Name}' awaiting auth.");
                 return status;
             }
 
             status.Status = AuthStatusType.NeedsLogin;
-            status.StatusMessage = "Ready for login";
+            status.StatusMessage = profile.IsMainDefaultProfile() ? "Ready for login" : "Ready for login (Separate Account)";
             Logger.Debug($"[AuthDetector] Profile '{profile.Name}' ready for login.");
             return status;
         });
@@ -302,5 +348,118 @@ public class AuthDetectorService : IAuthDetectorService
             "basic" or "free" or "unverified" => 500,
             _ => 5000 // Pro default (5,000 prompts/week)
         };
+    }
+
+    public static string? ExtractEmailFromIdToken(string idToken)
+    {
+        if (string.IsNullOrWhiteSpace(idToken)) return null;
+        try
+        {
+            var parts = idToken.Split('.');
+            if (parts.Length < 2) return null;
+
+            string payload = parts[1];
+            payload = payload.Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            var json = Encoding.UTF8.GetString(bytes);
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("email", out var emailProp) && emailProp.GetString() is { Length: > 0 } email)
+            {
+                return email;
+            }
+            if (doc.RootElement.TryGetProperty("user_email", out var uEmailProp) && uEmailProp.GetString() is { Length: > 0 } uEmail)
+            {
+                return uEmail;
+            }
+        }
+        catch
+        {
+        }
+        return null;
+    }
+
+    public static string? ExtractEmailFromTokenJson(string tokenJson)
+    {
+        if (string.IsNullOrWhiteSpace(tokenJson)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(tokenJson);
+            if (doc.RootElement.TryGetProperty("id_token", out var idTokenProp) && idTokenProp.GetString() is { Length: > 0 } idToken)
+            {
+                var email = ExtractEmailFromIdToken(idToken);
+                if (!string.IsNullOrEmpty(email)) return email;
+            }
+            if (doc.RootElement.TryGetProperty("email", out var emailProp) && emailProp.GetString() is { Length: > 0 } email2)
+            {
+                return email2;
+            }
+            if (doc.RootElement.TryGetProperty("user_email", out var uEmailProp) && uEmailProp.GetString() is { Length: > 0 } uEmail2)
+            {
+                return uEmail2;
+            }
+        }
+        catch
+        {
+        }
+        return null;
+    }
+
+    [DllImport("advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool CredRead(string target, int type, int reservedFlag, out IntPtr credentialPtr);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    private static extern void CredFree(IntPtr credentialPtr);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct CREDENTIAL
+    {
+        public int Flags;
+        public int Type;
+        public string TargetName;
+        public string Comment;
+        public long LastWritten;
+        public int CredentialBlobSize;
+        public IntPtr CredentialBlob;
+        public int Persist;
+        public int AttributeCount;
+        public IntPtr Attributes;
+        public string TargetAlias;
+        public string UserName;
+    }
+
+    public static string? ReadWindowsCredential(string target)
+    {
+        if (!OperatingSystem.IsWindows()) return null;
+        try
+        {
+            if (CredRead(target, 1, 0, out IntPtr ptr))
+            {
+                try
+                {
+                    var cred = Marshal.PtrToStructure<CREDENTIAL>(ptr);
+                    if (cred.CredentialBlobSize > 0 && cred.CredentialBlob != IntPtr.Zero)
+                    {
+                        byte[] bytes = new byte[cred.CredentialBlobSize];
+                        Marshal.Copy(cred.CredentialBlob, bytes, 0, cred.CredentialBlobSize);
+                        return Encoding.UTF8.GetString(bytes);
+                    }
+                }
+                finally
+                {
+                    CredFree(ptr);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug($"[AuthDetector] Failed reading Windows Credential '{target}': {ex.Message}");
+        }
+        return null;
     }
 }

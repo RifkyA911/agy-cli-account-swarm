@@ -1,6 +1,7 @@
 using System;
 using AgyAccountSwarm.Models;
 using AgyAccountSwarm.Services;
+using AgyAccountSwarm.ViewModels;
 using Xunit;
 
 namespace AgyAccountSwarm.Tests;
@@ -178,5 +179,63 @@ public class TerminalLauncherTests
 
         // Assert
         Assert.Equal(userHome, workDir);
+    }
+
+    [Fact]
+    public void ExtractEmailFromTokenJson_ValidIdToken_ReturnsEmail()
+    {
+        string tokenJson = "{\"id_token\":\"eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6Im1pc3NmYXJ1emFuQGdtYWlsLmNvbSJ9.abc\"}";
+        var email = AuthDetectorService.ExtractEmailFromTokenJson(tokenJson);
+        Assert.Equal("missfaruzan@gmail.com", email);
+    }
+
+    [Fact]
+    public void ReadWindowsKeyring_Inspect()
+    {
+        var raw = AuthDetectorService.ReadWindowsCredential("gemini:antigravity");
+        if (raw != null)
+        {
+            var email = AuthDetectorService.ExtractEmailFromTokenJson(raw);
+            Assert.True(email == "rifkyakhmad911@gmail.com" || email == "missfaruzan@gmail.com");
+        }
+    }
+
+    [Fact]
+    public async Task DetectAuthStatus_WorkerSpace_DetectsEmail()
+    {
+        var service = new AuthDetectorService();
+        var profile = new AccountProfile
+        {
+            Name = "Worker Space",
+            CustomProfilePath = @"C:\Users\rifky\.gemini-profiles\Worker Space"
+        };
+        var status = await service.DetectAuthStatusAsync(profile);
+        Assert.Equal("missfaruzan@gmail.com", status.AccountEmail);
+        Assert.Equal(AuthStatusType.Authenticated, status.Status);
+    }
+
+    [Fact]
+    public async Task DetectAuthStatus_DefaultProfile_DetectsEmail()
+    {
+        var service = new AuthDetectorService();
+        var profile = new AccountProfile
+        {
+            Name = "Default",
+            CustomProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+        };
+        var status = await service.DetectAuthStatusAsync(profile);
+        Assert.NotNull(status.AccountEmail);
+        Assert.Equal(AuthStatusType.Authenticated, status.Status);
+    }
+
+    [Fact]
+    public void ProfileItemViewModel_DuplicateCommand_TriggersEvent()
+    {
+        var profile = new AccountProfile { Name = "Test Profile" };
+        var vm = new ProfileItemViewModel(profile, new TerminalLauncherService(), new AuthDetectorService(), new AudioService());
+        bool triggered = false;
+        vm.OnDuplicateRequested += item => { triggered = true; };
+        vm.RequestDuplicateCommand.Execute(null);
+        Assert.True(triggered);
     }
 }

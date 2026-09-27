@@ -48,6 +48,11 @@ public class ProfileAuthStatus
     public double WeeklyRemainingPercentage { get; set; } = 100.0;
     public string WeeklyRemainingLabel { get; set; } = "100% remaining";
 
+    // Per-Session Quota Metrics (from agy cli session /usage)
+    public int SessionTurnsCount { get; set; } = 0;
+    public string? CurrentSessionId { get; set; }
+    public string SessionUsageLabel { get; set; } = "0 turns this session";
+
     public string DetectedTier { get; set; } = "Pro";
     public DateTime? TokenModifiedAt { get; set; }
     public bool IsExhausted => Status == AuthStatusType.QuotaExhausted || UsagePercentage >= 100.0;
