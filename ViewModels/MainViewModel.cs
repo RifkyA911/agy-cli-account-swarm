@@ -1693,7 +1693,7 @@ public partial class MainViewModel : ObservableObject
         sb.AppendLine("  </tbody></table>");
         sb.AppendLine("</div>");
 
-        sb.AppendLine("<div style='text-align:center; font-size:11px; color:#64748b; margin-top:30px;'>Agy Account Swarm v1.3 (MIT Open Source) • Authored by RifkyA911 • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
+        sb.AppendLine("<div style='text-align:center; font-size:11px; color:#64748b; margin-top:30px;'>Agy Account Swarm v0.9.0-beta (MIT Open Source) • Authored by RifkyA911 • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
         sb.AppendLine("</body></html>");
         return sb.ToString();
     }

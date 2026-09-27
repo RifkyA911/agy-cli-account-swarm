@@ -2,8 +2,10 @@
 
 All notable changes to the **Agy Account Swarm** project are documented here.
 
-## [v1.3.3] - 2026-09-27
+## [v0.9.0-beta] - 2026-09-27
 ### Added
+- **Semantic Versioning Beta Realignment**:
+  - Re-aligned project versioning scheme to `v0.9.0-beta` (pre-1.0.0 SemVer standard) to clearly signify active public beta testing prior to official 1.0.0 production release.
 - **Interactive Charts with Hover Tooltips & Zoom Controls (`/dashboard` & `/analytics`)**:
   - Detailed hover card tooltips showing date/time, prompts count, estimated tokens, account context, and model name.
   - Interactive Zoom controls (`➖`, `➕`, `100%`) with horizontal `ScrollViewer` canvas expansion.

@@ -32,7 +32,7 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         // Topbar
         ["App_Title"] = "Agy Account Swarm",
         ["App_Subtitle"] = "Isolated multi-session manager, rate-limit monitor & quota tracker",
-        ["App_VersionBadge"] = "v1.3 (MIT)",
+        ["App_VersionBadge"] = "v0.9.0-beta (MIT)",
         ["Btn_SyncSwarm"] = "Sync Swarm",
         ["Btn_LaunchSwarm"] = "Launch Swarm",
         ["Tag_SyncedJustNow"] = "Synced just now",
@@ -126,7 +126,7 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         // Topbar
         ["App_Title"] = "Agy Account Swarm",
         ["App_Subtitle"] = "Manajer multi-sesi terisolasi, pemantau rate-limit & pelacak kuota",
-        ["App_VersionBadge"] = "v1.3 (MIT)",
+        ["App_VersionBadge"] = "v0.9.0-beta (MIT)",
         ["Btn_SyncSwarm"] = "Sinkron Swarm",
         ["Btn_LaunchSwarm"] = "Jalankan Swarm",
         ["Tag_SyncedJustNow"] = "Baru saja disinkronkan",

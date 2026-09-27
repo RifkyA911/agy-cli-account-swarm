@@ -1,10 +1,10 @@
 # Security Policy
 
 ## Supported Versions
-| Version | Supported          |
-| ------- | ------------------ |
-| v1.3.x  | :white_check_mark: |
-| < v1.3  | :x:                |
+| Version     | Supported          |
+| ----------- | ------------------ |
+| v0.9.x-beta | :white_check_mark: |
+| < v0.9.0    | :x:                |
 
 ## Reporting a Vulnerability
 If you discover any security vulnerabilities or credential leakage risks within the swarm sandboxing architecture:

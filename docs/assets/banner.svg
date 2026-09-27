@@ -65,7 +65,7 @@
   <g transform="translate(80, 52)">
     <rect width="336" height="30" rx="15" fill="#172033" stroke="#2B3A5A" stroke-width="1"/>
     <circle cx="16" cy="15" r="4.5" fill="#10B981"/>
-    <text x="28" y="19.5" fill="#93C5FD" class="font-mono" font-size="12" font-weight="600" letter-spacing="0.5">CLI VIRTUALIZATION ENGINE • v1.3.1</text>
+    <text x="28" y="19.5" fill="#93C5FD" class="font-mono" font-size="12" font-weight="600" letter-spacing="0.5">CLI VIRTUALIZATION ENGINE • v0.9.0-beta</text>
   </g>
 
   <!-- Main Hero Brand Title -->
