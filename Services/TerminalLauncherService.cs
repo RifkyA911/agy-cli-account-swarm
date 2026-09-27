@@ -68,15 +68,28 @@ public class TerminalLauncherService : ITerminalLauncherService
         var title = $"AGY [{profile.Name}]";
 
         var scriptPath = Path.Combine(effectiveDir, "run-agy.cmd");
-        var content = "@echo off\r\n" +
-                      $"title {title}\r\n" +
-                      $"set \"USERPROFILE={effectiveDir}\"\r\n" +
-                      $"set \"HOME={effectiveDir}\"\r\n" +
-                      $"cd /d \"{workDir}\"\r\n" +
-                      $"\"{agyBinary}\"{extraArgs} %*\r\n";
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("@echo off");
+        sb.AppendLine($"title {title}");
+        sb.AppendLine($"set \"USERPROFILE={effectiveDir}\"");
+        sb.AppendLine($"set \"HOME={effectiveDir}\"");
+        sb.AppendLine($"set \"ANTIGRAVITY_APP_DATA_DIR={effectiveDir}\\.gemini\\antigravity-cli\"");
+        sb.AppendLine($"set \"JETSKI_APP_DATA_DIR={effectiveDir}\\.gemini\\antigravity-cli\"");
 
-        File.WriteAllText(scriptPath, content, System.Text.Encoding.ASCII);
-        Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{scriptPath}' (Target: '{agyBinary}')");
+        if (!profile.IsMainDefaultProfile())
+        {
+            // Bypasses the OS-wide Windows Credential Manager fallback (gemini:antigravity)
+            // via agy's built-in keyring_detector_ssh. This guarantees that worker profiles
+            // do not inherit the primary user's account and can independently authenticate.
+            sb.AppendLine("set \"SSH_CONNECTION=1\"");
+            sb.AppendLine("set \"SSH_CLIENT=1\"");
+        }
+
+        sb.AppendLine($"cd /d \"{workDir}\"");
+        sb.AppendLine($"\"{agyBinary}\"{extraArgs} %*");
+
+        File.WriteAllText(scriptPath, sb.ToString(), System.Text.Encoding.ASCII);
+        Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{scriptPath}' (Target: '{agyBinary}', Isolated: {!profile.IsMainDefaultProfile()})");
         return scriptPath;
     }
 
@@ -90,7 +103,7 @@ public class TerminalLauncherService : ITerminalLauncherService
         return $"--title \"{title}\" -d \"{workingDir}\" cmd.exe /k call \"{scriptPath}\"";
     }
 
-    public static string BuildPowerShellCommand(string title, string effectiveDir, string workingDir, string agyBinary, string? extraArgs)
+    public static string BuildPowerShellCommand(string title, string effectiveDir, string workingDir, string agyBinary, string? extraArgs, bool isIsolated = false)
     {
         var escapedTitle = title.Replace("'", "''");
         var escapedEffectiveDir = effectiveDir.Replace("'", "''");
@@ -98,9 +111,16 @@ public class TerminalLauncherService : ITerminalLauncherService
         var escapedAgy = agyBinary.Replace("'", "''");
         var cleanExtra = string.IsNullOrWhiteSpace(extraArgs) ? "" : " " + extraArgs.Trim();
 
+        var isolationSnippet = isIsolated
+            ? "$env:SSH_CONNECTION = '1'; $env:SSH_CLIENT = '1'; "
+            : "";
+
         return $"$host.UI.RawUI.WindowTitle = '{escapedTitle}'; " +
                $"$env:USERPROFILE = '{escapedEffectiveDir}'; " +
                $"$env:HOME = '{escapedEffectiveDir}'; " +
+               $"$env:ANTIGRAVITY_APP_DATA_DIR = '{escapedEffectiveDir}\\.gemini\\antigravity-cli'; " +
+               $"$env:JETSKI_APP_DATA_DIR = '{escapedEffectiveDir}\\.gemini\\antigravity-cli'; " +
+               isolationSnippet +
                $"Set-Location '{escapedWorkingDir}'; " +
                $"& '{escapedAgy}'{cleanExtra}";
     }
@@ -136,7 +156,7 @@ public class TerminalLauncherService : ITerminalLauncherService
             }
             else if (terminal == TerminalType.PowerShell)
             {
-                var psScript = BuildPowerShellCommand(title, effectiveDir, workingDir, agyBinary, extraArgs);
+                var psScript = BuildPowerShellCommand(title, effectiveDir, workingDir, agyBinary, extraArgs, !profile.IsMainDefaultProfile());
 
                 psi = new ProcessStartInfo
                 {
@@ -235,12 +255,15 @@ public class TerminalLauncherService : ITerminalLauncherService
         var effectiveDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
         var workDir = GetValidWorkingDirectory(profile);
         var extraArgs = string.IsNullOrWhiteSpace(profile.ExtraArguments) ? "" : $" {profile.ExtraArguments.Trim()}";
+        bool isIsolated = !profile.IsMainDefaultProfile();
 
-        var snippet = terminal switch
+        string snippet = terminal switch
         {
             TerminalType.PowerShell =>
+                (isIsolated ? "$env:SSH_CONNECTION=\"1\"; $env:SSH_CLIENT=\"1\"; " : "") +
                 $"$env:USERPROFILE=\"{effectiveDir}\"; $env:HOME=\"{effectiveDir}\"; cd \"{workDir}\"; agy{extraArgs}",
             _ =>
+                (isIsolated ? "set \"SSH_CONNECTION=1\" && set \"SSH_CLIENT=1\" && " : "") +
                 $"set \"USERPROFILE={effectiveDir}\" && set \"HOME={effectiveDir}\" && cd /d \"{workDir}\" && agy{extraArgs}"
         };
 
@@ -280,7 +303,7 @@ public class TerminalLauncherService : ITerminalLauncherService
         Logger.Info($"[TerminalLauncher] Opened workspace directory in Explorer: '{dir}'");
     }
 
-    private static string GetValidWorkingDirectory(AccountProfile profile)
+    public static string GetValidWorkingDirectory(AccountProfile profile)
     {
         if (!string.IsNullOrWhiteSpace(profile.DefaultWorkspace))
         {
@@ -288,6 +311,25 @@ public class TerminalLauncherService : ITerminalLauncherService
             if (Directory.Exists(expanded)) return expanded;
         }
 
-        return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (profile.IsMainDefaultProfile())
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+
+        // For isolated profiles, give them a dedicated workspace inside their profile sandbox
+        var effectiveDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
+        var workspaceDir = Path.Combine(effectiveDir, "workspace");
+        if (!Directory.Exists(workspaceDir))
+        {
+            try
+            {
+                Directory.CreateDirectory(workspaceDir);
+            }
+            catch
+            {
+                return effectiveDir;
+            }
+        }
+        return workspaceDir;
     }
 }

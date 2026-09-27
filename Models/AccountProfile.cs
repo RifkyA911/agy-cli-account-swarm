@@ -68,6 +68,13 @@ public class AccountProfile
         return System.IO.Path.Combine(userHome, ".gemini-profiles", safeName);
     }
 
+    public bool IsMainDefaultProfile()
+    {
+        var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).TrimEnd('\\', '/');
+        var effectiveDir = GetEffectiveProfileDirectory().TrimEnd('\\', '/');
+        return effectiveDir.Equals(userHome, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string SanitizeFolderName(string name)
     {
         var invalid = System.IO.Path.GetInvalidFileNameChars();
