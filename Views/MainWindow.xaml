@@ -1156,8 +1156,10 @@
                     </Border>
 
                     <!-- Accounts Cards List -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,16,24,60">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,16,24,60"
+                                  PreviewMouseWheel="AccountsScrollViewer_PreviewMouseWheel">
                         <StackPanel>
+
                             <ItemsControl ItemsSource="{Binding FilteredProfiles}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>

@@ -193,4 +193,18 @@ public partial class MainWindow : Window
             }
         }
     }
+
+    private void AccountsScrollViewer_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    {
+        if (sender is ScrollViewer scv)
+        {
+            // Standard WPF ScrollViewer jumps violently across large cards (~144px+ per notch).
+            // A dampened delta (50px per standard mouse wheel click of 120 units) provides smooth, controlled scrolling.
+            double delta = e.Delta / 120.0;
+            double targetOffset = scv.VerticalOffset - (delta * 50.0);
+            scv.ScrollToVerticalOffset(Math.Clamp(targetOffset, 0, scv.ScrollableHeight));
+            e.Handled = true;
+        }
+    }
 }
+
