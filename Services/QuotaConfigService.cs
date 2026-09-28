@@ -76,7 +76,10 @@ public class QuotaConfigService : IQuotaConfigService
                 var loaded = JsonSerializer.Deserialize<QuotaConfigFile>(json, JsonOptions);
                 if (loaded?.Tiers != null && loaded.Tiers.Count > 0)
                 {
-                    _config = loaded;
+                    _config = new QuotaConfigFile
+                    {
+                        Tiers = new Dictionary<string, TierAllowance>(loaded.Tiers, StringComparer.OrdinalIgnoreCase)
+                    };
                     return;
                 }
             }
@@ -104,7 +107,10 @@ public class QuotaConfigService : IQuotaConfigService
                 var loaded = JsonSerializer.Deserialize<QuotaConfigFile>(json, JsonOptions);
                 if (loaded?.Tiers != null && loaded.Tiers.Count > 0)
                 {
-                    _config = loaded;
+                    _config = new QuotaConfigFile
+                    {
+                        Tiers = new Dictionary<string, TierAllowance>(loaded.Tiers, StringComparer.OrdinalIgnoreCase)
+                    };
                     return;
                 }
             }
@@ -122,9 +128,18 @@ public class QuotaConfigService : IQuotaConfigService
     public int GetDailyQuota(string? tier)
     {
         if (string.IsNullOrWhiteSpace(tier)) return 1000;
-        if (_config.Tiers.TryGetValue(tier.Trim(), out var allowance) && allowance.DailyPrompts > 0)
+        string key = tier.Trim();
+        if (_config.Tiers.TryGetValue(key, out var allowance) && allowance.DailyPrompts > 0)
         {
             return allowance.DailyPrompts;
+        }
+        if (key.Equals("free", StringComparison.OrdinalIgnoreCase) || key.Equals("unverified", StringComparison.OrdinalIgnoreCase))
+        {
+            return GetDailyQuota("Basic");
+        }
+        if (key.Equals("enterprise", StringComparison.OrdinalIgnoreCase))
+        {
+            return GetDailyQuota("Ultra");
         }
         return 1000; // Pro default
     }
@@ -132,9 +147,18 @@ public class QuotaConfigService : IQuotaConfigService
     public int GetWeeklyQuota(string? tier)
     {
         if (string.IsNullOrWhiteSpace(tier)) return 5000;
-        if (_config.Tiers.TryGetValue(tier.Trim(), out var allowance) && allowance.WeeklyPrompts > 0)
+        string key = tier.Trim();
+        if (_config.Tiers.TryGetValue(key, out var allowance) && allowance.WeeklyPrompts > 0)
         {
             return allowance.WeeklyPrompts;
+        }
+        if (key.Equals("free", StringComparison.OrdinalIgnoreCase) || key.Equals("unverified", StringComparison.OrdinalIgnoreCase))
+        {
+            return GetWeeklyQuota("Basic");
+        }
+        if (key.Equals("enterprise", StringComparison.OrdinalIgnoreCase))
+        {
+            return GetWeeklyQuota("Ultra");
         }
         return 5000; // Pro default
     }
@@ -142,10 +166,20 @@ public class QuotaConfigService : IQuotaConfigService
     public long GetDailyTokensLimit(string? tier)
     {
         if (string.IsNullOrWhiteSpace(tier)) return 5000000L;
-        if (_config.Tiers.TryGetValue(tier.Trim(), out var allowance) && allowance.DailyTokens > 0)
+        string key = tier.Trim();
+        if (_config.Tiers.TryGetValue(key, out var allowance) && allowance.DailyTokens > 0)
         {
             return allowance.DailyTokens;
         }
+        if (key.Equals("free", StringComparison.OrdinalIgnoreCase) || key.Equals("unverified", StringComparison.OrdinalIgnoreCase))
+        {
+            return GetDailyTokensLimit("Basic");
+        }
+        if (key.Equals("enterprise", StringComparison.OrdinalIgnoreCase))
+        {
+            return GetDailyTokensLimit("Ultra");
+        }
         return 5000000L; // Pro default
     }
+
 }

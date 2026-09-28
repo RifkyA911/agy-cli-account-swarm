@@ -52,9 +52,9 @@ public class TelemetryService : ITelemetryService
                             detectedModel = mStr;
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Ignore and use detectedModel
+                        Logger.Debug($"[TelemetryService] Could not parse settings.json for '{profile.Name}': {ex.Message}");
                     }
                 }
 
@@ -110,16 +110,17 @@ public class TelemetryService : ITelemetryService
                                 ModelName = detectedModel
                             });
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // Skip corrupted line
+                            Logger.Debug($"[TelemetryService] Skipped malformed JSON line in history.jsonl: {ex.Message}");
                         }
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Ignore file read error if locked
+                    Logger.Warn($"[TelemetryService] Could not read history.jsonl for profile '{profile.Name}': {ex.Message}");
                 }
+
             }
 
             return results;

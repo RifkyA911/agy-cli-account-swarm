@@ -62,10 +62,11 @@ public class AuthDetectorService : IAuthDetectorService
                         status.CurrentModel = modelName;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Fallback to default
+                    Logger.Debug($"[AuthDetector] Could not parse settings.json for '{profile.Name}': {ex.Message}");
                 }
+
             }
 
             // 2. Resolve Active Account Email, DisplayName & Picture:
@@ -139,10 +140,11 @@ public class AuthDetectorService : IAuthDetectorService
                             status.AccountEmail = email;
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Ignore parse errors
+                        Logger.Debug($"[AuthDetector] Could not parse google_accounts.json: {ex.Message}");
                     }
+
                 }
             }
 
@@ -304,7 +306,11 @@ public class AuthDetectorService : IAuthDetectorService
                                     }
                                 }
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                Logger.Debug($"[AuthDetector] Skipped malformed history line: {ex.Message}");
+                            }
+
                         }
                     }
 
@@ -390,12 +396,14 @@ public class AuthDetectorService : IAuthDetectorService
                     }
                     status.ClaudeGpt5HourRefreshesIn = $"{(int)claude5hRemTime.TotalHours}h {claude5hRemTime.Minutes}m";
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Warn($"[AuthDetector] Failed reading history.jsonl for '{profile.Name}': {ex.Message}");
                     status.UsageLabel = $"0 / {dailyLimit:N0} prompts today";
                     status.WeeklyRemainingLabel = "100% remaining";
                     status.SessionUsageLabel = "0 turns this session";
                 }
+
             }
             else
             {
@@ -576,51 +584,56 @@ public class AuthDetectorService : IAuthDetectorService
             var historyFile = Path.Combine(profileDir, ".gemini", "antigravity-cli", "history.jsonl");
             if (File.Exists(historyFile))
             {
-                var lines = File.ReadAllLines(historyFile);
                 var groups = new Dictionary<string, (int count, long maxTime, string lastPrompt, string workspace)>();
 
-                foreach (var line in lines)
+                using (var stream = new FileStream(historyFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var reader = new StreamReader(stream))
                 {
-                    if (string.IsNullOrWhiteSpace(line)) continue;
-                    try
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        using var doc = JsonDocument.Parse(line);
-                        if (doc.RootElement.TryGetProperty("conversationId", out var cProp) &&
-                            cProp.GetString() is { Length: > 0 } convId)
+                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        try
                         {
-                            long ts = 0;
-                            if (doc.RootElement.TryGetProperty("timestamp", out var tsProp) && tsProp.TryGetInt64(out var tVal))
+                            using var doc = JsonDocument.Parse(line);
+                            if (doc.RootElement.TryGetProperty("conversationId", out var cProp) &&
+                                cProp.GetString() is { Length: > 0 } convId)
                             {
-                                ts = tVal;
-                            }
+                                long ts = 0;
+                                if (doc.RootElement.TryGetProperty("timestamp", out var tsProp) && tsProp.TryGetInt64(out var tVal))
+                                {
+                                    ts = tVal;
+                                }
 
-                            string prompt = "";
-                            if (doc.RootElement.TryGetProperty("display", out var dProp) && dProp.GetString() is { Length: > 0 } dVal)
-                            {
-                                prompt = dVal.Trim();
-                            }
+                                string prompt = "";
+                                if (doc.RootElement.TryGetProperty("display", out var dProp) && dProp.GetString() is { Length: > 0 } dVal)
+                                {
+                                    prompt = dVal.Trim();
+                                }
 
-                            string ws = "";
-                            if (doc.RootElement.TryGetProperty("workspace", out var wProp) && wProp.GetString() is { Length: > 0 } wVal)
-                            {
-                                ws = wVal.Trim();
-                            }
+                                string ws = "";
+                                if (doc.RootElement.TryGetProperty("workspace", out var wProp) && wProp.GetString() is { Length: > 0 } wVal)
+                                {
+                                    ws = wVal.Trim();
+                                }
 
-                            if (!groups.TryGetValue(convId, out var existing))
-                            {
-                                groups[convId] = (1, ts, prompt, ws);
-                            }
-                            else
-                            {
-                                var updatedPrompt = string.IsNullOrEmpty(prompt) ? existing.lastPrompt : prompt;
-                                var updatedWs = string.IsNullOrEmpty(ws) ? existing.workspace : ws;
-                                var updatedTs = Math.Max(existing.maxTime, ts);
-                                groups[convId] = (existing.count + 1, updatedTs, updatedPrompt, updatedWs);
+                                if (!groups.TryGetValue(convId, out var existing))
+                                {
+                                    groups[convId] = (1, ts, prompt, ws);
+                                }
+                                else
+                                {
+                                    var updatedPrompt = string.IsNullOrEmpty(prompt) ? existing.lastPrompt : prompt;
+                                    var updatedWs = string.IsNullOrEmpty(ws) ? existing.workspace : ws;
+                                    var updatedTs = Math.Max(existing.maxTime, ts);
+                                    groups[convId] = (existing.count + 1, updatedTs, updatedPrompt, updatedWs);
+                                }
                             }
                         }
-                    }
-                    catch
-                    {
+                        catch (Exception ex)
+                        {
+                            Logger.Debug($"[AuthDetector] Skipped malformed session history line: {ex.Message}");
+                        }
                     }
                 }
 
@@ -686,15 +699,17 @@ public class AuthDetectorService : IAuthDetectorService
                         await File.WriteAllBytesAsync(filePath, bytes);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Debug($"[AuthDetector] Failed caching avatar image from '{pictureUrl}': {ex.Message}");
                 }
             });
 
             return File.Exists(filePath) ? filePath : pictureUrl;
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.Debug($"[AuthDetector] Error in EnsureAvatarCached: {ex.Message}");
             return pictureUrl;
         }
     }
@@ -739,11 +754,13 @@ public class AuthDetectorService : IAuthDetectorService
 
             return new UserAuthTokenInfo(email, name, picture);
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.Debug($"[AuthDetector] Failed extracting user info from token JSON: {ex.Message}");
             return new UserAuthTokenInfo(null, null, null);
         }
     }
+
 
     public static int GetDailyQuotaForTier(string? tier) => DefaultQuotaConfig.GetDailyQuota(tier);
 

@@ -576,8 +576,12 @@ public partial class MainViewModel : ObservableObject
                 UseShellExecute = true
             });
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[MainViewModel] Failed opening URL '{url}': {ex.Message}");
+        }
     }
+
 
     [RelayCommand]
     public async Task LoadMcpServersAsync()
@@ -1051,26 +1055,30 @@ public partial class MainViewModel : ObservableObject
         var srcHistory = Path.Combine(sourceCli, "history.jsonl");
         if (File.Exists(srcHistory))
         {
-            try { File.Copy(srcHistory, Path.Combine(targetCli, "history.jsonl"), true); } catch { }
+            try { File.Copy(srcHistory, Path.Combine(targetCli, "history.jsonl"), true); }
+            catch (Exception ex) { Logger.Warn($"[MainViewModel] Could not copy history.jsonl: {ex.Message}"); }
         }
 
         // 2. Copy settings.json & keybindings.json
         var srcSettings = Path.Combine(sourceCli, "settings.json");
         if (File.Exists(srcSettings))
         {
-            try { File.Copy(srcSettings, Path.Combine(targetCli, "settings.json"), true); } catch { }
+            try { File.Copy(srcSettings, Path.Combine(targetCli, "settings.json"), true); }
+            catch (Exception ex) { Logger.Warn($"[MainViewModel] Could not copy settings.json: {ex.Message}"); }
         }
         var srcKeybindings = Path.Combine(sourceCli, "keybindings.json");
         if (File.Exists(srcKeybindings))
         {
-            try { File.Copy(srcKeybindings, Path.Combine(targetCli, "keybindings.json"), true); } catch { }
+            try { File.Copy(srcKeybindings, Path.Combine(targetCli, "keybindings.json"), true); }
+            catch (Exception ex) { Logger.Warn($"[MainViewModel] Could not copy keybindings.json: {ex.Message}"); }
         }
 
         // 3. Copy conversation summaries DB
         var srcDb = Path.Combine(sourceCli, "conversation_summaries.db");
         if (File.Exists(srcDb))
         {
-            try { File.Copy(srcDb, Path.Combine(targetCli, "conversation_summaries.db"), true); } catch { }
+            try { File.Copy(srcDb, Path.Combine(targetCli, "conversation_summaries.db"), true); }
+            catch (Exception ex) { Logger.Warn($"[MainViewModel] Could not copy conversation_summaries.db: {ex.Message}"); }
         }
 
         // 4. Copy conversations folder (chat databases)
@@ -1086,10 +1094,14 @@ public partial class MainViewModel : ObservableObject
                     var dest = Path.Combine(targetConversations, Path.GetFileName(file));
                     File.Copy(file, dest, true);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"[MainViewModel] Could not copy conversation file '{file}': {ex.Message}");
+                }
             }
         }
     }
+
 
     [RelayCommand]
     public async Task LaunchSwarmAsync()
@@ -1673,9 +1685,17 @@ public partial class MainViewModel : ObservableObject
 
     private async void OnAutoSyncTimerTick(object? sender, EventArgs e)
     {
-        await ExecuteSyncSwarmAsync(isAutoSync: true);
-        await LoadMcpServersAsync();
+        try
+        {
+            await ExecuteSyncSwarmAsync(isAutoSync: true);
+            await LoadMcpServersAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("[MainViewModel] AutoSync background timer failed", ex);
+        }
     }
+
 
     private void RefreshAccountFilterOptions()
     {

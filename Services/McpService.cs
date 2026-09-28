@@ -46,7 +46,10 @@ public class McpService : IMcpService
                             var first = lines.FirstOrDefault(l => !string.IsNullOrWhiteSpace(l));
                             if (!string.IsNullOrEmpty(first)) desc = first.Trim('#', ' ');
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            Logger.Debug($"[McpService] Could not read instructions.md in '{dir}': {ex.Message}");
+                        }
                     }
 
                     servers.Add(new McpServerConfig
@@ -95,8 +98,12 @@ public class McpService : IMcpService
                         }
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"[McpService] Could not parse mcp_config.json: {ex.Message}");
+                }
             }
+
 
             // If empty, supply standard community MCP server presets
             if (servers.Count == 0)

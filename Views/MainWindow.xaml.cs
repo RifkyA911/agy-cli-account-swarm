@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using AgyAccountSwarm.Models;
+using AgyAccountSwarm.Services;
 using AgyAccountSwarm.ViewModels;
+
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
@@ -74,7 +76,20 @@ public partial class MainWindow : Window
 
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Open Dashboard", null, (s, e) => RestoreFromTray());
-            contextMenu.Items.Add("⚡ Launch Swarm", null, async (s, e) => await _viewModel.LaunchSwarmAsync());
+            contextMenu.Items.Add("⚡ Launch Swarm", null, (s, e) =>
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _viewModel.LaunchSwarmAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("[MainWindow] Failed launching swarm from tray context menu", ex);
+                    }
+                });
+            });
             contextMenu.Items.Add(new ToolStripSeparator());
             contextMenu.Items.Add("Exit", null, (s, e) =>
             {
@@ -87,11 +102,12 @@ public partial class MainWindow : Window
 
             _notifyIcon.ContextMenuStrip = contextMenu;
         }
-        catch
+        catch (Exception ex)
         {
-            // Silently handle tray setup error if running in non-interactive environment
+            Logger.Warn($"[MainWindow] Non-fatal tray icon setup error: {ex.Message}");
         }
     }
+
 
     private void RestoreFromTray()
     {
