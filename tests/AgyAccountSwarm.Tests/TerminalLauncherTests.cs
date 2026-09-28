@@ -295,10 +295,22 @@ public class TerminalLauncherTests
         {
             if (Directory.Exists(tempDir))
             {
-                Directory.Delete(tempDir, true);
+                for (int i = 0; i < 10; i++)
+                {
+                    try
+                    {
+                        Directory.Delete(tempDir, true);
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        await Task.Delay(200);
+                    }
+                }
             }
         }
     }
+
 
     [Fact]
     public void ProfileItemViewModel_DuplicateCommand_TriggersEvent()
