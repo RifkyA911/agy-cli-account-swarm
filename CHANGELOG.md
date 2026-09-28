@@ -2,6 +2,28 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.4-beta] - 2026-09-28
+### Added
+- **Crisp High-Definition Avatar Decoding & Scaling**:
+  - Upgraded Google OAuth JWT avatar thumbnail URLs from default low-res thumbnails (`=s96-c`) to crisp, uncompressed 256x256 avatars (`=s256-c`) via `UpgradeGoogleAvatarResolution`.
+  - Added supersampled decode resolution (`DecodePixelWidth = 256`) and enabled WPF `RenderOptions.BitmapScalingMode="HighQuality"` and `RenderOptions.ClearTypeHint="Enabled"` on both Account and Swarm card avatar circles, eliminating pixelation on high-DPI displays.
+- **Model Context Protocol (MCP) Architectural Documentation & UI Banner**:
+  - Authored comprehensive documentation in [docs/MCP_GUIDE.md](docs/MCP_GUIDE.md) explaining that MCP servers execute as isolated child processes per CLI worker instance over standard I/O (`stdio`).
+  - Added architectural scope clarification banner in the desktop `/mcp` view explaining baseline presets vs. per-account sandboxes.
+
+### Fixed
+- **Google Identity Validation & Cross-Account Avatar Isolation**:
+  - Reordered avatar detection priority: authentic OAuth JWT `picture` claims tied strictly to the profile's active `AccountEmail` take top priority, preventing browser profile pictures from overriding authentic identities.
+  - Implemented deterministic SHA-256 avatar cache filenames (`{sha256(email)}.jpg`) with automatic migration from legacy hash formats.
+  - Added browser profile validation (`IsBrowserProfileMatchingEmail`) to ensure local Chrome/Antigravity embedded profile pictures are only used if they match the account's email.
+- **Theme Pressed Button Background Color in Light Theme**:
+  - Added dynamic theme resources `BrushSurfacePressed` (Slate 200 `#E2E8F0` in Light theme) and `BrushDangerHoverBg` across all 4 themes (Dark, Light, Cyberpunk, Matrix).
+  - Fixed buttons (`ModernButton`, `SidebarButton`, Hamburger toggle, and "Hide details & diagnostic") turning dark gray (`#252936`) when clicked in Light theme.
+  - Pre-initialized persisted theme in `App.xaml.cs` before `MainWindow` construction, eliminating the momentary dark sidebar background glitch on initial application startup in Light theme.
+- **Sidebar Badge Clipping & Collapsed Width**:
+  - Expanded collapsed sidebar width to 80px and set `ClipToBounds="False"` across sidebar borders, button templates, and badge containers.
+  - Anchored collapsed numeric badges neatly (`Margin="0,-2,0,0"`), ensuring multi-digit counters are never clipped.
+
 ## [v0.9.3-beta] - 2026-09-27
 ### Added
 - **Rebranding to "Agy CLI Account Swarm" & IDE Disambiguation**:

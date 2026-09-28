@@ -119,7 +119,7 @@ public partial class MainViewModel : ObservableObject
     {
         _audioService.PlayClick();
         IsSidebarCollapsed = !IsSidebarCollapsed;
-        SidebarColumnWidth = IsSidebarCollapsed ? new GridLength(76) : new GridLength(250);
+        SidebarColumnWidth = IsSidebarCollapsed ? new GridLength(80) : new GridLength(250);
     }
 
     [ObservableProperty]

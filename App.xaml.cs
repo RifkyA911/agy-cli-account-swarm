@@ -42,7 +42,7 @@ public partial class App : System.Windows.Application
                 {
                     var json = System.IO.File.ReadAllText(settingsPath);
                     using var doc = System.Text.Json.JsonDocument.Parse(json);
-                    if (doc.RootElement.TryGetProperty("Theme", out var themeProp) && themeProp.GetString() is { Length: > 0 } theme)
+                    if ((doc.RootElement.TryGetProperty("Theme", out var themeProp) || doc.RootElement.TryGetProperty("theme", out themeProp)) && themeProp.GetString() is { Length: > 0 } theme)
                     {
                         ThemeManager.ApplyTheme(theme);
                     }

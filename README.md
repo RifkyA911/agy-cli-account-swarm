@@ -19,6 +19,8 @@ Agy CLI Account Swarm isolates each account:
 - **Credential Protection**: Uses Windows DPAPI to protect token files at rest, avoiding shared Windows Credential Manager collisions.
 - **Live Usage Telemetry**: Reads remaining quota buckets and reset countdowns directly from `agy -p "/usage" --output-format json`.
 - **Configurable Quotas**: Quotas load from `%APPDATA%\AgyAccountSwarm\quota_config.json`.
+- **Model Context Protocol (MCP) Architecture**: Central catalog for inspecting MCP tools. Each CLI session runs isolated MCP child processes over standard I/O (`stdio`). Detailed in [docs/MCP_GUIDE.md](docs/MCP_GUIDE.md).
+- **High-Resolution Avatar & Identity Isolation**: Automatically decodes OAuth JWT `picture` claims, caches supersampled 256x256 avatars, and strictly associates avatars per authenticated Google identity.
 - **Terminal Integration**: Launches profiles into Windows Terminal tabs/panes, PowerShell, or Command Prompt.
 
 ---

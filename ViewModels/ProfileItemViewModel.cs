@@ -286,6 +286,7 @@ public partial class ProfileItemViewModel : ObservableObject
                     var bi = new BitmapImage();
                     bi.BeginInit();
                     bi.CacheOption = BitmapCacheOption.OnLoad;
+                    bi.DecodePixelWidth = 256;
                     using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         var ms = new MemoryStream();
@@ -303,6 +304,7 @@ public partial class ProfileItemViewModel : ObservableObject
                     bi.BeginInit();
                     bi.UriSource = uri;
                     bi.CacheOption = BitmapCacheOption.OnLoad;
+                    bi.DecodePixelWidth = 256;
                     bi.EndInit();
                     bi.Freeze();
                     return bi;

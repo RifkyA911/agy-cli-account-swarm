@@ -68,6 +68,8 @@ public static class ThemeManager
         app.Resources["BrushBg"] = new SolidColorBrush(MediaColor.FromRgb(15, 17, 21));
         app.Resources["BrushSurface"] = new SolidColorBrush(MediaColor.FromRgb(23, 25, 30));
         app.Resources["BrushSurfaceHover"] = new SolidColorBrush(MediaColor.FromRgb(31, 34, 42));
+        app.Resources["BrushSurfacePressed"] = new SolidColorBrush(MediaColor.FromRgb(37, 41, 54));
+        app.Resources["BrushDangerHoverBg"] = new SolidColorBrush(MediaColor.FromRgb(51, 20, 24));
         app.Resources["BrushCard"] = new SolidColorBrush(MediaColor.FromRgb(19, 21, 26));
         app.Resources["BrushCardBorder"] = new SolidColorBrush(MediaColor.FromRgb(37, 40, 50));
         app.Resources["BrushTextPrimary"] = new SolidColorBrush(MediaColor.FromRgb(243, 244, 246));
@@ -116,6 +118,8 @@ public static class ThemeManager
         app.Resources["BrushBg"] = new SolidColorBrush(MediaColor.FromRgb(248, 250, 252));       // Slate 50
         app.Resources["BrushSurface"] = new SolidColorBrush(MediaColor.FromRgb(255, 255, 255));  // White
         app.Resources["BrushSurfaceHover"] = new SolidColorBrush(MediaColor.FromRgb(241, 245, 249)); // Slate 100
+        app.Resources["BrushSurfacePressed"] = new SolidColorBrush(MediaColor.FromRgb(226, 232, 240)); // Slate 200
+        app.Resources["BrushDangerHoverBg"] = new SolidColorBrush(MediaColor.FromRgb(254, 226, 226)); // Red 100
         app.Resources["BrushCard"] = new SolidColorBrush(MediaColor.FromRgb(255, 255, 255));
         app.Resources["BrushCardBorder"] = new SolidColorBrush(MediaColor.FromRgb(226, 232, 240));  // Slate 200
         app.Resources["BrushTextPrimary"] = new SolidColorBrush(MediaColor.FromRgb(15, 23, 42));     // Slate 900
@@ -164,6 +168,8 @@ public static class ThemeManager
         app.Resources["BrushBg"] = new SolidColorBrush(MediaColor.FromRgb(13, 10, 24));          // #0D0A18
         app.Resources["BrushSurface"] = new SolidColorBrush(MediaColor.FromRgb(21, 16, 38));     // #151026
         app.Resources["BrushSurfaceHover"] = new SolidColorBrush(MediaColor.FromRgb(34, 26, 62));
+        app.Resources["BrushSurfacePressed"] = new SolidColorBrush(MediaColor.FromRgb(45, 18, 77));
+        app.Resources["BrushDangerHoverBg"] = new SolidColorBrush(MediaColor.FromRgb(60, 15, 30));
         app.Resources["BrushCard"] = new SolidColorBrush(MediaColor.FromRgb(25, 19, 44));        // #19132C
         app.Resources["BrushCardBorder"] = new SolidColorBrush(MediaColor.FromRgb(65, 45, 102));
         app.Resources["BrushTextPrimary"] = new SolidColorBrush(MediaColor.FromRgb(245, 243, 255));
@@ -212,6 +218,8 @@ public static class ThemeManager
         app.Resources["BrushBg"] = new SolidColorBrush(MediaColor.FromRgb(7, 16, 12));           // #07100C
         app.Resources["BrushSurface"] = new SolidColorBrush(MediaColor.FromRgb(11, 26, 19));     // #0B1A13
         app.Resources["BrushSurfaceHover"] = new SolidColorBrush(MediaColor.FromRgb(18, 41, 30));
+        app.Resources["BrushSurfacePressed"] = new SolidColorBrush(MediaColor.FromRgb(10, 41, 10));
+        app.Resources["BrushDangerHoverBg"] = new SolidColorBrush(MediaColor.FromRgb(40, 20, 10));
         app.Resources["BrushCard"] = new SolidColorBrush(MediaColor.FromRgb(13, 31, 23));        // #0D1F17
         app.Resources["BrushCardBorder"] = new SolidColorBrush(MediaColor.FromRgb(26, 64, 46));
         app.Resources["BrushTextPrimary"] = new SolidColorBrush(MediaColor.FromRgb(236, 253, 245));

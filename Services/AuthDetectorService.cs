@@ -148,44 +148,54 @@ public class AuthDetectorService : IAuthDetectorService
                 }
             }
 
-            // 3. Resolve Avatar (Authentic Google Profile Avatar or Local Disk Cache)
+            // 3. Resolve Avatar (Authentic Google Identity Avatar with Deterministic Cache)
             string? detectedAvatar = null;
+            var accountKey = !string.IsNullOrWhiteSpace(status.AccountEmail) ? status.AccountEmail : profile.Name;
 
-            // Check 1: Antigravity Browser Profile authentic Google Profile Picture.png
-            var browserProfilePic = Path.Combine(geminiDir, "antigravity-browser-profile", "Default", "Google Profile Picture.png");
-            if (File.Exists(browserProfilePic))
+            // Priority 1: Authentic Google account picture claim from authenticated OAuth/JWT token
+            if (!string.IsNullOrEmpty(status.AvatarUrl) && status.AvatarUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
-                detectedAvatar = browserProfilePic;
-            }
-            else if (profile.IsMainDefaultProfile())
-            {
-                var globalPic = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini", "antigravity-browser-profile", "Default", "Google Profile Picture.png");
-                if (File.Exists(globalPic))
-                {
-                    detectedAvatar = globalPic;
-                }
-            }
-
-            // Check 2: If we have an avatar URL from token/JWT picture claim
-            if (string.IsNullOrEmpty(detectedAvatar) && !string.IsNullOrEmpty(status.AvatarUrl))
-            {
-                var cached = EnsureAvatarCached(status.AvatarUrl, status.AccountEmail ?? profile.Name);
+                var cached = EnsureAvatarCached(status.AvatarUrl, accountKey);
                 if (!string.IsNullOrEmpty(cached) && File.Exists(cached))
                 {
                     detectedAvatar = cached;
                 }
             }
 
-            // Check 3: Check %LOCALAPPDATA%\AgyAccountSwarm\avatars\ cache
+            // Priority 2: Check deterministic local cache for this exact account identity
             if (string.IsNullOrEmpty(detectedAvatar))
             {
-                var identifier = status.AccountEmail ?? profile.Name;
-                var safeId = Math.Abs(identifier.GetHashCode()).ToString("X8");
-                var localAvatarDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgyAccountSwarm", "avatars");
-                var cachedFile = Path.Combine(localAvatarDir, $"{safeId}.jpg");
+                var localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgyAccountSwarm", "avatars");
+                var cachedFile = Path.Combine(localDir, GetSafeAvatarFileName(accountKey));
                 if (File.Exists(cachedFile) && new FileInfo(cachedFile).Length > 0)
                 {
                     detectedAvatar = cachedFile;
+                }
+            }
+
+            // Priority 3: Check browser profile picture ONLY if no token picture and verified to match email
+            if (string.IsNullOrEmpty(detectedAvatar))
+            {
+                var browserProfilePic = Path.Combine(geminiDir, "antigravity-browser-profile", "Default", "Google Profile Picture.png");
+                if (File.Exists(browserProfilePic))
+                {
+                    if (IsBrowserProfileMatchingEmail(geminiDir, status.AccountEmail))
+                    {
+                        detectedAvatar = browserProfilePic;
+                    }
+                    else if (profile.IsMainDefaultProfile() && string.IsNullOrEmpty(status.AccountEmail))
+                    {
+                        detectedAvatar = browserProfilePic;
+                    }
+                }
+                else if (profile.IsMainDefaultProfile())
+                {
+                    var globalGemini = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini");
+                    var globalPic = Path.Combine(globalGemini, "antigravity-browser-profile", "Default", "Google Profile Picture.png");
+                    if (File.Exists(globalPic) && (IsBrowserProfileMatchingEmail(globalGemini, status.AccountEmail) || string.IsNullOrEmpty(status.AccountEmail)))
+                    {
+                        detectedAvatar = globalPic;
+                    }
                 }
             }
 
@@ -697,6 +707,36 @@ public class AuthDetectorService : IAuthDetectorService
 
     private static readonly System.Net.Http.HttpClient _httpClient = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
 
+    public static string UpgradeGoogleAvatarResolution(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return url;
+        // Upgrade low-res =s96-c, =s64, =s32 etc to crisp =s256-c
+        return System.Text.RegularExpressions.Regex.Replace(url, @"=s\d+(-c)?$", "=s256-c");
+    }
+
+    public static string GetSafeAvatarFileName(string identifier)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(identifier.Trim().ToLowerInvariant()));
+        return Convert.ToHexString(hashBytes).ToLowerInvariant() + ".jpg";
+    }
+
+    public static bool IsBrowserProfileMatchingEmail(string geminiDir, string? expectedEmail)
+    {
+        if (string.IsNullOrWhiteSpace(expectedEmail)) return false;
+        try
+        {
+            var prefsPath = Path.Combine(geminiDir, "antigravity-browser-profile", "Default", "Preferences");
+            if (!File.Exists(prefsPath)) return false;
+            var text = File.ReadAllText(prefsPath);
+            return text.Contains(expectedEmail, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public static string EnsureAvatarCached(string? pictureUrl, string identifier)
     {
         if (string.IsNullOrWhiteSpace(pictureUrl) || !pictureUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
@@ -709,8 +749,17 @@ public class AuthDetectorService : IAuthDetectorService
             var localDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgyAccountSwarm", "avatars");
             if (!Directory.Exists(localDir)) Directory.CreateDirectory(localDir);
 
-            var safeId = Math.Abs(identifier.GetHashCode()).ToString("X8");
-            var filePath = Path.Combine(localDir, $"{safeId}.jpg");
+            var highResUrl = UpgradeGoogleAvatarResolution(pictureUrl);
+            var safeFileName = GetSafeAvatarFileName(identifier);
+            var filePath = Path.Combine(localDir, safeFileName);
+
+            // Backward compatibility: migrate old hash file if present and new file doesn't exist
+            var oldSafeId = Math.Abs(identifier.GetHashCode()).ToString("X8");
+            var oldFilePath = Path.Combine(localDir, $"{oldSafeId}.jpg");
+            if (!File.Exists(filePath) && File.Exists(oldFilePath) && new FileInfo(oldFilePath).Length > 0)
+            {
+                try { File.Copy(oldFilePath, filePath, true); } catch { }
+            }
 
             if (File.Exists(filePath) && new FileInfo(filePath).Length > 0)
             {
@@ -719,8 +768,8 @@ public class AuthDetectorService : IAuthDetectorService
 
             try
             {
-                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
-                var response = _httpClient.GetAsync(pictureUrl, cts.Token).GetAwaiter().GetResult();
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(4));
+                var response = _httpClient.GetAsync(highResUrl, cts.Token).GetAwaiter().GetResult();
                 if (response.IsSuccessStatusCode)
                 {
                     var bytes = response.Content.ReadAsByteArrayAsync(cts.Token).GetAwaiter().GetResult();
@@ -733,10 +782,10 @@ public class AuthDetectorService : IAuthDetectorService
             }
             catch (Exception ex)
             {
-                Logger.Debug($"[AuthDetector] Failed caching avatar image from '{pictureUrl}': {ex.Message}");
+                Logger.Debug($"[AuthDetector] Failed caching avatar image from '{highResUrl}': {ex.Message}");
             }
 
-            return File.Exists(filePath) ? filePath : pictureUrl;
+            return File.Exists(filePath) ? filePath : highResUrl;
         }
         catch (Exception ex)
         {

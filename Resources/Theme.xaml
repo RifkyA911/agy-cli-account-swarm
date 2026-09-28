@@ -5,6 +5,8 @@
     <SolidColorBrush x:Key="BrushBg" Color="#0F1115" />
     <SolidColorBrush x:Key="BrushSurface" Color="#17191E" />
     <SolidColorBrush x:Key="BrushSurfaceHover" Color="#1F222A" />
+    <SolidColorBrush x:Key="BrushSurfacePressed" Color="#252936" />
+    <SolidColorBrush x:Key="BrushDangerHoverBg" Color="#331418" />
     <SolidColorBrush x:Key="BrushCard" Color="#13151A" />
     <SolidColorBrush x:Key="BrushCardBorder" Color="#252832" />
     <SolidColorBrush x:Key="BrushTextPrimary" Color="#F3F4F6" />
@@ -65,7 +67,8 @@
                             Background="{TemplateBinding Background}"
                             CornerRadius="6"
                             Padding="{TemplateBinding Padding}"
-                            SnapsToDevicePixels="True">
+                            SnapsToDevicePixels="True"
+                            ClipToBounds="False">
                         <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
@@ -73,7 +76,7 @@
                             <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushNavHoverBg}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushSurfaceHover}" />
+                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushSurfacePressed}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -101,7 +104,8 @@
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="6"
                             Padding="{TemplateBinding Padding}"
-                            SnapsToDevicePixels="True">
+                            SnapsToDevicePixels="True"
+                            ClipToBounds="False">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
@@ -110,7 +114,8 @@
                             <Setter TargetName="border" Property="BorderBrush" Value="#3B82F6" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="#252936" />
+                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushSurfacePressed}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#2563EB" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45" />
@@ -200,9 +205,13 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="border" Property="Background" Value="#331418" />
+                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushDangerHoverBg}" />
                             <Setter TargetName="border" Property="BorderBrush" Value="#EF4444" />
                             <Setter Property="Foreground" Value="#EF4444" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="{DynamicResource BrushDangerHoverBg}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#DC2626" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
