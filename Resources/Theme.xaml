@@ -496,6 +496,10 @@
     <Geometry x:Key="HeroIconPlus">M12 4.5v15m7.5-7.5h-15</Geometry>
     <Geometry x:Key="HeroIconCheck">m4.5 12.75 6 6 9-13.5</Geometry>
     <Geometry x:Key="HeroIconDocumentDuplicate">M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v8.25A2.25 2.25 0 0 0 6 16.5h2.25m8.25-8.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-7.5A2.25 2.25 0 0 1 8.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 0 0-2.25 2.25v6</Geometry>
+    <Geometry x:Key="HeroIconBars3">M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5</Geometry>
+    <Geometry x:Key="HeroIconChevronLeft">M15.75 19.5 8.25 12l7.5-7.5</Geometry>
+    <Geometry x:Key="HeroIconChevronRight">m8.25 4.5 7.5 7.5-7.5 7.5</Geometry>
+    <Geometry x:Key="HeroIconChevronDown">m19.5 8.25-7.5 7.5-7.5-7.5</Geometry>
 
     <!-- Modern Dynamic Flat ProgressBar with Dynamic Hex / SolidColorBrush support -->
     <Style TargetType="ProgressBar">

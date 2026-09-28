@@ -107,6 +107,20 @@ public partial class MainViewModel : ObservableObject
     private string _currentPage = "Dashboard";
 
     [ObservableProperty]
+    private bool _isSidebarCollapsed = false;
+
+    [ObservableProperty]
+    private GridLength _sidebarColumnWidth = new(250);
+
+    [RelayCommand]
+    public void ToggleSidebar()
+    {
+        _audioService.PlayClick();
+        IsSidebarCollapsed = !IsSidebarCollapsed;
+        SidebarColumnWidth = IsSidebarCollapsed ? new GridLength(72) : new GridLength(250);
+    }
+
+    [ObservableProperty]
     private string _searchQuery = string.Empty;
 
     [ObservableProperty]

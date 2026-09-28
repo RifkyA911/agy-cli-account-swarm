@@ -63,6 +63,19 @@ public class ProfileAuthStatus
     public string ContextUsageSummary { get; set; } = "0 / 1,048K tokens (0.0%)";
     public string ContextHeadroomSummary { get; set; } = "1,048K tokens free (100.0%)";
 
+    // Antigravity Model Group Quotas (from agy cli /usage breakdown)
+    // 1. GEMINI MODELS (Gemini Flash, Gemini Pro)
+    public double GeminiWeeklyRemainingPercent { get; set; } = 100.0;
+    public string GeminiWeeklyRefreshesIn { get; set; } = "106h 56m";
+    public double Gemini5HourRemainingPercent { get; set; } = 100.0;
+    public string Gemini5HourRefreshesIn { get; set; } = "4h 23m";
+
+    // 2. CLAUDE AND GPT MODELS (Claude Opus, Claude Sonnet, GPT-OSS)
+    public double ClaudeGptWeeklyRemainingPercent { get; set; } = 100.0;
+    public string ClaudeGptWeeklyRefreshesIn { get; set; } = "106h 2m";
+    public double ClaudeGpt5HourRemainingPercent { get; set; } = 100.0;
+    public string ClaudeGpt5HourRefreshesIn { get; set; } = "1h 1m";
+
     // Authentic CLI Inspection Previews
     public string InspectionUsageText { get; set; } = string.Empty;
     public string InspectionContextText { get; set; } = string.Empty;

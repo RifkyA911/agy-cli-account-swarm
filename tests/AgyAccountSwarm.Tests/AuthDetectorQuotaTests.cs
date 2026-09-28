@@ -40,4 +40,20 @@ public class AuthDetectorQuotaTests
         long tokens = AuthDetectorService.GetDailyTokensLimitForTier(tier);
         Assert.Equal(expectedTokens, tokens);
     }
+
+    [Fact]
+    public void BuildAsciiProgressBar_ReturnsExpectedLengthAndFill()
+    {
+        string zeroBar = AuthDetectorService.BuildAsciiProgressBar(0.0, 50);
+        Assert.Equal(50, zeroBar.Length);
+        Assert.Equal(new string('░', 50), zeroBar);
+
+        string fullBar = AuthDetectorService.BuildAsciiProgressBar(100.0, 50);
+        Assert.Equal(50, fullBar.Length);
+        Assert.Equal(new string('█', 50), fullBar);
+
+        string halfBar = AuthDetectorService.BuildAsciiProgressBar(50.0, 50);
+        Assert.Equal(50, halfBar.Length);
+        Assert.Equal(new string('█', 25) + new string('░', 25), halfBar);
+    }
 }

@@ -21,6 +21,7 @@
             <converters:PageToActiveBorderConverter x:Key="PageToActiveBorderConverter" />
             <converters:PageToActiveTextConverter x:Key="PageToActiveTextConverter" />
             <converters:PageToFontWeightConverter x:Key="PageToFontWeightConverter" />
+            <converters:BooleanToChevronConverter x:Key="BoolToChevronConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

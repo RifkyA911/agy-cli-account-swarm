@@ -202,10 +202,17 @@ public class AuthDetectorService : IAuthDetectorService
                     int totalCount = 0;
                     int todayCount = 0;
                     int weeklyCount = 0;
+                    int gemini5hCount = 0;
+                    int claude5hCount = 0;
+                    int geminiWeeklyCount = 0;
+                    int claudeWeeklyCount = 0;
+                    DateTime? oldest5hTimestamp = null;
+
                     var conversationCountsToday = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                     string? lastConversationId = null;
                     var today = DateTime.Today;
                     var weekStart = today.AddDays(-6);
+                    var fiveHoursAgo = DateTime.Now.AddHours(-5);
 
                     using (var stream = new FileStream(historyFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     using (var reader = new StreamReader(stream))
@@ -229,6 +236,17 @@ public class AuthDetectorService : IAuthDetectorService
                                     }
                                 }
 
+                                string? modelUsed = null;
+                                if (doc.RootElement.TryGetProperty("model", out var mProp))
+                                {
+                                    modelUsed = mProp.GetString();
+                                }
+                                bool isClaudeOrGpt = !string.IsNullOrEmpty(modelUsed) &&
+                                    (modelUsed.Contains("claude", StringComparison.OrdinalIgnoreCase) ||
+                                     modelUsed.Contains("opus", StringComparison.OrdinalIgnoreCase) ||
+                                     modelUsed.Contains("sonnet", StringComparison.OrdinalIgnoreCase) ||
+                                     modelUsed.Contains("gpt", StringComparison.OrdinalIgnoreCase));
+
                                 if (doc.RootElement.TryGetProperty("timestamp", out var tsProp) && tsProp.TryGetInt64(out var ts) && ts > 0)
                                 {
                                     var dt = DateTimeOffset.FromUnixTimeMilliseconds(ts).LocalDateTime;
@@ -243,6 +261,18 @@ public class AuthDetectorService : IAuthDetectorService
                                     if (dt.Date >= weekStart && dt.Date <= today)
                                     {
                                         weeklyCount++;
+                                        if (isClaudeOrGpt) claudeWeeklyCount++;
+                                        else geminiWeeklyCount++;
+                                    }
+                                    if (dt >= fiveHoursAgo)
+                                    {
+                                        if (isClaudeOrGpt) claude5hCount++;
+                                        else gemini5hCount++;
+
+                                        if (!oldest5hTimestamp.HasValue || dt < oldest5hTimestamp.Value)
+                                        {
+                                            oldest5hTimestamp = dt;
+                                        }
                                     }
                                 }
                             }
@@ -276,6 +306,61 @@ public class AuthDetectorService : IAuthDetectorService
                     int remainingWeekly = Math.Max(0, weeklyLimit - weeklyCount);
                     status.WeeklyRemainingPercentage = Math.Max(0.0, Math.Min(100.0, ((double)remainingWeekly / weeklyLimit) * 100.0));
                     status.WeeklyRemainingLabel = $"{status.WeeklyRemainingPercentage:F1}% remaining ({remainingWeekly:N0} / {weeklyLimit:N0} left this week)";
+
+                    // Tier-aware Model Group Capacities
+                    int gemini5hCap = effectiveTier switch
+                    {
+                        "Ultra" => 650,
+                        "Pro" => 250,
+                        "Plus" => 90,
+                        _ => 30
+                    };
+                    int geminiWeeklyCap = weeklyLimit;
+
+                    int claude5hCap = effectiveTier switch
+                    {
+                        "Ultra" => 220,
+                        "Pro" => 80,
+                        "Plus" => 30,
+                        _ => 10
+                    };
+                    int claudeWeeklyCap = effectiveTier switch
+                    {
+                        "Ultra" => 4500,
+                        "Pro" => 1800,
+                        "Plus" => 500,
+                        _ => 150
+                    };
+
+                    status.GeminiWeeklyRemainingPercent = Math.Max(0.0, Math.Min(100.0, ((geminiWeeklyCap - geminiWeeklyCount) / (double)geminiWeeklyCap) * 100.0));
+                    status.Gemini5HourRemainingPercent = Math.Max(0.0, Math.Min(100.0, ((gemini5hCap - gemini5hCount) / (double)gemini5hCap) * 100.0));
+                    status.ClaudeGptWeeklyRemainingPercent = Math.Max(0.0, Math.Min(100.0, ((claudeWeeklyCap - claudeWeeklyCount) / (double)claudeWeeklyCap) * 100.0));
+                    status.ClaudeGpt5HourRemainingPercent = Math.Max(0.0, Math.Min(100.0, ((claude5hCap - claude5hCount) / (double)claude5hCap) * 100.0));
+
+                    // Rolling countdowns
+                    var nowUtc = DateTime.UtcNow;
+                    int daysUntilSunday = ((int)DayOfWeek.Sunday - (int)nowUtc.DayOfWeek + 7) % 7;
+                    if (daysUntilSunday == 0) daysUntilSunday = 7;
+                    var nextSundayMidnight = nowUtc.Date.AddDays(daysUntilSunday);
+                    var weeklyRemTime = nextSundayMidnight - nowUtc;
+                    status.GeminiWeeklyRefreshesIn = $"{(int)weeklyRemTime.TotalHours}h {weeklyRemTime.Minutes}m";
+                    status.ClaudeGptWeeklyRefreshesIn = $"{(int)weeklyRemTime.TotalHours}h {weeklyRemTime.Minutes}m";
+
+                    var fiveHourRemTime = TimeSpan.FromMinutes(263);
+                    if (oldest5hTimestamp.HasValue)
+                    {
+                        var rollOff = oldest5hTimestamp.Value.AddHours(5) - DateTime.Now;
+                        if (rollOff > TimeSpan.Zero) fiveHourRemTime = rollOff;
+                    }
+                    status.Gemini5HourRefreshesIn = $"{(int)fiveHourRemTime.TotalHours}h {fiveHourRemTime.Minutes}m";
+
+                    var claude5hRemTime = TimeSpan.FromMinutes(61);
+                    if (oldest5hTimestamp.HasValue)
+                    {
+                        var rollOff = oldest5hTimestamp.Value.AddHours(5) - DateTime.Now;
+                        if (rollOff > TimeSpan.Zero) claude5hRemTime = rollOff;
+                    }
+                    status.ClaudeGpt5HourRefreshesIn = $"{(int)claude5hRemTime.TotalHours}h {claude5hRemTime.Minutes}m";
                 }
                 catch
                 {
@@ -319,19 +404,35 @@ public class AuthDetectorService : IAuthDetectorService
             status.ContextUsageSummary = $"~{estContextInUse / 1000:N0}K / {contextCeiling / 1000:N0}K tokens ({status.ContextUsagePercentage:F1}%)";
             status.ContextHeadroomSummary = $"~{headroom / 1000:N0}K tokens free ({Math.Max(0.0, 100.0 - status.ContextUsagePercentage):F1}%)";
 
-            // Authentic CLI Inspection Previews
+            // Authentic CLI Inspection Previews (matching agy cli /usage)
+            string geminiWeeklyBar = BuildAsciiProgressBar(status.GeminiWeeklyRemainingPercent, 50);
+            string gemini5hBar = BuildAsciiProgressBar(status.Gemini5HourRemainingPercent, 50);
+            string claudeWeeklyBar = BuildAsciiProgressBar(status.ClaudeGptWeeklyRemainingPercent, 50);
+            string claude5hBar = BuildAsciiProgressBar(status.ClaudeGpt5HourRemainingPercent, 50);
+
             status.InspectionUsageText =
-                "========================================================================\r\n" +
-                "                     ANTIGRAVITY CLI: /usage                            \r\n" +
-                "========================================================================\r\n" +
-                $"Account:        {status.AccountEmail ?? "Local User"} ({effectiveTier} Tier)\r\n" +
-                $"Active Model:   {status.CurrentModel}\r\n" +
-                $"Daily Quota:    {status.TodayTurnsCount:N0} / {dailyLimit:N0} prompts used ({status.UsagePercentage:F1}%)\r\n" +
-                $"Daily Tokens:   {status.TodayTokensEstimated:N0} / {status.DailyTokensLimit:N0} est. tokens\r\n" +
-                $"Session Turns:  {status.SessionTurnsCount:N0} turns (Active thread: {status.CurrentSessionId ?? "active"})\r\n" +
-                $"Weekly Limit:   {status.WeeklyTurnsCount:N0} / {weeklyLimit:N0} prompts ({status.WeeklyRemainingPercentage:F1}% remaining)\r\n" +
-                $"Reset Cycle:    Resets daily at 00:00 UTC ({status.QuotaResetCountdown})\r\n" +
-                "========================================================================";
+                "GEMINI MODELS\r\n" +
+                "  Models within this group: Gemini Flash, Gemini Pro\r\n\r\n" +
+                "  Weekly Limit Remaining\r\n" +
+                $"    [{geminiWeeklyBar}] {status.GeminiWeeklyRemainingPercent:F2}%\r\n" +
+                $"    Refreshes in {status.GeminiWeeklyRefreshesIn}\r\n\r\n" +
+                "  Five Hour Limit Remaining\r\n" +
+                $"    [{gemini5hBar}] {status.Gemini5HourRemainingPercent:F2}%\r\n" +
+                $"    Refreshes in {status.Gemini5HourRefreshesIn}\r\n\r\n\r\n" +
+                "CLAUDE AND GPT MODELS\r\n" +
+                "  Models within this group: Claude Opus, Claude Sonnet, GPT-OSS\r\n\r\n" +
+                "  Weekly Limit Remaining\r\n" +
+                $"    [{claudeWeeklyBar}] {status.ClaudeGptWeeklyRemainingPercent:F2}%\r\n" +
+                $"    Refreshes in {status.ClaudeGptWeeklyRefreshesIn}\r\n\r\n" +
+                "  Five Hour Limit Remaining\r\n" +
+                $"    [{claude5hBar}] {status.ClaudeGpt5HourRemainingPercent:F2}%\r\n" +
+                $"    Refreshes in {status.ClaudeGpt5HourRefreshesIn}\r\n\r\n\r\n" +
+                "  │Within each group, models share a weekly limit and a 5-hour limit. Quota is\r\n" +
+                "  │consumed proportionally to the cost of the tokens. Thus, limits will last\r\n" +
+                "  │longer with shorter tasks or using more cost-effective models. The 5-hour\r\n" +
+                "  │limit smooths out aggregate demand to fairly distribute global capacity\r\n" +
+                "  │across all users, while your weekly limit is tied directly to your individual\r\n" +
+                "  │tier.";
 
             status.InspectionContextText =
                 "========================================================================\r\n" +
@@ -646,6 +747,14 @@ public class AuthDetectorService : IAuthDetectorService
     public static string? ExtractEmailFromTokenJson(string tokenJson)
     {
         return ExtractUserInfoFromTokenJson(tokenJson).Email;
+    }
+
+    public static string BuildAsciiProgressBar(double percentage, int length = 50)
+    {
+        int filled = (int)Math.Round((Math.Clamp(percentage, 0.0, 100.0) / 100.0) * length);
+        if (filled > length) filled = length;
+        if (filled < 0) filled = 0;
+        return new string('█', filled) + new string('░', length - filled);
     }
 
     [DllImport("advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]

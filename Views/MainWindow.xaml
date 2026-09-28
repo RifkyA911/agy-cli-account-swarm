@@ -27,7 +27,7 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <!-- Left Sidebar Navigation -->
-                <ColumnDefinition Width="250" />
+                <ColumnDefinition Width="{Binding SidebarColumnWidth}" />
                 <!-- Main Content Area -->
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
@@ -39,10 +39,10 @@
                     Background="{DynamicResource BrushSurface}"
                     BorderBrush="{DynamicResource BrushCardBorder}"
                     BorderThickness="0,0,1,0"
-                    Padding="14,20">
+                    Padding="10,20">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <!-- App Logo & Title -->
+                        <!-- App Logo, Title & Sidebar Toggle -->
                         <RowDefinition Height="Auto" />
                         <!-- Navigation Menu -->
                         <RowDefinition Height="*" />
@@ -50,21 +50,53 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!-- Header / Branding -->
-                    <StackPanel Grid.Row="0" Margin="4,0,0,22">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="../Resources/favicon.ico" Width="28" Height="28" Margin="0,0,10,0" VerticalAlignment="Center" />
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Agy CLI Swarm"
-                                           FontSize="15"
-                                           FontWeight="Bold"
-                                           Foreground="{DynamicResource BrushTextPrimary}" />
-                                <TextBlock Text="Account Orchestrator"
-                                           FontSize="11"
-                                           Foreground="{DynamicResource BrushTextMuted}" />
+                    <!-- Header / Branding & Collapse Toggle -->
+                    <Grid Grid.Row="0" Margin="4,0,4,22">
+                        <!-- Expanded Header -->
+                        <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Image Source="../Resources/favicon.ico" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Agy CLI Swarm"
+                                               FontSize="14.5"
+                                               FontWeight="Bold"
+                                               Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <TextBlock Text="Account Orchestrator"
+                                               FontSize="10.5"
+                                               Foreground="{DynamicResource BrushTextMuted}" />
+                                </StackPanel>
                             </StackPanel>
-                        </StackPanel>
-                    </StackPanel>
+                            <Button Grid.Column="1" Command="{Binding ToggleSidebarCommand}"
+                                    Style="{StaticResource ModernButton}"
+                                    Padding="6,5"
+                                    ToolTip="Collapse Sidebar">
+                                <Path Data="{StaticResource HeroIconBars3}"
+                                      Stroke="{DynamicResource BrushTextSecondary}"
+                                      StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Collapsed Header -->
+                        <Button Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}"
+                                Command="{Binding ToggleSidebarCommand}"
+                                Style="{StaticResource ModernButton}"
+                                Padding="8,6"
+                                HorizontalAlignment="Center"
+                                ToolTip="Expand Sidebar">
+                            <StackPanel HorizontalAlignment="Center">
+                                <Image Source="../Resources/favicon.ico" Width="24" Height="24" Margin="0,0,0,4" HorizontalAlignment="Center" />
+                                <Path Data="{StaticResource HeroIconBars3}"
+                                      Stroke="{DynamicResource BrushTextSecondary}"
+                                      StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
 
                     <!-- Navigation Menu Items -->
                     <StackPanel Grid.Row="1">
@@ -75,25 +107,27 @@
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Dashboard"
-                                    Style="{StaticResource SidebarButton}">
+                                    Style="{StaticResource SidebarButton}"
+                                    ToolTip="{Binding Strings[Nav_Dashboard]}">
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
-                                            Background="#3B82F6" Margin="0,0,10,0"
+                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                            Background="#3B82F6" Margin="0,0,8,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Path Data="{StaticResource HeroIconSquares2x2}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dashboard}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Dashboard]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Dashboard}"
                                                    Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dashboard}"
-                                                   VerticalAlignment="Center" />
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
                                     </StackPanel>
                                 </Grid>
                             </Button>
@@ -106,33 +140,36 @@
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Accounts"
-                                    Style="{StaticResource SidebarButton}">
+                                    Style="{StaticResource SidebarButton}"
+                                    ToolTip="{Binding Strings[Nav_Accounts]}">
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
-                                            Background="#3B82F6" Margin="0,0,10,0"
+                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                            Background="#3B82F6" Margin="0,0,8,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Accounts}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Path Data="{StaticResource HeroIconUsers}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Accounts}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Accounts]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Accounts}"
                                                    Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Accounts}"
-                                                   VerticalAlignment="Center" />
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
                                     </StackPanel>
                                     <Border Grid.Column="2" Background="{DynamicResource BrushBadgeBg}"
                                             BorderBrush="{DynamicResource BrushBadgeBorder}"
                                             BorderThickness="1"
                                             CornerRadius="10" Padding="8,2"
                                             HorizontalAlignment="Right"
-                                            VerticalAlignment="Center">
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}">
                                         <TextBlock Text="{Binding TotalCount}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushBadgeText}" />
                                     </Border>
                                 </Grid>
@@ -146,25 +183,27 @@
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Analytics"
-                                    Style="{StaticResource SidebarButton}">
+                                    Style="{StaticResource SidebarButton}"
+                                    ToolTip="{Binding Strings[Nav_Analytics]}">
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
-                                            Background="#3B82F6" Margin="0,0,10,0"
+                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                            Background="#3B82F6" Margin="0,0,8,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Path Data="{StaticResource HeroIconChartBar}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Analytics}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Analytics]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Analytics}"
                                                    Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Analytics}"
-                                                   VerticalAlignment="Center" />
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
                                     </StackPanel>
                                 </Grid>
                             </Button>
@@ -177,33 +216,36 @@
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Mcp"
-                                    Style="{StaticResource SidebarButton}">
+                                    Style="{StaticResource SidebarButton}"
+                                    ToolTip="{Binding Strings[Nav_Mcp]}">
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
-                                            Background="#3B82F6" Margin="0,0,10,0"
+                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                            Background="#3B82F6" Margin="0,0,8,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Mcp}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Path Data="{StaticResource HeroIconCpuChip}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Mcp}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Mcp]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Mcp}"
                                                    Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Mcp}"
-                                                   VerticalAlignment="Center" />
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
                                     </StackPanel>
                                     <Border Grid.Column="2" Background="{DynamicResource BrushBadgeBg}"
                                             BorderBrush="{DynamicResource BrushBadgeBorder}"
                                             BorderThickness="1"
                                             CornerRadius="10" Padding="8,2"
                                             HorizontalAlignment="Right"
-                                            VerticalAlignment="Center">
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}">
                                         <TextBlock Text="{Binding McpServersCount}" FontSize="11" FontWeight="Bold" Foreground="#3B82F6" />
                                     </Border>
                                 </Grid>
@@ -217,25 +259,27 @@
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Docs"
-                                    Style="{StaticResource SidebarButton}">
+                                    Style="{StaticResource SidebarButton}"
+                                    ToolTip="{Binding Strings[Nav_Docs]}">
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
-                                            Background="#3B82F6" Margin="0,0,10,0"
+                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                            Background="#3B82F6" Margin="0,0,8,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Docs}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Path Data="{StaticResource HeroIconBookOpen}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Docs}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Docs]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Docs}"
                                                    Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Docs}"
-                                                   VerticalAlignment="Center" />
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
                                     </StackPanel>
                                 </Grid>
                             </Button>
@@ -248,25 +292,27 @@
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Logs"
-                                    Style="{StaticResource SidebarButton}">
+                                    Style="{StaticResource SidebarButton}"
+                                    ToolTip="{Binding Strings[Nav_Logs]}">
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
-                                            Background="#3B82F6" Margin="0,0,10,0"
+                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                            Background="#3B82F6" Margin="0,0,8,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Logs}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Path Data="{StaticResource HeroIconCommandLine}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Logs}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Logs]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Logs}"
                                                    Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Logs}"
-                                                   VerticalAlignment="Center" />
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
                                     </StackPanel>
                                 </Grid>
                             </Button>
@@ -279,25 +325,27 @@
                                 CornerRadius="8"
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Settings"
-                                    Style="{StaticResource SidebarButton}">
+                                    Style="{StaticResource SidebarButton}"
+                                    ToolTip="{Binding Strings[Nav_Settings]}">
                                 <Grid HorizontalAlignment="Stretch">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="4" Height="18" CornerRadius="2"
-                                            Background="#3B82F6" Margin="0,0,10,0"
+                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                            Background="#3B82F6" Margin="0,0,8,0"
                                             Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Path Data="{StaticResource HeroIconCog6Tooth}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Settings}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding Strings[Nav_Settings]}"
                                                    FontSize="13"
                                                    FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Settings}"
                                                    Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Settings}"
-                                                   VerticalAlignment="Center" />
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
                                     </StackPanel>
                                 </Grid>
                             </Button>
@@ -308,47 +356,84 @@
                     <StackPanel Grid.Row="2" Margin="0,14,0,0">
                         <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,0,0,12" />
 
-                        <!-- Language Selector Dropdown -->
-                        <Border Margin="0,0,0,6">
-                            <ComboBox ItemsSource="{Binding LanguageOptions}"
-                                      SelectedItem="{Binding SelectedLanguageOption}"
-                                      DisplayMemberPath="DisplayName"
-                                      Style="{StaticResource ModernComboBox}"
-                                      HorizontalAlignment="Stretch"
-                                      ToolTip="Select Application Display Language" />
-                        </Border>
+                        <!-- Expanded Bottom Controls -->
+                        <StackPanel Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}">
+                            <!-- Language Selector Dropdown -->
+                            <Border Margin="0,0,0,6">
+                                <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                          SelectedItem="{Binding SelectedLanguageOption}"
+                                          DisplayMemberPath="DisplayName"
+                                          Style="{StaticResource ModernComboBox}"
+                                          HorizontalAlignment="Stretch"
+                                          ToolTip="Select Application Display Language" />
+                            </Border>
 
-                        <!-- Theme Appearance Palette Dropdown -->
-                        <Border Margin="0,0,0,6">
-                            <ComboBox ItemsSource="{Binding ThemeOptions}"
-                                      SelectedItem="{Binding SelectedThemeOption}"
-                                      Style="{StaticResource ModernComboBox}"
-                                      HorizontalAlignment="Stretch"
-                                      ToolTip="Select Theme Appearance Color Palette" />
-                        </Border>
+                            <!-- Theme Appearance Palette Dropdown -->
+                            <Border Margin="0,0,0,6">
+                                <ComboBox ItemsSource="{Binding ThemeOptions}"
+                                          SelectedItem="{Binding SelectedThemeOption}"
+                                          Style="{StaticResource ModernComboBox}"
+                                          HorizontalAlignment="Stretch"
+                                          ToolTip="Select Theme Appearance Color Palette" />
+                            </Border>
 
-                        <!-- Sound Toggle -->
-                        <Button Command="{Binding ToggleSoundCommand}"
-                                Style="{StaticResource SidebarButton}"
-                                Padding="8,6"
-                                Margin="0,0,0,6">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🔊 " FontSize="12" />
-                                <TextBlock Text="{Binding Strings[Label_Sound]}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
-                                <TextBlock Text=": " FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
-                                <TextBlock Text="ON" FontWeight="Bold" FontSize="12" Foreground="#10B981" Visibility="{Binding SoundEnabled, Converter={StaticResource BoolToVisConverter}}" />
-                                <TextBlock Text="MUTED" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextMuted}" Visibility="{Binding SoundEnabled, Converter={StaticResource InverseBoolToVisConverter}}" />
-                            </StackPanel>
-                        </Button>
+                            <!-- Sound Toggle -->
+                            <Button Command="{Binding ToggleSoundCommand}"
+                                    Style="{StaticResource SidebarButton}"
+                                    Padding="8,6"
+                                    Margin="0,0,0,6">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="🔊 " FontSize="12" />
+                                    <TextBlock Text="{Binding Strings[Label_Sound]}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                                    <TextBlock Text=": " FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                                    <TextBlock Text="ON" FontWeight="Bold" FontSize="12" Foreground="#10B981" Visibility="{Binding SoundEnabled, Converter={StaticResource BoolToVisConverter}}" />
+                                    <TextBlock Text="MUTED" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextMuted}" Visibility="{Binding SoundEnabled, Converter={StaticResource InverseBoolToVisConverter}}" />
+                                </StackPanel>
+                            </Button>
 
-                        <!-- CLI Status Pill -->
-                        <Border Background="{DynamicResource BrushCard}"
-                                BorderBrush="{DynamicResource BrushCardBorder}"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="10,6">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Ellipse Width="7" Height="7" Margin="0,0,8,0">
+                            <!-- CLI Status Pill -->
+                            <Border Background="{DynamicResource BrushCard}"
+                                    BorderBrush="{DynamicResource BrushCardBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="6"
+                                    Padding="10,6">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Ellipse Width="7" Height="7" Margin="0,0,8,0">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="#10B981" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAgyInstalled}" Value="False">
+                                                        <Setter Property="Fill" Value="#EF4444" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="CLI: " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                                    <TextBlock Text="{Binding Strings[Label_CliReady]}" FontSize="11" FontWeight="Bold" Foreground="#10B981" Visibility="{Binding IsAgyInstalled, Converter={StaticResource BoolToVisConverter}}" />
+                                    <TextBlock Text="{Binding Strings[Label_CliMissing]}" FontSize="11" FontWeight="Bold" Foreground="#EF4444" Visibility="{Binding IsAgyInstalled, Converter={StaticResource InverseBoolToVisConverter}}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Collapsed Bottom Controls (Compact Icon-Only) -->
+                        <StackPanel Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" HorizontalAlignment="Center">
+                            <Button Command="{Binding ToggleSoundCommand}"
+                                    Style="{StaticResource ModernButton}"
+                                    Padding="7,6"
+                                    Margin="0,0,0,8"
+                                    ToolTip="{Binding SoundEnabled, StringFormat='{}Sound: {0}'}">
+                                <TextBlock Text="🔊" FontSize="13" />
+                            </Button>
+                            <Border Background="{DynamicResource BrushCard}"
+                                    BorderBrush="{DynamicResource BrushCardBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="12"
+                                    Width="26" Height="26"
+                                    HorizontalAlignment="Center"
+                                    ToolTip="Antigravity CLI Status">
+                                <Ellipse Width="8" Height="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse">
                                             <Setter Property="Fill" Value="#10B981" />
@@ -360,11 +445,8 @@
                                         </Style>
                                     </Ellipse.Style>
                                 </Ellipse>
-                                <TextBlock Text="CLI: " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
-                                <TextBlock Text="{Binding Strings[Label_CliReady]}" FontSize="11" FontWeight="Bold" Foreground="#10B981" Visibility="{Binding IsAgyInstalled, Converter={StaticResource BoolToVisConverter}}" />
-                                <TextBlock Text="{Binding Strings[Label_CliMissing]}" FontSize="11" FontWeight="Bold" Foreground="#EF4444" Visibility="{Binding IsAgyInstalled, Converter={StaticResource InverseBoolToVisConverter}}" />
-                            </StackPanel>
-                        </Border>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -881,7 +963,6 @@
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
@@ -889,66 +970,75 @@
                                             <!-- Color Accent Indicator -->
                                             <Border Grid.Column="0" Width="4" CornerRadius="2" Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,12,0" />
 
-                                            <!-- Avatar Image & Initial Badge (Dashboard) -->
-                                            <Border Grid.Column="1" Width="42" Height="42" CornerRadius="21"
-                                                    Background="{DynamicResource BrushSurface}"
-                                                    BorderBrush="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
-                                                    BorderThickness="2"
-                                                    Margin="0,0,12,0"
-                                                    VerticalAlignment="Center"
-                                                    ClipToBounds="True">
-                                                <Grid>
-                                                    <Image Source="{Binding AvatarUrl}"
-                                                           Stretch="UniformToFill"
-                                                           Width="42" Height="42"
-                                                           Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}" />
-                                                    <Border Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}"
-                                                            Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
-                                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                                        <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                </Grid>
-                                            </Border>
+                                            <!-- Info & Telemetry Column -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <!-- Row 1: Avatar, Name, Tier, Status, Model & Quota Badges -->
+                                                <WrapPanel VerticalAlignment="Center">
+                                                    <!-- Circular Cropped Avatar directly to left of Account Name -->
+                                                    <Grid Width="34" Height="34" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                        <!-- Online Profile Picture inside Ellipse -->
+                                                        <Ellipse Width="34" Height="34"
+                                                                 Stroke="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                                 StrokeThickness="2"
+                                                                 Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}">
+                                                            <Ellipse.Fill>
+                                                                <ImageBrush ImageSource="{Binding AvatarUrl}" Stretch="UniformToFill" />
+                                                            </Ellipse.Fill>
+                                                        </Ellipse>
 
-                                            <!-- Info -->
-                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                        <!-- Fallback Google Circular Initial Badge -->
+                                                        <Border Width="34" Height="34" CornerRadius="17"
+                                                                Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                                Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}">
+                                                            <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="15" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
 
-                                                    <!-- Tier Badge (Pending Login for unauthenticated) -->
-                                                    <Border CornerRadius="6" Padding="10,3" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                        <!-- Mini Google 'G' Accent Dot -->
+                                                        <Border Width="12" Height="12" CornerRadius="6"
+                                                                Background="#FFFFFF" BorderBrush="#4285F4" BorderThickness="1"
+                                                                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                                Margin="0,0,-1,-1">
+                                                            <TextBlock Text="G" FontSize="7.5" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <!-- Profile Name -->
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" />
+
+                                                    <!-- Tier Badge -->
+                                                    <Border CornerRadius="6" Padding="10,3" Margin="0,0,8,0" VerticalAlignment="Center"
                                                             Background="{Binding TierBadgeBackground, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF" />
                                                     </Border>
 
                                                     <!-- Status Badge -->
-                                                    <Border CornerRadius="6" Padding="10,3" Margin="8,0,0,0" VerticalAlignment="Center" Background="{DynamicResource BrushSurface}"
+                                                    <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,0" VerticalAlignment="Center" Background="{DynamicResource BrushSurface}"
                                                             BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                             <Ellipse Width="8" Height="8" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Border>
 
                                                     <!-- Model Badge -->
-                                                    <Border CornerRadius="6" Padding="10,3" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,0" VerticalAlignment="Center"
                                                             Background="{DynamicResource BrushModelBadgeBg}"
                                                             BorderBrush="{DynamicResource BrushModelBadgeBorder}"
                                                             BorderThickness="1">
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="🧠 " FontSize="11" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding CurrentModel}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
+                                                            <TextBlock Text="🧠 " FontSize="10.5" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding CurrentModel}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Border>
 
                                                     <!-- Quota Status Badge -->
-                                                    <Border CornerRadius="6" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                    <Border CornerRadius="6" Padding="9,3" VerticalAlignment="Center"
                                                             Background="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" />
                                                     </Border>
-                                                </StackPanel>
+                                                </WrapPanel>
 
-                                                <!-- Activity Meter (Clean Spaced Responsive WrapPanel - No Collision!) -->
+                                                <!-- Row 2: Activity Meter (Responsive WrapPanel) -->
                                                 <WrapPanel Margin="0,6,0,0" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding UsageLabel}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,8,4" />
                                                     <Border Background="#1538BDF8" BorderBrush="#3038BDF8" BorderThickness="1" CornerRadius="4" Padding="5,1" Margin="0,0,10,4" VerticalAlignment="Center">
@@ -956,23 +1046,49 @@
                                                     </Border>
                                                     <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}" Height="6" Width="140"
                                                                  Background="{DynamicResource BrushProgressTrack}"
-                                                                 Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                 Foreground="{Binding DailyUsageBarColor, Converter={StaticResource HexToBrushConverter}}"
                                                                  BorderThickness="0" VerticalAlignment="Center" Margin="0,0,12,4" />
                                                     <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,0,4" />
+                                                </WrapPanel>
+
+                                                <!-- Row 3: Antigravity Model Quotas Preview (Gemini & Claude Groups) -->
+                                                <WrapPanel Margin="0,4,0,0" VerticalAlignment="Center">
+                                                    <!-- Gemini Group -->
+                                                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="4" Padding="7,2.5" Margin="0,0,8,4">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="Gemini: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                            <TextBlock Text="{Binding GeminiWeeklyRemainingPercent, StringFormat='{}W: {0:F0}%'}" FontSize="10" FontWeight="Bold" Foreground="{Binding GeminiWeeklyBarColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" />
+                                                            <TextBlock Text="{Binding Gemini5HourRemainingPercent, StringFormat='{}5h: {0:F0}%'}" FontSize="10" FontWeight="Bold" Foreground="{Binding Gemini5HourBarColor, Converter={StaticResource HexToBrushConverter}}" />
+                                                        </StackPanel>
+                                                    </Border>
+
+                                                    <!-- Claude / GPT Group -->
+                                                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="4" Padding="7,2.5" Margin="0,0,8,4">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="Claude/GPT: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                            <TextBlock Text="{Binding ClaudeGptWeeklyRemainingPercent, StringFormat='{}W: {0:F0}%'}" FontSize="10" FontWeight="Bold" Foreground="{Binding ClaudeGptWeeklyBarColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" />
+                                                            <TextBlock Text="{Binding ClaudeGpt5HourRemainingPercent, StringFormat='{}5h: {0:F0}%'}" FontSize="10" FontWeight="Bold" Foreground="{Binding ClaudeGpt5HourBarColor, Converter={StaticResource HexToBrushConverter}}" />
+                                                        </StackPanel>
+                                                    </Border>
+
+                                                    <!-- Weekly Remaining Quota Summary -->
+                                                    <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="4" Padding="7,2.5" Margin="0,0,0,4">
+                                                        <TextBlock Text="{Binding WeeklyRemainingLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                    </Border>
                                                 </WrapPanel>
                                             </StackPanel>
 
                                             <!-- Quick Launch Action -->
-                                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Button Command="{Binding LaunchCommand}"
                                                         CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                        Style="{StaticResource PrimaryButton}" Padding="12,5" Margin="0,0,6,0">
+                                                        Style="{StaticResource PrimaryButton}" Padding="12,6" Margin="0,0,6,0">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Path Data="{StaticResource HeroIconPlay}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,5,0" VerticalAlignment="Center" />
                                                         <TextBlock Text="Launch" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
                                                     </StackPanel>
                                                 </Button>
-                                                <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="8,5" ToolTip="Open Profile Folder">
+                                                <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="8,6" ToolTip="Open Profile Folder">
                                                     <Path Data="{StaticResource HeroIconFolder}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
                                                 </Button>
                                             </StackPanel>
@@ -1055,8 +1171,6 @@
                                             <Grid.ColumnDefinitions>
                                                 <!-- Checkbox & Color Accent Bar -->
                                                 <ColumnDefinition Width="Auto" />
-                                                <!-- Google Account Avatar / Circular Brand Badge -->
-                                                <ColumnDefinition Width="Auto" />
                                                 <!-- Card Multi-Row Content Body -->
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
@@ -1073,47 +1187,43 @@
                                                         Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}" />
                                             </StackPanel>
 
-                                            <!-- Column 1: Google Account Avatar with Google G Badge -->
-                                            <Border Grid.Column="1" Width="52" Height="52" CornerRadius="26"
-                                                    Background="{DynamicResource BrushSurface}"
-                                                    BorderBrush="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
-                                                    BorderThickness="2"
-                                                    Margin="0,0,16,0"
-                                                    VerticalAlignment="Center"
-                                                    ClipToBounds="True">
-                                                <Grid>
-                                                    <!-- Online Google Profile Picture (if available) -->
-                                                    <Image Source="{Binding AvatarUrl}"
-                                                           Stretch="UniformToFill"
-                                                           Width="52" Height="52"
-                                                           Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}" />
+                                            <!-- Column 1: Multi-Row Content Body -->
+                                            <StackPanel Grid.Column="1">
+                                                <!-- Row 1: Avatar (Circular Cropped), Profile Name, Tier Badge, Status Badge, Model Badge, Quota Health -->
+                                                <WrapPanel VerticalAlignment="Center" Margin="0,0,0,8">
+                                                    <!-- Circular Google Avatar placed immediately to the left of the Account Name -->
+                                                    <Grid Width="38" Height="38" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                        <!-- Online Google Profile Picture (if available) clipped inside Ellipse -->
+                                                        <Ellipse Width="38" Height="38"
+                                                                 Stroke="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                                 StrokeThickness="2"
+                                                                 Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}">
+                                                            <Ellipse.Fill>
+                                                                <ImageBrush ImageSource="{Binding AvatarUrl}" Stretch="UniformToFill" />
+                                                            </Ellipse.Fill>
+                                                        </Ellipse>
 
-                                                    <!-- Fallback Google Circular Initial Badge -->
-                                                    <Border Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}"
-                                                            Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
-                                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                                        <TextBlock Text="{Binding AvatarInitial}"
-                                                                   FontWeight="Bold" FontSize="20"
-                                                                   Foreground="#FFFFFF"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
+                                                        <!-- Fallback Google Circular Initial Badge -->
+                                                        <Border Width="38" Height="38" CornerRadius="19"
+                                                                Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                                Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}">
+                                                            <TextBlock Text="{Binding AvatarInitial}"
+                                                                       FontWeight="Bold" FontSize="16"
+                                                                       Foreground="#FFFFFF"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
 
-                                                    <!-- Mini Google 'G' Accent Dot in bottom right -->
-                                                    <Border Width="16" Height="16" CornerRadius="8"
-                                                            Background="#FFFFFF"
-                                                            BorderBrush="#4285F4" BorderThickness="1.5"
-                                                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                                            Margin="0,0,1,1">
-                                                        <TextBlock Text="G" FontSize="10" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
-                                                    </Border>
-                                                </Grid>
-                                            </Border>
+                                                        <!-- Mini Google 'G' Accent Dot in bottom right -->
+                                                        <Border Width="13" Height="13" CornerRadius="6.5"
+                                                                Background="#FFFFFF"
+                                                                BorderBrush="#4285F4" BorderThickness="1.2"
+                                                                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                                Margin="0,0,-1,-1">
+                                                            <TextBlock Text="G" FontSize="8" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                        </Border>
+                                                    </Grid>
 
-                                            <!-- Column 2: Multi-Row Content -->
-                                            <StackPanel Grid.Column="2">
-                                                <!-- Row 1: Profile Name, Tier Badge, Status Badge, Model Badge, and Quick Email -->
-                                                <WrapPanel VerticalAlignment="Center" Margin="0,0,0,6">
-                                                    <!-- Name -->
+                                                    <!-- Profile Name -->
                                                     <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" />
 
                                                     <!-- Tier Badge -->
@@ -1150,7 +1260,7 @@
                                                 </WrapPanel>
 
                                                 <!-- Row 2: Description (if any) & Sandbox Paths -->
-                                                <StackPanel Margin="0,0,0,8">
+                                                <StackPanel Margin="0,0,0,10">
                                                     <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,4"
                                                                Visibility="{Binding Description, Converter={StaticResource NullOrEmptyToVisConverter}}" />
                                                     <WrapPanel VerticalAlignment="Center">
@@ -1169,25 +1279,30 @@
                                                     </WrapPanel>
                                                 </StackPanel>
 
-                                                <!-- Row 3: Dedicated Quota Usage Bar & Weekly Limit Remaining Strip -->
-                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,0,0,12">
+                                                <!-- ============================================================== -->
+                                                <!-- FOLDABLE SECTION 1: DAILY RATE LIMIT & SESSION ACTIVITY       -->
+                                                <!-- ============================================================== -->
+                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10">
                                                     <StackPanel>
-                                                        <!-- Daily Quota Section (Generous 3-Row Layout) -->
-                                                        <StackPanel Margin="0,0,0,0">
-                                                            <!-- Row 1: Section Header + Tier Badge Pill (Left) & Reset Countdown (Right) -->
-                                                            <Grid Margin="0,0,0,8">
+                                                        <!-- Accordion Header Button -->
+                                                        <Button Command="{Binding ToggleDailyQuotaSectionCommand}"
+                                                                Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="14,10" HorizontalContentAlignment="Stretch">
+                                                            <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
-
-                                                                <!-- Left: Section Title & Tier Badge -->
-                                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                                                    <TextBlock Text="⚡ DAILY QUOTA USAGE" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding IsDailyQuotaExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                                                               FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="⚡ DAILY RATE LIMIT" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                                                     <Border Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
                                                                         <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
                                                                     </Border>
-                                                                </WrapPanel>
+                                                                    <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding UsagePercentage, StringFormat='{}{0:F1}% used'}" FontSize="10" FontWeight="Bold" Foreground="{Binding DailyUsageBarColor, Converter={StaticResource HexToBrushConverter}}" />
+                                                                    </Border>
+                                                                </StackPanel>
 
                                                                 <!-- Right: Reset Countdown -->
                                                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -1195,127 +1310,210 @@
                                                                     <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                                                 </StackPanel>
                                                             </Grid>
+                                                        </Button>
 
-                                                            <!-- Row 2: Full-width Progress Bar -->
+                                                        <!-- Accordion Body (Collapsible) -->
+                                                        <StackPanel Visibility="{Binding IsDailyQuotaExpanded, Converter={StaticResource BoolToVisConverter}}" Margin="14,0,14,12">
+                                                            <!-- Full-width Progress Bar with Dynamic Color (Green / Yellow / Red) -->
                                                             <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
                                                                          Height="7" Minimum="0" Maximum="100"
                                                                          Background="{DynamicResource BrushProgressTrack}"
-                                                                         Foreground="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                         Foreground="{Binding DailyUsageBarColor, Converter={StaticResource HexToBrushConverter}}"
                                                                          BorderThickness="0"
                                                                          Margin="0,0,0,8" />
 
-                                                            <!-- Row 3: Prompts Today & Tokens (Left) & Dedicated Session Turns Badge (Right) -->
+                                                            <!-- Prompts Today & Tokens Breakdown + Session Badge -->
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
-
-                                                                <!-- Left: Prompts Today & Tokens Breakdown -->
                                                                 <WrapPanel Grid.Column="0" VerticalAlignment="Center">
                                                                     <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,6,0" />
                                                                     <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
                                                                     <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
                                                                 </WrapPanel>
-
-                                                                <!-- Right: Dedicated Session Turns Badge -->
                                                                 <Border Grid.Column="1" Background="#1838BDF8" BorderBrush="#4038BDF8" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                                                     <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10.5" FontWeight="SemiBold" Foreground="#38BDF8" />
                                                                 </Border>
                                                             </Grid>
                                                         </StackPanel>
+                                                    </StackPanel>
+                                                </Border>
 
-                                                        <!-- Clean Divider with Breathing Room -->
-                                                        <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,12" />
-
-                                                        <!-- Weekly Quota Section (Generous 3-Row Layout) -->
-                                                        <StackPanel>
-                                                            <!-- Row 1: Section Header + Remaining Pill (Left) & Past 7 Days Usage (Right) -->
-                                                            <Grid Margin="0,0,0,8">
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-
-                                                                <!-- Left: Title & Remaining Badge -->
-                                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                                                    <TextBlock Text="📅 WEEKLY LIMIT" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                                    <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                                        <TextBlock Text="{Binding WeeklyRemainingPercentage, StringFormat='{}{0:F1}% remaining'}" FontSize="10" FontWeight="Bold" Foreground="#10B981" />
-                                                                    </Border>
-                                                                </WrapPanel>
-
-                                                                <!-- Right: Past 7 Days Usage -->
-                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <TextBlock Text="📊 Past 7 Days: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
-                                                                    <TextBlock Text="{Binding WeeklyTurnsCount, StringFormat='{}{0:N0} turns'}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
-                                                                </StackPanel>
-                                                            </Grid>
-
-                                                            <!-- Row 2: Full-width Progress Bar -->
-                                                            <ProgressBar Value="{Binding WeeklyRemainingPercentage, Mode=OneWay}"
-                                                                         Height="6" Minimum="0" Maximum="100"
-                                                                         Background="{DynamicResource BrushProgressTrack}"
-                                                                         Foreground="#10B981"
-                                                                         BorderThickness="0"
-                                                                         Margin="0,0,0,8" />
-
-                                                            <!-- Row 3: Remaining / Total Breakdown (Left) & Ceiling (Right) -->
+                                                <!-- ============================================================== -->
+                                                <!-- FOLDABLE SECTION 2: ANTIGRAVITY MODEL QUOTAS (/usage Groups)  -->
+                                                <!-- ============================================================== -->
+                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10">
+                                                    <StackPanel>
+                                                        <!-- Accordion Header Button -->
+                                                        <Button Command="{Binding ToggleModelQuotasSectionCommand}"
+                                                                Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="14,10" HorizontalContentAlignment="Stretch">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
+                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding IsModelQuotasExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                                                               FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="📊 ANTIGRAVITY MODEL QUOTAS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <Border Background="#1538BDF8" BorderBrush="#3038BDF8" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                                        <TextBlock Text="Gemini, Claude &amp; GPT Limits" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" />
+                                                                    </Border>
+                                                                </StackPanel>
 
-                                                                <!-- Left: Remaining Breakdown -->
-                                                                <TextBlock Grid.Column="0" Text="{Binding WeeklySummary}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                                                <!-- Right: Quick Summary Pill -->
+                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="Gemini: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding GeminiWeeklyRemainingPercent, StringFormat='{}{0:F0}%'}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding GeminiWeeklyBarColor, Converter={StaticResource HexToBrushConverter}}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <TextBlock Text="Claude: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding ClaudeGptWeeklyRemainingPercent, StringFormat='{}{0:F0}%'}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding ClaudeGptWeeklyBarColor, Converter={StaticResource HexToBrushConverter}}" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Button>
 
-                                                                <!-- Right: Weekly Ceiling Badge -->
-                                                                <Border Grid.Column="1" Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding WeeklyQuotaLimit, StringFormat='{}Weekly Ceiling: {0:N0} prompts'}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                        <!-- Accordion Body (Collapsible) -->
+                                                        <StackPanel Visibility="{Binding IsModelQuotasExpanded, Converter={StaticResource BoolToVisConverter}}" Margin="14,0,14,12">
+                                                            <Grid Margin="0,0,0,10">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <!-- Left: Gemini Models Group -->
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="14" />
+                                                                    <!-- Right: Claude and GPT Models Group -->
+                                                                    <ColumnDefinition Width="*" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <!-- Group 1: GEMINI MODELS -->
+                                                                <Border Grid.Column="0" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,10">
+                                                                    <StackPanel>
+                                                                        <!-- Group Header -->
+                                                                        <Grid Margin="0,0,0,4">
+                                                                            <TextBlock Text="GEMINI MODELS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                                            <Border Background="#153B82F6" BorderBrush="#303B82F6" BorderThickness="1" CornerRadius="3" Padding="5,1" HorizontalAlignment="Right">
+                                                                                <TextBlock Text="Flash, Pro" FontSize="9.5" FontWeight="SemiBold" Foreground="#3B82F6" />
+                                                                            </Border>
+                                                                        </Grid>
+                                                                        <TextBlock Text="Models within this group: Gemini Flash, Gemini Pro" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,8" />
+
+                                                                        <!-- Metric 1: Weekly Limit Remaining -->
+                                                                        <Grid Margin="0,0,0,3">
+                                                                            <TextBlock Text="Weekly Limit Remaining" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                            <TextBlock Text="{Binding GeminiWeeklyRemainingPercent, StringFormat='{}{0:F2}%'}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding GeminiWeeklyBarColor, Converter={StaticResource HexToBrushConverter}}" HorizontalAlignment="Right" />
+                                                                        </Grid>
+                                                                        <ProgressBar Value="{Binding GeminiWeeklyRemainingPercent, Mode=OneWay}" Height="5" Minimum="0" Maximum="100"
+                                                                                     Background="{DynamicResource BrushProgressTrack}" Foreground="{Binding GeminiWeeklyBarColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                                     BorderThickness="0" Margin="0,0,0,3" />
+                                                                        <TextBlock Text="{Binding GeminiWeeklyRefreshesIn, StringFormat='{}Refreshes in {0}'}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,8" />
+
+                                                                        <!-- Metric 2: Five Hour Limit Remaining -->
+                                                                        <Grid Margin="0,0,0,3">
+                                                                            <TextBlock Text="Five Hour Limit Remaining" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                            <TextBlock Text="{Binding Gemini5HourRemainingPercent, StringFormat='{}{0:F2}%'}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding Gemini5HourBarColor, Converter={StaticResource HexToBrushConverter}}" HorizontalAlignment="Right" />
+                                                                        </Grid>
+                                                                        <ProgressBar Value="{Binding Gemini5HourRemainingPercent, Mode=OneWay}" Height="5" Minimum="0" Maximum="100"
+                                                                                     Background="{DynamicResource BrushProgressTrack}" Foreground="{Binding Gemini5HourBarColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                                     BorderThickness="0" Margin="0,0,0,3" />
+                                                                        <TextBlock Text="{Binding Gemini5HourRefreshesIn, StringFormat='{}Refreshes in {0}'}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                    </StackPanel>
+                                                                </Border>
+
+                                                                <!-- Group 2: CLAUDE AND GPT MODELS -->
+                                                                <Border Grid.Column="2" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,10">
+                                                                    <StackPanel>
+                                                                        <!-- Group Header -->
+                                                                        <Grid Margin="0,0,0,4">
+                                                                            <TextBlock Text="CLAUDE AND GPT MODELS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                                            <Border Background="#158B5CF6" BorderBrush="#308B5CF6" BorderThickness="1" CornerRadius="3" Padding="5,1" HorizontalAlignment="Right">
+                                                                                <TextBlock Text="Opus, Sonnet, GPT-OSS" FontSize="9.5" FontWeight="SemiBold" Foreground="#8B5CF6" />
+                                                                            </Border>
+                                                                        </Grid>
+                                                                        <TextBlock Text="Models within this group: Claude Opus, Claude Sonnet, GPT-OSS" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,8" />
+
+                                                                        <!-- Metric 1: Weekly Limit Remaining -->
+                                                                        <Grid Margin="0,0,0,3">
+                                                                            <TextBlock Text="Weekly Limit Remaining" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                            <TextBlock Text="{Binding ClaudeGptWeeklyRemainingPercent, StringFormat='{}{0:F2}%'}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding ClaudeGptWeeklyBarColor, Converter={StaticResource HexToBrushConverter}}" HorizontalAlignment="Right" />
+                                                                        </Grid>
+                                                                        <ProgressBar Value="{Binding ClaudeGptWeeklyRemainingPercent, Mode=OneWay}" Height="5" Minimum="0" Maximum="100"
+                                                                                     Background="{DynamicResource BrushProgressTrack}" Foreground="{Binding ClaudeGptWeeklyBarColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                                     BorderThickness="0" Margin="0,0,0,3" />
+                                                                        <TextBlock Text="{Binding ClaudeGptWeeklyRefreshesIn, StringFormat='{}Refreshes in {0}'}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,8" />
+
+                                                                        <!-- Metric 2: Five Hour Limit Remaining -->
+                                                                        <Grid Margin="0,0,0,3">
+                                                                            <TextBlock Text="Five Hour Limit Remaining" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                            <TextBlock Text="{Binding ClaudeGpt5HourRemainingPercent, StringFormat='{}{0:F2}%'}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding ClaudeGpt5HourBarColor, Converter={StaticResource HexToBrushConverter}}" HorizontalAlignment="Right" />
+                                                                        </Grid>
+                                                                        <ProgressBar Value="{Binding ClaudeGpt5HourRemainingPercent, Mode=OneWay}" Height="5" Minimum="0" Maximum="100"
+                                                                                     Background="{DynamicResource BrushProgressTrack}" Foreground="{Binding ClaudeGpt5HourBarColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                                     BorderThickness="0" Margin="0,0,0,3" />
+                                                                        <TextBlock Text="{Binding ClaudeGpt5HourRefreshesIn, StringFormat='{}Refreshes in {0}'}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                    </StackPanel>
                                                                 </Border>
                                                             </Grid>
+
+                                                            <!-- Explanatory Note Callout (Authentic agy cli text) -->
+                                                            <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="10,7">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="Auto" />
+                                                                        <ColumnDefinition Width="*" />
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <Border Grid.Column="0" Width="3" Background="#8B5CF6" CornerRadius="1.5" Margin="0,0,8,0" />
+                                                                    <TextBlock Grid.Column="1" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" TextWrapping="Wrap" LineHeight="14">
+                                                                        Within each group, models share a weekly limit and a 5-hour limit. Quota is consumed proportionally to token cost. The 5-hour limit smooths out aggregate demand to fairly distribute capacity, while weekly limit reflects your subscription tier.
+                                                                    </TextBlock>
+                                                                </Grid>
+                                                            </Border>
                                                         </StackPanel>
+                                                    </StackPanel>
+                                                </Border>
 
-                                                        <!-- Clean Separator below Weekly Limit -->
-                                                        <Separator Background="{DynamicResource BrushCardBorder}" Margin="0,12" />
-
-                                                        <!-- AGY CLI Telemetry & Context Inspector (/usage & /context) -->
-                                                        <StackPanel Margin="0,0,0,0">
-                                                            <!-- Inspector Header & Quick Inspection Actions -->
-                                                            <Grid Margin="0,0,0,8">
+                                                <!-- ============================================================== -->
+                                                <!-- FOLDABLE SECTION 3: CLI INSPECTOR & TELEMETRY                 -->
+                                                <!-- ============================================================== -->
+                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,12">
+                                                    <StackPanel>
+                                                        <!-- Accordion Header Button -->
+                                                        <Button Command="{Binding ToggleCliInspectorSectionCommand}"
+                                                                Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="14,10" HorizontalContentAlignment="Stretch">
+                                                            <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
-
-                                                                <!-- Title -->
-                                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                                                    <TextBlock Text="🛠️ AGY CLI TELEMETRY &amp; CONTEXT" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding IsCliInspectorExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                                                               FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="🔬 CLI INSPECTOR &amp; TELEMETRY" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                                                     <Border Background="#158B5CF6" BorderBrush="#308B5CF6" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                                        <TextBlock Text="CLI Features" FontSize="9.5" FontWeight="SemiBold" Foreground="#8B5CF6" />
+                                                                        <TextBlock Text="/usage &amp; /context" FontSize="9.5" FontWeight="SemiBold" Foreground="#8B5CF6" />
                                                                     </Border>
-                                                                </WrapPanel>
+                                                                </StackPanel>
 
-                                                                <!-- Action Buttons for /usage and /context -->
+                                                                <!-- Action Buttons: /usage and /context -->
                                                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                                                     <Button Command="{Binding ToggleUsageInspectionCommand}"
-                                                                            Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
+                                                                            Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
                                                                             Foreground="{DynamicResource BrushTextPrimary}" FontSize="10" FontWeight="SemiBold" Padding="8,3" Margin="0,0,6,0" Cursor="Hand"
                                                                             ToolTip="View authentic AGY CLI /usage report">
                                                                         <TextBlock Text="📊 /usage" />
                                                                     </Button>
                                                                     <Button Command="{Binding ToggleContextInspectionCommand}"
-                                                                            Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
+                                                                            Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
                                                                             Foreground="{DynamicResource BrushTextPrimary}" FontSize="10" FontWeight="SemiBold" Padding="8,3" Cursor="Hand"
                                                                             ToolTip="View authentic AGY CLI /context capacity &amp; thread status">
                                                                         <TextBlock Text="🧠 /context" />
                                                                     </Button>
                                                                 </StackPanel>
                                                             </Grid>
+                                                        </Button>
 
+                                                        <!-- Accordion Body (Collapsible) -->
+                                                        <StackPanel Visibility="{Binding IsCliInspectorExpanded, Converter={StaticResource BoolToVisConverter}}" Margin="14,0,14,12">
                                                             <!-- 2-Box Metric Strip: /usage Overview & /context Window -->
-                                                            <Grid Margin="0,0,0,2">
+                                                            <Grid Margin="0,0,0,8">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="10" />
@@ -1360,7 +1558,7 @@
                                                             <!-- Expandable Monospace CLI Terminal Inspector Drawer -->
                                                             <Border Visibility="{Binding IsInspectorOpen, Converter={StaticResource BoolToVisConverter}}"
                                                                     Background="#0D1117" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6"
-                                                                    Padding="12,10" Margin="0,8,0,0">
+                                                                    Padding="12,10" Margin="0,4,0,0">
                                                                 <StackPanel>
                                                                     <Grid Margin="0,0,0,6">
                                                                         <TextBlock Text="{Binding InspectorTitle}" FontFamily="{StaticResource FontMono}" FontSize="11" FontWeight="Bold" Foreground="#58A6FF" VerticalAlignment="Center" />
@@ -1388,12 +1586,13 @@
 
                                                     <!-- Left Actions: Session Resume/New Chat Selector + Launch, Copy, Open Folder -->
                                                     <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                                        <!-- Session Selector: New Chat / Continue Recent / Resume Specific -->
+                                                        <!-- Session Selector: New Chat / Continue Recent / Resume Specific with ModernComboBox -->
                                                         <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="6,2" Margin="0,0,8,4" VerticalAlignment="Center">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <TextBlock Text="💬 Start:" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="2,0,6,0" />
                                                                 <ComboBox ItemsSource="{Binding AvailableSessions}" SelectedItem="{Binding SelectedSession}"
-                                                                          Width="210" Height="26" VerticalAlignment="Center" FontSize="10.5"
+                                                                          Style="{StaticResource ModernComboBox}"
+                                                                          Width="220" Height="28" VerticalAlignment="Center" FontSize="10.5"
                                                                           ToolTip="Select whether to start a new chat, continue most recent, or resume a specific past conversation">
                                                                     <ComboBox.ItemTemplate>
                                                                         <DataTemplate>

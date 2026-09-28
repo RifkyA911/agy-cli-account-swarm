@@ -267,6 +267,57 @@ public partial class ProfileItemViewModel : ObservableObject
     public string ContextUsageSummary => AuthStatus.ContextUsageSummary;
     public string ContextHeadroomSummary => AuthStatus.ContextHeadroomSummary;
 
+    // Foldable Section States for Account Cards
+    [ObservableProperty]
+    private bool _isDailyQuotaExpanded = true;
+
+    [ObservableProperty]
+    private bool _isModelQuotasExpanded = true;
+
+    [ObservableProperty]
+    private bool _isCliInspectorExpanded = false;
+
+    [RelayCommand]
+    public void ToggleDailyQuotaSection()
+    {
+        _audioService.PlayClick();
+        IsDailyQuotaExpanded = !IsDailyQuotaExpanded;
+    }
+
+    [RelayCommand]
+    public void ToggleModelQuotasSection()
+    {
+        _audioService.PlayClick();
+        IsModelQuotasExpanded = !IsModelQuotasExpanded;
+    }
+
+    [RelayCommand]
+    public void ToggleCliInspectorSection()
+    {
+        _audioService.PlayClick();
+        IsCliInspectorExpanded = !IsCliInspectorExpanded;
+    }
+
+    // Antigravity Model Group Quotas (Gemini, Claude & GPT)
+    public double GeminiWeeklyRemainingPercent => AuthStatus.GeminiWeeklyRemainingPercent;
+    public string GeminiWeeklyRefreshesIn => AuthStatus.GeminiWeeklyRefreshesIn;
+    public double Gemini5HourRemainingPercent => AuthStatus.Gemini5HourRemainingPercent;
+    public string Gemini5HourRefreshesIn => AuthStatus.Gemini5HourRefreshesIn;
+
+    public double ClaudeGptWeeklyRemainingPercent => AuthStatus.ClaudeGptWeeklyRemainingPercent;
+    public string ClaudeGptWeeklyRefreshesIn => AuthStatus.ClaudeGptWeeklyRefreshesIn;
+    public double ClaudeGpt5HourRemainingPercent => AuthStatus.ClaudeGpt5HourRemainingPercent;
+    public string ClaudeGpt5HourRefreshesIn => AuthStatus.ClaudeGpt5HourRefreshesIn;
+
+    public string GeminiWeeklyBarColor => GetRemainingColor(GeminiWeeklyRemainingPercent);
+    public string Gemini5HourBarColor => GetRemainingColor(Gemini5HourRemainingPercent);
+    public string ClaudeGptWeeklyBarColor => GetRemainingColor(ClaudeGptWeeklyRemainingPercent);
+    public string ClaudeGpt5HourBarColor => GetRemainingColor(ClaudeGpt5HourRemainingPercent);
+    public string DailyUsageBarColor => UsagePercentage >= 85.0 ? "#EF4444" : (UsagePercentage >= 65.0 ? "#F59E0B" : "#10B981");
+
+    private static string GetRemainingColor(double remaining) =>
+        remaining > 50.0 ? "#10B981" : (remaining > 20.0 ? "#F59E0B" : "#EF4444");
+
     // CLI Inspection & Drawer
     [ObservableProperty]
     private bool _isInspectorOpen;
@@ -385,6 +436,19 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(ContextWindowLabel));
             OnPropertyChanged(nameof(ContextUsageSummary));
             OnPropertyChanged(nameof(ContextHeadroomSummary));
+            OnPropertyChanged(nameof(GeminiWeeklyRemainingPercent));
+            OnPropertyChanged(nameof(GeminiWeeklyRefreshesIn));
+            OnPropertyChanged(nameof(Gemini5HourRemainingPercent));
+            OnPropertyChanged(nameof(Gemini5HourRefreshesIn));
+            OnPropertyChanged(nameof(ClaudeGptWeeklyRemainingPercent));
+            OnPropertyChanged(nameof(ClaudeGptWeeklyRefreshesIn));
+            OnPropertyChanged(nameof(ClaudeGpt5HourRemainingPercent));
+            OnPropertyChanged(nameof(ClaudeGpt5HourRefreshesIn));
+            OnPropertyChanged(nameof(GeminiWeeklyBarColor));
+            OnPropertyChanged(nameof(Gemini5HourBarColor));
+            OnPropertyChanged(nameof(ClaudeGptWeeklyBarColor));
+            OnPropertyChanged(nameof(ClaudeGpt5HourBarColor));
+            OnPropertyChanged(nameof(DailyUsageBarColor));
         }
         finally
         {
