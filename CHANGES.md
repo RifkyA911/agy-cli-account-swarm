@@ -10,7 +10,7 @@ Semua 19 temuan yang diidentifikasi pada `AUDIT.md` (5 Critical, 7 High, 4 Mediu
 
 - **Status Kompilasi (`dotnet build -c Release`)**: **0 Warning(s), 0 Error(s)**
 - **Status Publikasi (`dotnet publish -c Release -o publish`)**: **0 Warning(s), 0 Error(s)**
-- **Status Unit Test (`dotnet test -c Release`)**: **56 Passed, 0 Failed, 0 Skipped** (100% Green)
+- **Status Unit Test (`dotnet test -c Release`)**: **61 Passed, 0 Failed, 0 Skipped** (100% Green)
 
 ---
 
@@ -51,11 +51,15 @@ Semua 19 temuan yang diidentifikasi pada `AUDIT.md` (5 Critical, 7 High, 4 Mediu
 
 ---
 
-### D. UI & Ergonomi (UI-01)
+### D. UI, Ergonomi & Diagnosis Kesehatan Profil (UI-01 s/d UI-04, TEL-03)
 
 | ID | Komponen | Perubahan | Rationale / Kenapa Diubah |
 |---|---|---|---|
-| **UI-01** | `Views/MainWindow.xaml`, `Views/MainWindow.xaml.cs` | Menambahkan event handler `AccountsScrollViewer_PreviewMouseWheel` pada `ScrollViewer` kartu akun. | Menjawab keluhan pengguna ("*scrollnya kok kecepeten ya*"). Standar mouse wheel WPF meloncat kasar (~144px per notch); handler meredam scroll delta menjadi 50px per notch untuk pergerakan kartu akun yang halus dan presisi. |
+| **UI-01** | `Views/MainWindow.xaml`, `Views/MainWindow.xaml.cs` | Mengimplementasikan `GlobalScrollViewer_PreviewMouseWheel` ke seluruh ScrollViewer halaman (Dashboard, Accounts, Analytics, MCP, Architecture, Settings). Meredam delta loncatan mouse wheel dari standar WPF ~144px menjadi 50px per notch secara konsisten. | Menjawab keluhan pengguna ("*semua halaman ini scrollnya kecepeten deh samakan dengan account wey perilakunya*") sehingga seluruh aplikasi memiliki sensasi scrolling yang halus dan presisi. |
+| **UI-02** | `Views/MainWindow.xaml`, `ViewModels/ProfileItemViewModel.cs` | Rombak tata letak Kartu Akun: Checkbox Swarm dipindahkan ke pojok kanan atas kartu; garis warna vertikal di paling kiri diubah menjadi styled horizontal divider (`<hr>`) berwana `ColorTag` sebelum metrik kuota. | Memaksimalkan lebar horizontal kartu akun, mencegah persaingan elemen pada baris pertama, dan memberikan hirarki visual yang bersih dan rapi. |
+| **UI-03** | `ViewModels/ProfileItemViewModel.cs`, `Views/MainWindow.xaml` | Menambahkan perhitungan Burn-Rate dinamis (`BurnRatePromptsPerHour`) dan prediksi kehabisan kuota ("Dengan laju sekarang, kuota habis dalam ±X jam/menit"), serta banner peringatan darurat saat sisa kuota $\le 20\%$ atau habis. | Menggantikan tampilan batas statis lama dengan telemetri konsumsi waktu-nyata yang prediktif dan proaktif. |
+| **UI-04** | `Services/ProfileDoctorService.cs`, `ViewModels/ProfileItemViewModel.cs`, `Views/MainWindow.xaml` | Menambahkan fitur **Profile Doctor** (1 tombol diagnosis kesehatan profil) dengan 5 poin uji: (1) CLI terpasang, (2) masa berlaku token OAuth JWT, (3) deteksi lock file nyangkut (`*.lock`), (4) registrasi folder workspace di `trustedWorkspaces`, dan (5) kompatibilitas skema JSON `/usage`. Dilengkapi 1-click quick fix untuk pembersihan file lock dan pendaftaran workspace otomatis. | Mengatasi kerentanan sistem terhadap perubahan jeroan internal agy CLI secara mandiri dan transparan bagi pengguna. |
+| **TEL-03**| `Models/SwarmFleetModelItem.cs`, `ViewModels/MainViewModel.cs`, `Views/MainWindow.xaml` | Mengganti Section 3 Analytics yang redundan (*Swarm Health Records*) dengan **Swarm Fleet Intelligence & CLI Capabilities Matrix**: (1) Strip hero kapasitas pool agregat swarm dan aggregate burn-rate, (2) Matriks armada model engine aktif (`agy models`), dan (3) Kartu kapabilitas empiris subperintah resmi agy (`agy models`, `/usage`, `agents`, `mcp`). | Menghadirkan wawasan armada multi-model dan orkestrasi swarm yang relevan dengan kapabilitas CLI agy yang sebenarnya. |
 
 ---
 
@@ -126,7 +130,7 @@ Build succeeded.
 Starting test execution, please wait...
 A total of 1 test files matched the specified pattern.
 
-Passed!  - Failed:     0, Passed:    56, Skipped:     0, Total:    56, Duration: 10 s - AgyAccountSwarm.Tests.dll (net9.0)
+Passed!  - Failed:     0, Passed:    61, Skipped:     0, Total:    61, Duration: 10 s - AgyAccountSwarm.Tests.dll (net9.0)
 ```
 
 ### C. `dotnet publish AgyAccountSwarm.csproj -c Release -o publish --nologo`

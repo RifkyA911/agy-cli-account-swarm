@@ -612,6 +612,7 @@
                 <!-- VIEW 1: DASHBOARD (/dashboard)                                 -->
                 <!-- ============================================================== -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,24,60"
+                              PreviewMouseWheel="GlobalScrollViewer_PreviewMouseWheel"
                               Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}">
                     <StackPanel>
                         <!-- Top KPI Metrics Row -->
@@ -1169,30 +1170,16 @@
                                             CornerRadius="10"
                                             Margin="0,0,0,16"
                                             Padding="18,16">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <!-- Checkbox & Color Accent Bar -->
-                                                <ColumnDefinition Width="Auto" />
-                                                <!-- Card Multi-Row Content Body -->
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <!-- Row 1: Profile Header + Top-Right Swarm Checkbox -->
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
 
-                                            <!-- Column 0: Checkbox & Accent Bar -->
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
-                                                <CheckBox IsChecked="{Binding IsSelectedForSwarm}"
-                                                          Style="{StaticResource ModernCheckBox}"
-                                                          Margin="0,0,10,0"
-                                                          VerticalAlignment="Center"
-                                                          ToolTip="Include profile in Swarm Launch" />
-                                                <Border Width="4" Height="74"
-                                                        CornerRadius="2"
-                                                        Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}" />
-                                            </StackPanel>
-
-                                            <!-- Column 1: Multi-Row Content Body -->
-                                            <StackPanel Grid.Column="1">
-                                                <!-- Row 1: Avatar (Circular Cropped), Profile Name, Tier Badge, Status Badge, Model Badge, Quota Health -->
-                                                <WrapPanel VerticalAlignment="Center" Margin="0,0,0,8">
+                                                <!-- Left: Avatar, Name, Tier, Status, Model, Quota Health -->
+                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
                                                     <!-- Circular Google Avatar placed immediately to the left of the Account Name -->
                                                     <Grid Width="38" Height="38" Margin="0,0,12,0" VerticalAlignment="Center">
                                                         <!-- Online Google Profile Picture (if available) clipped inside Ellipse -->
@@ -1261,87 +1248,131 @@
                                                     </Border>
                                                 </WrapPanel>
 
-                                                <!-- Row 2: Description (if any) & Sandbox Paths -->
-                                                <StackPanel Margin="0,0,0,10">
-                                                    <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,4"
-                                                               Visibility="{Binding Description, Converter={StaticResource NullOrEmptyToVisConverter}}" />
-                                                    <WrapPanel VerticalAlignment="Center">
-                                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="6,2" Margin="0,0,8,4">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="📁 Sandbox: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                <TextBlock Text="{Binding EffectiveProfilePath}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="{DynamicResource BrushMonoPath}" />
-                                                            </StackPanel>
-                                                        </Border>
-                                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="6,2" Margin="0,0,8,4">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="📂 Workspace: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                <TextBlock Text="{Binding DisplayWorkspace}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" />
-                                                            </StackPanel>
-                                                        </Border>
-                                                    </WrapPanel>
-                                                </StackPanel>
-
-                                                <!-- ============================================================== -->
-                                                <!-- FOLDABLE SECTION 1: DAILY RATE LIMIT & SESSION ACTIVITY       -->
-                                                <!-- ============================================================== -->
-                                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10">
-                                                    <StackPanel>
-                                                        <!-- Accordion Header Button -->
-                                                        <Button Command="{Binding ToggleDailyQuotaSectionCommand}"
-                                                                Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="14,10" HorizontalContentAlignment="Stretch">
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding IsDailyQuotaExpanded, Converter={StaticResource BoolToChevronConverter}}"
-                                                                               FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                                                    <TextBlock Text="⚡ DAILY RATE LIMIT" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                                    <Border Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
-                                                                        <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
-                                                                    </Border>
-                                                                    <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                                        <TextBlock Text="{Binding UsagePercentage, StringFormat='{}{0:F1}% used'}" FontSize="10" FontWeight="Bold" Foreground="{Binding DailyUsageBarColor, Converter={StaticResource HexToBrushConverter}}" />
-                                                                    </Border>
-                                                                </StackPanel>
-
-                                                                <!-- Right: Reset Countdown -->
-                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <TextBlock Text="⏱️ Reset: " FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
-                                                                    <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
-                                                                </StackPanel>
-                                                            </Grid>
-                                                        </Button>
-
-                                                        <!-- Accordion Body (Collapsible) -->
-                                                        <StackPanel Visibility="{Binding IsDailyQuotaExpanded, Converter={StaticResource BoolToVisConverter}}" Margin="14,0,14,12">
-                                                            <!-- Full-width Progress Bar with Dynamic Color (Green / Yellow / Red) -->
-                                                            <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
-                                                                         Height="7" Minimum="0" Maximum="100"
-                                                                         Background="{DynamicResource BrushProgressTrack}"
-                                                                         Foreground="{Binding DailyUsageBarColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                         BorderThickness="0"
-                                                                         Margin="0,0,0,8" />
-
-                                                            <!-- Prompts Today & Tokens Breakdown + Session Badge -->
-                                                            <Grid>
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                                    <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                                    <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
-                                                                </WrapPanel>
-                                                                <Border Grid.Column="1" Background="#1838BDF8" BorderBrush="#4038BDF8" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10.5" FontWeight="SemiBold" Foreground="#38BDF8" />
-                                                                </Border>
-                                                            </Grid>
-                                                        </StackPanel>
+                                                <!-- Right: Top-Right Swarm Checkbox Pill -->
+                                                <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="9,4" VerticalAlignment="Center" HorizontalAlignment="Right" ToolTip="Include profile in Swarm Launch (⚡ Launch Swarm)">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <CheckBox IsChecked="{Binding IsSelectedForSwarm}"
+                                                                  Style="{StaticResource ModernCheckBox}"
+                                                                  Margin="0,0,6,0"
+                                                                  VerticalAlignment="Center" />
+                                                        <TextBlock Text="Swarm" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
                                                     </StackPanel>
                                                 </Border>
+                                            </Grid>
+
+                                            <!-- Row 2: Description & Sandbox Paths -->
+                                            <StackPanel Margin="0,0,0,8">
+                                                <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,4"
+                                                           Visibility="{Binding Description, Converter={StaticResource NullOrEmptyToVisConverter}}" />
+                                                <WrapPanel VerticalAlignment="Center">
+                                                    <Border Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="6,2" Margin="0,0,8,4">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="📁 Sandbox: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                            <TextBlock Text="{Binding EffectiveProfilePath}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="{DynamicResource BrushMonoPath}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Border Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="6,2" Margin="0,0,8,4">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="📂 Workspace: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                            <TextBlock Text="{Binding DisplayWorkspace}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </WrapPanel>
+                                            </StackPanel>
+
+                                            <!-- Horizontal Accent Line (<hr>) in Profile's ColorTag before Metrics -->
+                                            <Border Height="2" CornerRadius="1"
+                                                    Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                    Margin="0,4,0,12" Opacity="0.85" />
+
+                                            <!-- Quota Depletion / Toast Warning Banner (if near exhaustion <= 20% or exhausted) -->
+                                            <Border Visibility="{Binding IsNearQuotaExhausted, Converter={StaticResource BoolToVisConverter}}"
+                                                    Background="#1DF87171" BorderBrush="#60EF4444" BorderThickness="1"
+                                                    CornerRadius="6" Padding="12,8" Margin="0,0,0,10">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="⚠️ " FontSize="12" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding QuotaToastAlertText}" FontSize="11" FontWeight="Bold" Foreground="#EF4444" VerticalAlignment="Center" />
+                                                        <TextBlock Text=" • " FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding ExhaustionForecastText}" FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="1" Text="Disarankan: Siapkan akun lain di swarm" FontSize="10.5" Foreground="#F87171" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+
+                                            <!-- ============================================================== -->
+                                            <!-- FOLDABLE SECTION 1: BURN-RATE & PREDIKSI EXHAUSTION            -->
+                                            <!-- ============================================================== -->
+                                            <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10">
+                                                <StackPanel>
+                                                    <!-- Accordion Header Button -->
+                                                    <Button Command="{Binding ToggleDailyQuotaSectionCommand}"
+                                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="14,10" HorizontalContentAlignment="Stretch">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding IsDailyQuotaExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                                                           FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                                <TextBlock Text="⚡ BURN-RATE &amp; PREDIKSI EXHAUSTION" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                <Border Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                                    <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                </Border>
+                                                                <Border Background="#15F59E0B" BorderBrush="#30F59E0B" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                                    <TextBlock Text="{Binding BurnRateFormatted, StringFormat='{}🔥 {0}'}" FontSize="10" FontWeight="Bold" Foreground="#F59E0B" />
+                                                                </Border>
+                                                                <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding UsagePercentage, StringFormat='{}{0:F1}% used'}" FontSize="10" FontWeight="Bold" Foreground="{Binding DailyUsageBarColor, Converter={StaticResource HexToBrushConverter}}" />
+                                                                </Border>
+                                                            </StackPanel>
+
+                                                            <!-- Right: Reset Countdown -->
+                                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <TextBlock Text="⏱️ Reset: " FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Button>
+
+                                                    <!-- Accordion Body (Collapsible) -->
+                                                    <StackPanel Visibility="{Binding IsDailyQuotaExpanded, Converter={StaticResource BoolToVisConverter}}" Margin="14,0,14,12">
+                                                        <!-- Full-width Progress Bar with Dynamic Color (Green / Yellow / Red) -->
+                                                        <ProgressBar Value="{Binding UsagePercentage, Mode=OneWay}"
+                                                                     Height="7" Minimum="0" Maximum="100"
+                                                                     Background="{DynamicResource BrushProgressTrack}"
+                                                                     Foreground="{Binding DailyUsageBarColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                     BorderThickness="0"
+                                                                     Margin="0,0,0,8" />
+
+                                                        <!-- Prompts Today, Tokens, Session, and Real-time Exhaustion Forecast -->
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10.5" Foreground="#38BDF8" VerticalAlignment="Center" />
+                                                            </WrapPanel>
+                                                            <Border Grid.Column="1" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="8,4" VerticalAlignment="Center">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="⏳ " FontSize="10" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding ExhaustionForecastText}" FontSize="10.5" FontWeight="Bold" Foreground="{Binding ExhaustionBadgeColor, Converter={StaticResource HexToBrushConverter}}" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
 
                                                 <!-- ============================================================== -->
                                                 <!-- FOLDABLE SECTION 2: ANTIGRAVITY MODEL QUOTAS (/usage Groups)  -->
@@ -1473,108 +1504,91 @@
                                                 </Border>
 
                                                 <!-- ============================================================== -->
-                                                <!-- FOLDABLE SECTION 3: CLI INSPECTOR & TELEMETRY                 -->
+                                                <!-- FOLDABLE SECTION 3: PROFILE DOCTOR (Cek Kesehatan Jeroan AGY) -->
                                                 <!-- ============================================================== -->
                                                 <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,12">
                                                     <StackPanel>
-                                                        <!-- Accordion Header Button -->
-                                                        <Button Command="{Binding ToggleCliInspectorSectionCommand}"
-                                                                Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="14,10" HorizontalContentAlignment="Stretch">
+                                                        <!-- Accordion Header Bar -->
+                                                        <Border Padding="14,10">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
                                                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <TextBlock Text="{Binding IsCliInspectorExpanded, Converter={StaticResource BoolToChevronConverter}}"
-                                                                               FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                                                    <TextBlock Text="🔬 CLI INSPECTOR &amp; TELEMETRY" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                                    <Border Background="#158B5CF6" BorderBrush="#308B5CF6" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                                        <TextBlock Text="/usage &amp; /context" FontSize="9.5" FontWeight="SemiBold" Foreground="#8B5CF6" />
+                                                                    <TextBlock Text="🩺 PROFILE DOCTOR" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <Border Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                                        <TextBlock Text="Audit Jeroan AGY CLI" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                    </Border>
+                                                                    <Border Background="{Binding DoctorSummaryColor, Converter={StaticResource HexToBrushConverter}}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                        <TextBlock Text="{Binding DoctorSummaryPill}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
                                                                     </Border>
                                                                 </StackPanel>
 
-                                                                <!-- Action Buttons: /usage and /context -->
+                                                                <!-- Right: Doctor Action Button & Chevron -->
                                                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <Button Command="{Binding ToggleUsageInspectionCommand}"
-                                                                            Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
-                                                                            Foreground="{DynamicResource BrushTextPrimary}" FontSize="10" FontWeight="SemiBold" Padding="8,3" Margin="0,0,6,0" Cursor="Hand"
-                                                                            ToolTip="View authentic AGY CLI /usage report">
-                                                                        <TextBlock Text="📊 /usage" />
+                                                                    <Button Command="{Binding RunDoctorCommand}"
+                                                                            IsEnabled="{Binding IsDoctorRunning, Converter={StaticResource InverseBoolConverter}}"
+                                                                            Style="{StaticResource ModernButton}" Padding="10,4" Margin="0,0,6,0" Cursor="Hand"
+                                                                            ToolTip="Audit 5 titik jeroan: versi CLI, token OAuth, file lock nyangkut, trusted workspace, skema /usage">
+                                                                        <StackPanel Orientation="Horizontal">
+                                                                            <TextBlock Text="🩺 " FontSize="10" VerticalAlignment="Center" />
+                                                                            <TextBlock Text="{Binding DoctorButtonText}" FontSize="10.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                                                        </StackPanel>
                                                                     </Button>
-                                                                    <Button Command="{Binding ToggleContextInspectionCommand}"
-                                                                            Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
-                                                                            Foreground="{DynamicResource BrushTextPrimary}" FontSize="10" FontWeight="SemiBold" Padding="8,3" Cursor="Hand"
-                                                                            ToolTip="View authentic AGY CLI /context capacity &amp; thread status">
-                                                                        <TextBlock Text="🧠 /context" />
+                                                                    <Button Command="{Binding ToggleDoctorReportCommand}"
+                                                                            Visibility="{Binding HasDoctorReport, Converter={StaticResource BoolToVisConverter}}"
+                                                                            Background="Transparent" BorderThickness="0" Foreground="{DynamicResource BrushTextMuted}" Cursor="Hand" Padding="4,2">
+                                                                        <TextBlock Text="{Binding IsDoctorReportExpanded, Converter={StaticResource BoolToChevronConverter}}" FontWeight="Bold" FontSize="12" />
                                                                     </Button>
                                                                 </StackPanel>
                                                             </Grid>
-                                                        </Button>
+                                                        </Border>
 
-                                                        <!-- Accordion Body (Collapsible) -->
-                                                        <StackPanel Visibility="{Binding IsCliInspectorExpanded, Converter={StaticResource BoolToVisConverter}}" Margin="14,0,14,12">
-                                                            <!-- 2-Box Metric Strip: /usage Overview & /context Window -->
-                                                            <Grid Margin="0,0,0,8">
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="10" />
-                                                                    <ColumnDefinition Width="*" />
-                                                                </Grid.ColumnDefinitions>
+                                                        <!-- Expanded Diagnostic Checklist -->
+                                                        <StackPanel Visibility="{Binding IsDoctorReportExpanded, Converter={StaticResource BoolToVisConverter}}" Margin="14,0,14,12">
+                                                            <ItemsControl ItemsSource="{Binding DoctorReport.Checks}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="10,7" Margin="0,0,0,6">
+                                                                            <Grid>
+                                                                                <Grid.ColumnDefinitions>
+                                                                                    <ColumnDefinition Width="Auto" />
+                                                                                    <ColumnDefinition Width="*" />
+                                                                                    <ColumnDefinition Width="Auto" />
+                                                                                </Grid.ColumnDefinitions>
+                                                                                <TextBlock Grid.Column="0" Text="{Binding StatusIcon}" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                                    <TextBlock Text="{Binding Title}" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                                                    <TextBlock Text="{Binding Message}" FontSize="10" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,1,0,0" TextWrapping="Wrap" />
+                                                                                </StackPanel>
+                                                                                <Border Grid.Column="2" Background="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" CornerRadius="3" Padding="6,2" VerticalAlignment="Center">
+                                                                                    <TextBlock Text="{Binding Status}" FontSize="9.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                                                </Border>
+                                                                            </Grid>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
 
-                                                                <!-- Box 1: /usage Telemetry -->
-                                                                <Border Grid.Column="0" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,8">
-                                                                    <StackPanel>
-                                                                        <Grid Margin="0,0,0,4">
-                                                                            <TextBlock Text="📊 /usage (Session &amp; Token Activity)" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                                            <TextBlock Text="{Binding UsagePercentage, StringFormat='{}{0:F1}% today'}" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" />
-                                                                        </Grid>
-                                                                        <WrapPanel Margin="0,0,0,3">
-                                                                            <TextBlock Text="Daily Tokens: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                            <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
-                                                                        </WrapPanel>
-                                                                        <WrapPanel>
-                                                                            <TextBlock Text="Active Thread: " FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                            <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10" FontWeight="SemiBold" Foreground="#38BDF8" />
-                                                                        </WrapPanel>
+                                                            <!-- Quick Actions: Clean Locks & Trust Workspace -->
+                                                            <WrapPanel Margin="0,4,0,0">
+                                                                <Button Command="{Binding CleanLocksCommand}"
+                                                                        Visibility="{Binding DoctorReport.LockFilesCount, Converter={StaticResource IntToVisConverter}}"
+                                                                        Style="{StaticResource DangerButton}" Padding="10,5" Margin="0,0,8,4" Cursor="Hand"
+                                                                        ToolTip="Hapus semua file lock yang tertinggal di sandbox akun ini">
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="🧹 Bersihkan " />
+                                                                        <TextBlock Text="{Binding DoctorReport.LockFilesCount}" />
+                                                                        <TextBlock Text=" Lock File Nyangkut" />
                                                                     </StackPanel>
-                                                                </Border>
-
-                                                                <!-- Box 2: /context Capacity -->
-                                                                <Border Grid.Column="2" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,8">
-                                                                    <StackPanel>
-                                                                        <Grid Margin="0,0,0,4">
-                                                                            <TextBlock Text="🧠 /context (Model Window &amp; Memory)" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                                            <TextBlock Text="{Binding ContextWindowLabel}" FontSize="9.5" FontWeight="SemiBold" Foreground="#8B5CF6" HorizontalAlignment="Right" />
-                                                                        </Grid>
-                                                                        <ProgressBar Value="{Binding ContextUsagePercentage, Mode=OneWay}" Height="4" Minimum="0" Maximum="100"
-                                                                                     Background="{DynamicResource BrushProgressTrack}" Foreground="#8B5CF6" BorderThickness="0" Margin="0,0,0,4" />
-                                                                        <Grid>
-                                                                            <TextBlock Text="{Binding ContextUsageSummary}" FontSize="9.5" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Left" />
-                                                                            <TextBlock Text="{Binding ContextHeadroomSummary}" FontSize="9.5" Foreground="#10B981" HorizontalAlignment="Right" />
-                                                                        </Grid>
-                                                                    </StackPanel>
-                                                                </Border>
-                                                            </Grid>
-
-                                                            <!-- Expandable Monospace CLI Terminal Inspector Drawer -->
-                                                            <Border Visibility="{Binding IsInspectorOpen, Converter={StaticResource BoolToVisConverter}}"
-                                                                    Background="#0D1117" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6"
-                                                                    Padding="12,10" Margin="0,4,0,0">
-                                                                <StackPanel>
-                                                                    <Grid Margin="0,0,0,6">
-                                                                        <TextBlock Text="{Binding InspectorTitle}" FontFamily="{StaticResource FontMono}" FontSize="11" FontWeight="Bold" Foreground="#58A6FF" VerticalAlignment="Center" />
-                                                                        <Button Command="{Binding CloseInspectorCommand}"
-                                                                                Background="Transparent" BorderThickness="0" Foreground="#8B949E" FontSize="11" FontWeight="Bold"
-                                                                                HorizontalAlignment="Right" Cursor="Hand" Padding="4,0" ToolTip="Close inspector">
-                                                                            <TextBlock Text="✕ Close" />
-                                                                        </Button>
-                                                                    </Grid>
-                                                                    <TextBox Text="{Binding InspectorContent, Mode=OneWay}" IsReadOnly="True"
-                                                                             FontFamily="{StaticResource FontMono}" FontSize="10" Foreground="#C9D1D9" Background="Transparent"
-                                                                             BorderThickness="0" TextWrapping="Wrap" />
-                                                                </StackPanel>
-                                                            </Border>
+                                                                </Button>
+                                                                <Button Command="{Binding TrustWorkspaceCommand}"
+                                                                        Style="{StaticResource ModernButton}" Padding="10,5" Margin="0,0,8,4" Cursor="Hand"
+                                                                        ToolTip="Daftarkan folder workspace ke settings.json trustedWorkspaces">
+                                                                    <TextBlock Text="🛡️ Daftarkan Workspace ke Trusted" />
+                                                                </Button>
+                                                            </WrapPanel>
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </Border>
@@ -1654,9 +1668,8 @@
                                                     </StackPanel>
                                                 </Grid>
                                             </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
+                                        </Border>
+                                    </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
@@ -1670,6 +1683,7 @@
                 <!-- VIEW 3: ANALYTICS (/analytic)                                  -->
                 <!-- ============================================================== -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,24,60"
+                              PreviewMouseWheel="GlobalScrollViewer_PreviewMouseWheel"
                               Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}">
                     <StackPanel>
                         <!-- Analytics Header -->
@@ -2208,95 +2222,197 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Section 3: Account Quota & Health Status (Revamped Spacious Layout) -->
+                        <!-- Section 3: Swarm Fleet Intelligence & CLI Capabilities (Revamped from Swarm Health) -->
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
                             <StackPanel>
-                                <Grid Margin="0,0,0,14">
-                                    <TextBlock Text="{Binding Strings[Analytics_AccountHealth]}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                                    <TextBlock Text="Detailed quota allocation, real-time rate limit consumption &amp; health telemetry" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                <!-- Section Header -->
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="🚀 " FontSize="16" VerticalAlignment="Center" />
+                                            <TextBlock Text="Swarm Fleet Intelligence &amp; CLI Capabilities" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Text="Orkestrasi armada model CLI, kapasitas pool agregat swarm, dan integrasi kapabilitas resmi agy v1.2.12" FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,3,0,0" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="6" Padding="10,5" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Ellipse Width="7" Height="7" Fill="#10B981" Margin="0,0,6,0" />
+                                            <TextBlock Text="CLI v1.2.12 Engine Synchronized" FontSize="11" FontWeight="Bold" Foreground="#10B981" />
+                                        </StackPanel>
+                                    </Border>
                                 </Grid>
 
-                                <ItemsControl ItemsSource="{Binding SwarmHealthRecords}">
+                                <!-- 1. Swarm Aggregate Quota & Burn-Rate Hero Strip -->
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18,14" Margin="0,0,0,18">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="1.2*" />
+                                                <ColumnDefinition Width="1*" />
+                                                <ColumnDefinition Width="1*" />
+                                                <ColumnDefinition Width="1.8*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Stat 1: Total Swarm Daily Pool -->
+                                            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                                <TextBlock Text="TOTAL SWARM DAILY POOL" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,3" />
+                                                <TextBlock Text="{Binding SwarmDailyCapacityTotal, StringFormat='{}{0:N0} prompts/day'}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                <TextBlock Text="Kapasitas seluruh akun aktif" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                            </StackPanel>
+
+                                            <!-- Stat 2: Total Prompts Consumed Today -->
+                                            <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                                <TextBlock Text="SWARM PROMPTS TODAY" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,3" />
+                                                <TextBlock Text="{Binding SwarmTodayPromptsTotal, StringFormat='{}{0:N0} prompts'}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                                <TextBlock Text="{Binding SwarmPoolRemainingPercent, StringFormat='{}{0:F1}% pool sisa'}" FontSize="10.5" Foreground="#10B981" FontWeight="SemiBold" Margin="0,2,0,0" />
+                                            </StackPanel>
+
+                                            <!-- Stat 3: Swarm Aggregate Burn-Rate -->
+                                            <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                                                <TextBlock Text="AGGREGATE BURN-RATE" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,3" />
+                                                <TextBlock Text="{Binding SwarmAggregateBurnRate, StringFormat='{}{0:F1} p/hr'}" FontSize="15" FontWeight="Bold" Foreground="#F59E0B" />
+                                                <TextBlock Text="Kecepatan gabungan" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                            </StackPanel>
+
+                                            <!-- Stat 4: Exhaustion Forecast -->
+                                            <Border Grid.Column="3" Background="#103B82F6" BorderBrush="#253B82F6" BorderThickness="1" CornerRadius="6" Padding="12,8" VerticalAlignment="Center">
+                                                <StackPanel>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,2">
+                                                        <TextBlock Text="⚡ " FontSize="11" VerticalAlignment="Center" />
+                                                        <TextBlock Text="PREDIKSI EXHAUSTION SWARM" FontSize="10" FontWeight="Bold" Foreground="#3B82F6" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding SwarmExhaustionForecast}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Progress Bar for Aggregate Swarm Capacity -->
+                                        <Grid Grid.Row="1">
+                                            <ProgressBar Value="{Binding SwarmTodayPromptsTotal, Mode=OneWay}"
+                                                         Maximum="{Binding SwarmDailyCapacityTotal, Mode=OneWay}"
+                                                         Height="6" Minimum="0"
+                                                         Background="{DynamicResource BrushProgressTrack}"
+                                                         Foreground="{DynamicResource BrushAccent}"
+                                                         BorderThickness="0" />
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+
+                                <!-- 2. Fleet Model Engines (agy models) -->
+                                <TextBlock Text="Armada Engine Model Aktif (agy models)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
+                                <ItemsControl ItemsSource="{Binding SwarmFleetModels}" Margin="0,0,0,20">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="16,14" Margin="0,0,0,12">
+                                            <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Left: Family Accent Bar -->
+                                                    <Border Grid.Column="0" Width="4" CornerRadius="2"
+                                                            Background="{Binding FamilyColor, Converter={StaticResource HexToBrushConverter}}"
+                                                            Margin="0,0,14,0" VerticalAlignment="Stretch" />
+
+                                                    <!-- Middle: Model Info, Badges, Assigned Accounts -->
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,4">
+                                                            <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" />
+
+                                                            <!-- Family Pill -->
+                                                            <Border CornerRadius="4" Padding="6,2" Margin="0,0,6,0"
+                                                                    Background="{Binding FamilyColor, Converter={StaticResource HexToBrushConverter}}" Opacity="0.9">
+                                                                <TextBlock Text="{Binding Family}" FontSize="9.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            </Border>
+
+                                                            <!-- Reasoning Tier Pill -->
+                                                            <Border CornerRadius="4" Padding="6,2" Margin="0,0,6,0" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                                                <TextBlock Text="{Binding ReasoningTier}" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                            </Border>
+
+                                                            <!-- Context Limit Pill -->
+                                                            <Border CornerRadius="4" Padding="6,2" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                                                <TextBlock Text="{Binding ContextLimitLabel}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <!-- Assigned Swarm Accounts -->
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="Akun terhubung: " FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                            <TextBlock Text="{Binding AssignedAccountsList}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+
+                                                    <!-- Right: Pool Capacity, Burn Rate & Status Badge -->
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <StackPanel VerticalAlignment="Center" Margin="0,0,14,0" HorizontalAlignment="Right">
+                                                            <TextBlock Text="{Binding PoolCapacityLabel}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Right" />
+                                                            <TextBlock Text="{Binding BurnRateLabel, StringFormat='Burn rate: {0}'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" Margin="0,2,0,0" />
+                                                        </StackPanel>
+
+                                                        <Border CornerRadius="5" Padding="10,4" VerticalAlignment="Center"
+                                                                Background="{Binding StatusBadgeBg, Converter={StaticResource HexToBrushConverter}}"
+                                                                BorderBrush="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}"
+                                                                BorderThickness="1">
+                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="10" FontWeight="Bold"
+                                                                       Foreground="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" />
+                                                        </Border>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- 3. Verified AGY Subcommands Matrix -->
+                                <TextBlock Text="Kapabilitas Resmi agy CLI (Empiris &amp; Terverifikasi)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
+                                <ItemsControl ItemsSource="{Binding SwarmCliCapabilities}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="4">
                                                 <Grid>
                                                     <Grid.RowDefinitions>
-                                                        <!-- Row 1: Identity & Badges & Reset Countdown -->
                                                         <RowDefinition Height="Auto" />
-                                                        <!-- Row 2: Full Width Progress Bar & Usage Metrics -->
                                                         <RowDefinition Height="Auto" />
                                                     </Grid.RowDefinitions>
 
-                                                    <!-- Row 1: Identity & Status -->
-                                                    <Grid Grid.Row="0" Margin="0,0,0,10">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="Auto" />
-                                                        </Grid.ColumnDefinitions>
+                                                    <!-- Top: Monospace Command Tag + Status -->
+                                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                                        <Border Background="#0F172A" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="4" Padding="8,3" HorizontalAlignment="Left">
+                                                            <TextBlock Text="{Binding Command}" FontFamily="Consolas, Cascadia Code, monospace" Foreground="#38BDF8" FontWeight="Bold" FontSize="11" />
+                                                        </Border>
 
-                                                        <!-- Left: Avatar + Names + Badges -->
-                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <!-- Mini Avatar Initial Badge -->
-                                                            <Border Width="34" Height="34" CornerRadius="17"
-                                                                    Background="{Binding TierColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                    Margin="0,0,12,0" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                            <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,6,0">
+                                                                <TextBlock Text="{Binding Status}" FontSize="9.5" FontWeight="Bold" Foreground="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}" />
                                                             </Border>
-
-                                                            <!-- Name & Email -->
-                                                            <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
-                                                                <TextBlock Text="{Binding AccountName}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                                <TextBlock Text="{Binding AccountEmail}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,1,0,0" />
-                                                            </StackPanel>
-
-                                                            <!-- Tier Badge -->
-                                                            <Border CornerRadius="5" Padding="8,3" Margin="0,0,8,0" VerticalAlignment="Center"
-                                                                    Background="{Binding TierColor, Converter={StaticResource HexToBrushConverter}}">
-                                                                <TextBlock Text="{Binding Tier}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                                                <TextBlock Text="{Binding BadgeText}" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
                                                             </Border>
-
-                                                            <!-- Model Badge -->
-                                                            <Border CornerRadius="5" Padding="8,3" Margin="0,0,8,0" VerticalAlignment="Center"
-                                                                    Background="{DynamicResource BrushModelBadgeBg}"
-                                                                    BorderBrush="{DynamicResource BrushModelBadgeBorder}" BorderThickness="1">
-                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <TextBlock Text="🧠 " FontSize="10" VerticalAlignment="Center" />
-                                                                    <TextBlock Text="{Binding CurrentModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
-                                                                </StackPanel>
-                                                            </Border>
-
-                                                            <!-- Health Status Badge -->
-                                                            <Border CornerRadius="5" Padding="9,3" VerticalAlignment="Center"
-                                                                    Background="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}">
-                                                                <TextBlock Text="{Binding StatusText}" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" />
-                                                            </Border>
-                                                        </StackPanel>
-
-                                                        <!-- Right: Reset Countdown -->
-                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                                            <TextBlock Text="{Binding QuotaResetCountdown}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
-                                                            <TextBlock Text="{Binding WeeklySummary}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Right" Margin="0,2,0,0" />
                                                         </StackPanel>
                                                     </Grid>
 
-                                                    <!-- Row 2: Full-Width Usage Meter & Detailed Prompt Count -->
-                                                    <Grid Grid.Row="1">
-                                                        <Grid.RowDefinitions>
-                                                            <RowDefinition Height="Auto" />
-                                                            <RowDefinition Height="Auto" />
-                                                        </Grid.RowDefinitions>
-
-                                                        <Grid Grid.Row="0" Margin="0,0,0,5">
-                                                            <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Left" />
-                                                            <TextBlock Text="{Binding UsagePercent, StringFormat='{}{0:F1}% of daily quota consumed'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" />
-                                                        </Grid>
-
-                                                        <ProgressBar Grid.Row="1" Value="{Binding UsagePercent, Mode=OneWay}" Height="7"
-                                                                     Minimum="0" Maximum="100" Background="{DynamicResource BrushProgressTrack}"
-                                                                     Foreground="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}"
-                                                                     BorderThickness="0" />
-                                                    </Grid>
+                                                    <!-- Bottom: Title + Description -->
+                                                    <StackPanel Grid.Row="1">
+                                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,3" />
+                                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" TextWrapping="Wrap" LineHeight="16" />
+                                                    </StackPanel>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -2337,7 +2453,7 @@
                         </Grid>
                     </Border>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24" PreviewMouseWheel="GlobalScrollViewer_PreviewMouseWheel">
                         <StackPanel>
                             <ItemsControl ItemsSource="{Binding McpServers}">
                                 <ItemsControl.ItemTemplate>
@@ -2400,7 +2516,7 @@
                     </Border>
 
                     <!-- Docs Content Area -->
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24" PreviewMouseWheel="GlobalScrollViewer_PreviewMouseWheel">
                         <StackPanel MaxWidth="920" HorizontalAlignment="Center">
                             <!-- TAB 1: Architecture -->
                             <StackPanel Visibility="{Binding SelectedDocTab, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Architecture}">
@@ -2533,6 +2649,7 @@
                 <!-- VIEW 7: SETTINGS (/settings) - CENTERED MODERN CARDS           -->
                 <!-- ============================================================== -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,24,60"
+                              PreviewMouseWheel="GlobalScrollViewer_PreviewMouseWheel"
                               Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}">
                     <!-- Centered Settings Cards Stack -->
                     <StackPanel MaxWidth="840" HorizontalAlignment="Center">

@@ -194,7 +194,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void AccountsScrollViewer_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    private void GlobalScrollViewer_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
     {
         if (sender is ScrollViewer scv)
         {
@@ -206,5 +206,8 @@ public partial class MainWindow : Window
             e.Handled = true;
         }
     }
+
+    private void AccountsScrollViewer_PreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e) =>
+        GlobalScrollViewer_PreviewMouseWheel(sender, e);
 }
 

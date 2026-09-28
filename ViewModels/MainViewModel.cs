@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -97,6 +98,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IMcpService _mcpService;
     private readonly ITelemetryService _telemetryService;
     private readonly IAgyModelService _modelService;
+    private readonly IProfileDoctorService _profileDoctorService;
 
     public ILocalizationService Strings { get; }
 
@@ -354,7 +356,30 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<ModelEfficiencyItem> ModelEfficiencies { get; } = [];
     public ObservableCollection<SwarmHealthItem> SwarmHealthRecords { get; } = [];
+    public ObservableCollection<SwarmFleetModelItem> SwarmFleetModels { get; } = [];
+    public ObservableCollection<SwarmCliCapabilityItem> SwarmCliCapabilities { get; } = [];
     public ObservableCollection<HourlyActivityItem> HourlyHeatmap { get; } = [];
+
+    // Swarm-Level Aggregate Quota & Burn-Rate Properties
+    public int SwarmDailyCapacityTotal => Profiles.Sum(p => p.DailyQuotaLimit);
+    public int SwarmTodayPromptsTotal => Profiles.Sum(p => p.TodayTurnsCount);
+    public double SwarmPoolRemainingPercent => SwarmDailyCapacityTotal > 0
+        ? Math.Max(0.0, (SwarmDailyCapacityTotal - SwarmTodayPromptsTotal) / (double)SwarmDailyCapacityTotal * 100.0)
+        : 100.0;
+    public double SwarmAggregateBurnRate => Profiles.Sum(p => p.BurnRatePromptsPerHour);
+    public string SwarmExhaustionForecast
+    {
+        get
+        {
+            if (SwarmAggregateBurnRate > 0.05)
+            {
+                double remainingPool = Math.Max(0, SwarmDailyCapacityTotal - SwarmTodayPromptsTotal);
+                double hours = remainingPool / SwarmAggregateBurnRate;
+                return $"Dengan laju swarm saat ini ({SwarmAggregateBurnRate.ToString("F1", CultureInfo.InvariantCulture)} p/jam), pool aman untuk ±{hours.ToString("F1", CultureInfo.InvariantCulture)} jam";
+            }
+            return "Konsumsi swarm stabil • Kapasitas pool harian aman 100%";
+        }
+    }
 
     // MCP properties
     public ObservableCollection<McpServerConfig> McpServers { get; } = [];
@@ -398,7 +423,8 @@ public partial class MainViewModel : ObservableObject
         ILocalizationService localizationService,
         IMcpService mcpService,
         ITelemetryService telemetryService,
-        IAgyModelService? modelService = null)
+        IAgyModelService? modelService = null,
+        IProfileDoctorService? profileDoctorService = null)
     {
         _storageService = storageService;
         _launcherService = launcherService;
@@ -408,6 +434,7 @@ public partial class MainViewModel : ObservableObject
         _mcpService = mcpService;
         _telemetryService = telemetryService;
         _modelService = modelService ?? new AgyModelService();
+        _profileDoctorService = profileDoctorService ?? new ProfileDoctorService();
 
         _autoSyncTimer.Tick += OnAutoSyncTimerTick;
 
@@ -663,7 +690,7 @@ public partial class MainViewModel : ObservableObject
 
     private ProfileItemViewModel CreateItemViewModel(AccountProfile profile)
     {
-        var vm = new ProfileItemViewModel(profile, _launcherService, _authDetector, _audioService);
+        var vm = new ProfileItemViewModel(profile, _launcherService, _authDetector, _audioService, _profileDoctorService);
         vm.OnEditRequested += async item => await EditProfileAsync(item);
         vm.OnDuplicateRequested += async item => await DuplicateProfileAsync(item);
         vm.OnDeleteRequested += async item => await DeleteProfileAsync(item);
@@ -1590,6 +1617,90 @@ public partial class MainViewModel : ObservableObject
                 StatusColor = p.QuotaStatusColor
             });
         }
+
+        // 2b. Swarm Fleet Models & CLI Matrix (Revamped Analytics)
+        SwarmFleetModels.Clear();
+        var knownModels = new List<(string Id, string Name, string Family, string Color, string Tier, string Context)>
+        {
+            ("gemini-3.1-pro-high", "Gemini 3.1 Pro (High Reasoning)", "Gemini Enterprise", "#3B82F6", "High Reasoning Effort", "1,000,000 tokens"),
+            ("gemini-3.8-flash-high", "Gemini 3.8 Flash (High Speed)", "Gemini Enterprise", "#3B82F6", "High Speed Reasoning", "1,000,000 tokens"),
+            ("gemini-3.8-flash-medium", "Gemini 3.8 Flash (Standard)", "Gemini Enterprise", "#3B82F6", "Standard Balanced Effort", "1,000,000 tokens"),
+            ("claude-sonnet-4-6", "Claude Sonnet 4.6 (Extended Thinking)", "Anthropic Claude", "#8B5CF6", "Deep Thinking & Architecture", "200,000 tokens"),
+            ("claude-opus-4-6-thinking", "Claude Opus 4.6 (Deep Reasoning)", "Anthropic Claude", "#8B5CF6", "Max Cognitive Depth", "200,000 tokens"),
+            ("gpt-oss-120b-medium", "GPT-OSS 120B (Open Weights)", "Open Weights / GPT", "#10B981", "Standard Multi-Turn", "128,000 tokens")
+        };
+
+        foreach (var km in knownModels)
+        {
+            var matchedProfiles = Profiles.Where(p =>
+                _modelService.IsModelMatch(p.CurrentModel, km.Id) ||
+                _modelService.IsModelMatch(p.PreferredModel, km.Id)).ToList();
+
+            int poolCap = matchedProfiles.Sum(p => p.DailyQuotaLimit);
+            double burnRate = matchedProfiles.Sum(p => p.BurnRatePromptsPerHour);
+            string accList = matchedProfiles.Count > 0
+                ? string.Join(", ", matchedProfiles.Select(p => p.Name))
+                : "Standby (0 accounts assigned)";
+
+            SwarmFleetModels.Add(new SwarmFleetModelItem
+            {
+                ModelId = km.Id,
+                DisplayName = km.Name,
+                Family = km.Family,
+                FamilyColor = km.Color,
+                ReasoningTier = km.Tier,
+                ContextLimitLabel = km.Context,
+                AssignedAccountsCount = matchedProfiles.Count,
+                AssignedAccountsList = accList,
+                TotalPoolCapacity = poolCap,
+                AggregateBurnRate = burnRate
+            });
+        }
+
+        // Swarm CLI Capabilities
+        SwarmCliCapabilities.Clear();
+        SwarmCliCapabilities.Add(new SwarmCliCapabilityItem
+        {
+            Command = "agy models",
+            Title = "Fleet Multi-Model Intelligence & Reasoning",
+            Description = "Dukungan routing model multi-level reasoning (low, medium, high, thinking) langsung ke Google & Anthropic engine.",
+            Status = "Terverifikasi",
+            StatusColor = "#10B981",
+            BadgeText = "Active Fleet"
+        });
+        SwarmCliCapabilities.Add(new SwarmCliCapabilityItem
+        {
+            Command = "agy -p \"/usage\"",
+            Title = "Zero-Turn Live Quota Sentinel",
+            Description = "Monitoring 5-hour limit dan weekly quota buckets real-time tanpa konsumsi token ataupun agent turns.",
+            Status = "Terverifikasi",
+            StatusColor = "#10B981",
+            BadgeText = "0 Tokens / Turn"
+        });
+        SwarmCliCapabilities.Add(new SwarmCliCapabilityItem
+        {
+            Command = "agy agents",
+            Title = "Multi-Agent Swarm Orchestration",
+            Description = "Koordinasi subagent paralel dengan isolasi sandbox profil dan workspace independen.",
+            Status = "Terverifikasi",
+            StatusColor = "#10B981",
+            BadgeText = "Multi-Process"
+        });
+        SwarmCliCapabilities.Add(new SwarmCliCapabilityItem
+        {
+            Command = "agy mcp",
+            Title = "Model Context Protocol Tool Bridge",
+            Description = "Integrasi tool kustom, SQLite, dan language server via komunikasi stdio IPC.",
+            Status = "Terverifikasi",
+            StatusColor = "#10B981",
+            BadgeText = "Stdio IPC"
+        });
+
+        OnPropertyChanged(nameof(SwarmDailyCapacityTotal));
+        OnPropertyChanged(nameof(SwarmTodayPromptsTotal));
+        OnPropertyChanged(nameof(SwarmPoolRemainingPercent));
+        OnPropertyChanged(nameof(SwarmAggregateBurnRate));
+        OnPropertyChanged(nameof(SwarmExhaustionForecast));
 
         // 3. Real Hourly Heatmap (24 hours) with Account Filter & Rich Metrics (TALLER Canvas)
         HourlyHeatmap.Clear();

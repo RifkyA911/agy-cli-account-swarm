@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,6 +15,7 @@ public partial class ProfileItemViewModel : ObservableObject
     private readonly ITerminalLauncherService _launcherService;
     private readonly IAuthDetectorService _authDetector;
     private readonly IAudioService _audioService;
+    private readonly IProfileDoctorService _doctorService;
 
     public AccountProfile Profile { get; }
 
@@ -53,12 +55,14 @@ public partial class ProfileItemViewModel : ObservableObject
         AccountProfile profile,
         ITerminalLauncherService launcherService,
         IAuthDetectorService authDetector,
-        IAudioService audioService)
+        IAudioService audioService,
+        IProfileDoctorService? doctorService = null)
     {
         Profile = profile;
         _launcherService = launcherService;
         _authDetector = authDetector;
         _audioService = audioService;
+        _doctorService = doctorService ?? new ProfileDoctorService();
 
         _name = profile.Name;
         _description = profile.Description;
@@ -249,6 +253,158 @@ public partial class ProfileItemViewModel : ObservableObject
     public string TodayQuotaFormatted => $"{TodayTurnsCount:N0} / {DailyQuotaLimit:N0} prompts today ({UsagePercentage:F1}%)";
     public string TodayTokensFormatted => $"{TodayTokensEstimated / 1000:N0}K / {DailyTokensLimit / 1000:N0}K est. tokens";
     public string TierDailySummary => $"{TierBadgeText} Tier ({DailyQuotaLimit:N0} prompts/day)";
+
+    // Burn-Rate & Quota Exhaustion Forecasting
+    public double BurnRatePromptsPerHour
+    {
+        get
+        {
+            var nowUtc = DateTime.UtcNow;
+            double hoursToday = Math.Max(0.1, nowUtc.TimeOfDay.TotalHours);
+            return TodayTurnsCount / hoursToday;
+        }
+    }
+
+    public string BurnRateFormatted => TodayTurnsCount > 0
+        ? $"{BurnRatePromptsPerHour.ToString("F1", CultureInfo.InvariantCulture)} prompt/jam"
+        : "0.0 prompt/jam (Idle)";
+
+    public int RemainingPrompts => Math.Max(0, DailyQuotaLimit - TodayTurnsCount);
+
+    public double RemainingQuotaPercent => DailyQuotaLimit > 0
+        ? (Math.Max(0.0, DailyQuotaLimit - TodayTurnsCount) / (double)DailyQuotaLimit) * 100.0
+        : 100.0;
+
+    public bool IsNearQuotaExhausted => RemainingQuotaPercent <= 20.0 || HasExhaustedQuota;
+
+    public string QuotaToastAlertText
+    {
+        get
+        {
+            if (HasExhaustedQuota || RemainingPrompts == 0)
+                return "⚠️ Kuota harian habis: 100% kuota hari ini telah terpakai";
+            if (RemainingQuotaPercent <= 20.0)
+                return $"⚠️ Kuota menipis: tersisa {RemainingQuotaPercent.ToString("F0", CultureInfo.InvariantCulture)}% ({RemainingPrompts:N0} prompts tersisa)";
+            return string.Empty;
+        }
+    }
+
+    public string ExhaustionForecastText
+    {
+        get
+        {
+            if (HasExhaustedQuota || RemainingPrompts == 0)
+                return "Kuota harian telah habis (100% terpakai)";
+            if (TodayTurnsCount == 0)
+                return "Belum ada aktivitas hari ini (Aman • Kuota utuh 100%)";
+
+            double rate = BurnRatePromptsPerHour;
+            if (rate <= 0.01)
+                return "Kecepatan stabil (Konsumsi rendah)";
+
+            double hoursRemaining = RemainingPrompts / rate;
+            if (hoursRemaining < 1.0)
+            {
+                int mins = Math.Max(1, (int)(hoursRemaining * 60));
+                return $"Dengan laju sekarang, kuota habis dalam ±{mins} menit";
+            }
+            return $"Dengan laju sekarang, kuota habis dalam ±{hoursRemaining.ToString("F1", CultureInfo.InvariantCulture)} jam";
+        }
+    }
+
+    public string ExhaustionBadgeColor
+    {
+        get
+        {
+            if (HasExhaustedQuota || RemainingQuotaPercent <= 10.0) return "#EF4444";
+            if (RemainingQuotaPercent <= 20.0) return "#F59E0B";
+            return "#10B981";
+        }
+    }
+
+    [ObservableProperty]
+    private bool _isDoctorRunning;
+
+    partial void OnIsDoctorRunningChanged(bool value) => OnPropertyChanged(nameof(DoctorButtonText));
+
+    public string DoctorButtonText => IsDoctorRunning ? "Memeriksa..." : "Periksa Kesehatan";
+
+    [ObservableProperty]
+    private bool _isDoctorReportExpanded;
+
+    [ObservableProperty]
+    private ProfileDoctorReport? _doctorReport;
+
+    public bool HasDoctorReport => DoctorReport != null;
+    public string DoctorSummaryPill => DoctorReport == null ? "Belum Diperiksa" : DoctorReport.OverallStatusText;
+    public string DoctorSummaryColor => DoctorReport == null ? "#6B7280" : DoctorReport.OverallStatusColor;
+
+    [RelayCommand]
+    public async Task RunDoctorAsync()
+    {
+        _audioService.PlayClick();
+        IsDoctorRunning = true;
+        try
+        {
+            DoctorReport = await _doctorService.DiagnoseProfileAsync(Profile);
+            IsDoctorReportExpanded = true;
+            OnPropertyChanged(nameof(HasDoctorReport));
+            OnPropertyChanged(nameof(DoctorSummaryPill));
+            OnPropertyChanged(nameof(DoctorSummaryColor));
+            OnNotificationRequested?.Invoke($"Diagnosis selesai untuk '{Name}': {DoctorReport.OverallStatusText}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[ProfileItemViewModel] Doctor failed for '{Name}'", ex);
+            OnNotificationRequested?.Invoke($"Gagal memeriksa kesehatan '{Name}': {ex.Message}");
+        }
+        finally
+        {
+            IsDoctorRunning = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task CleanLocksAsync()
+    {
+        _audioService.PlayClick();
+        try
+        {
+            int cleaned = await _doctorService.CleanStuckLocksAsync(Profile);
+            OnNotificationRequested?.Invoke($"Berhasil membersihkan {cleaned} file lock untuk '{Name}'");
+            await RunDoctorAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[ProfileItemViewModel] CleanLocks failed for '{Name}'", ex);
+        }
+    }
+
+    [RelayCommand]
+    public async Task TrustWorkspaceAsync()
+    {
+        _audioService.PlayClick();
+        try
+        {
+            bool ok = await _doctorService.AddWorkspaceToTrustedAsync(Profile);
+            if (ok)
+            {
+                OnNotificationRequested?.Invoke($"Workspace '{DisplayWorkspace}' berhasil didaftarkan ke trustedWorkspaces!");
+                await RunDoctorAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[ProfileItemViewModel] TrustWorkspace failed for '{Name}'", ex);
+        }
+    }
+
+    [RelayCommand]
+    public void ToggleDoctorReport()
+    {
+        _audioService.PlayClick();
+        IsDoctorReportExpanded = !IsDoctorReportExpanded;
+    }
 
     // Weekly Quota Indicators
     public int WeeklyQuotaLimit => AuthStatus.WeeklyQuotaLimit > 0 ? AuthStatus.WeeklyQuotaLimit : (DailyQuotaLimit * 5);
@@ -449,6 +605,14 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(ClaudeGptWeeklyBarColor));
             OnPropertyChanged(nameof(ClaudeGpt5HourBarColor));
             OnPropertyChanged(nameof(DailyUsageBarColor));
+            OnPropertyChanged(nameof(BurnRatePromptsPerHour));
+            OnPropertyChanged(nameof(BurnRateFormatted));
+            OnPropertyChanged(nameof(RemainingPrompts));
+            OnPropertyChanged(nameof(RemainingQuotaPercent));
+            OnPropertyChanged(nameof(IsNearQuotaExhausted));
+            OnPropertyChanged(nameof(QuotaToastAlertText));
+            OnPropertyChanged(nameof(ExhaustionForecastText));
+            OnPropertyChanged(nameof(ExhaustionBadgeColor));
         }
         finally
         {
