@@ -1,4 +1,4 @@
-name: Release Build & Multi-Platform Packaging
+name: Release Build & Packaging
 
 on:
   push:
@@ -10,15 +10,15 @@ permissions:
 
 jobs:
   build-and-release:
-    name: Build Installer, Binaries & Publish Release
+    name: Build Windows Installer & Portable ZIP
     runs-on: windows-latest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup .NET 9 SDK
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e2005cbab # v4.3.0
         with:
           dotnet-version: '9.0.x'
 
@@ -57,29 +57,10 @@ jobs:
           $ver = "${{ steps.vars.outputs.VERSION }}"
           Compress-Archive -Path publish/* -DestinationPath "dist/Agy-CLI-Account-Swarm-v$ver-win-x64.zip" -CompressionLevel Optimal
 
-      - name: Package Linux & macOS Distribution Bundles
-        shell: pwsh
-        run: |
-          $ver = "${{ steps.vars.outputs.VERSION }}"
-          
-          # Linux bundle
-          New-Item -ItemType Directory -Path "dist/linux-bundle/bundle" -Force | Out-Null
-          Copy-Item "publish/*" "dist/linux-bundle/bundle/" -Recurse -Force
-          Copy-Item "scripts/install-linux.sh" "dist/linux-bundle/install.sh" -Force
-          Copy-Item "scripts/uninstall-linux.sh" "dist/linux-bundle/uninstall.sh" -Force
-          tar -czf "dist/Agy-CLI-Account-Swarm-v$ver-linux.tar.gz" -C dist/linux-bundle .
-
-          # macOS bundle
-          New-Item -ItemType Directory -Path "dist/macos-bundle/bundle" -Force | Out-Null
-          Copy-Item "publish/*" "dist/macos-bundle/bundle/" -Recurse -Force
-          Copy-Item "scripts/install-macos.sh" "dist/macos-bundle/install.sh" -Force
-          Copy-Item "scripts/uninstall-macos.sh" "dist/macos-bundle/uninstall.sh" -Force
-          tar -czf "dist/Agy-CLI-Account-Swarm-v$ver-macos.tar.gz" -C dist/macos-bundle .
-
       - name: Compute SHA256 Checksums
         shell: pwsh
         run: |
-          $files = Get-ChildItem -Path dist -File | Where-Object { $_.Name -ne "SHA256SUMS.txt" -and $_.Extension -match "exe|zip|gz" }
+          $files = Get-ChildItem -Path dist -File | Where-Object { $_.Name -ne "SHA256SUMS.txt" -and $_.Extension -match "exe|zip" }
           $lines = [System.Collections.Generic.List[string]]::new()
           foreach ($f in $files) {
             $hash = (Get-FileHash -Path $f.FullName -Algorithm SHA256).Hash.ToLower()
@@ -88,7 +69,7 @@ jobs:
           [System.IO.File]::WriteAllLines("dist/SHA256SUMS.txt", $lines)
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87238604da99376a6cb63 # v2.2.1
         with:
           name: "Agy CLI Account Swarm ${{ steps.vars.outputs.TAG }}"
           tag_name: ${{ steps.vars.outputs.TAG }}
@@ -97,7 +78,6 @@ jobs:
           files: |
             dist/*.exe
             dist/*.zip
-            dist/*.tar.gz
             dist/SHA256SUMS.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

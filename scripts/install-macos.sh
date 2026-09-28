@@ -71,13 +71,13 @@ cat << 'EOF' > "$APP_DIR/Contents/MacOS/agy-cli-account-swarm"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
 
-echo "⚡ Launching Agy CLI Account Swarm..."
+echo "⚡ Launching Agy CLI Account Swarm (Experimental Wine compatibility mode)..."
 if command -v wine >/dev/null 2>&1 && [ -f "$RES_DIR/AgyAccountSwarm.exe" ]; then
     wine "$RES_DIR/AgyAccountSwarm.exe" "$@"
-elif command -v dotnet >/dev/null 2>&1 && [ -f "$RES_DIR/AgyAccountSwarm.dll" ]; then
-    dotnet "$RES_DIR/AgyAccountSwarm.dll" "$@"
 else
-    echo "Notice: Agy CLI Account Swarm GUI requires Wine or .NET 9 Desktop runtime on macOS."
+    echo "Notice: Agy CLI Account Swarm is a .NET 9 WPF application (Windows-only)."
+    echo "Native macOS desktop GUI is not yet supported. Please run on Windows or use Wine."
+    exit 1
 fi
 EOF
 chmod +x "$APP_DIR/Contents/MacOS/agy-cli-account-swarm"

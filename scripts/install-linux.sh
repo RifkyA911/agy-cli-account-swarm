@@ -64,14 +64,13 @@ INSTALL_DIR_RESOLVED="$(dirname "$(readlink -f "$0")")/../share/agy-cli-account-
 [ -d "$INSTALL_DIR_RESOLVED" ] || INSTALL_DIR_RESOLVED="/opt/agy-cli-account-swarm"
 [ -d "$INSTALL_DIR_RESOLVED" ] || INSTALL_DIR_RESOLVED="$HOME/.local/share/agy-cli-account-swarm"
 
-echo "⚡ Starting Agy CLI Account Swarm Desktop GUI..."
+echo "⚡ Starting Agy CLI Account Swarm (Experimental Wine compatibility mode)..."
 if command -v wine >/dev/null 2>&1 && [ -f "$INSTALL_DIR_RESOLVED/AgyAccountSwarm.exe" ]; then
     wine "$INSTALL_DIR_RESOLVED/AgyAccountSwarm.exe" "$@"
-elif command -v dotnet >/dev/null 2>&1 && [ -f "$INSTALL_DIR_RESOLVED/AgyAccountSwarm.dll" ]; then
-    dotnet "$INSTALL_DIR_RESOLVED/AgyAccountSwarm.dll" "$@"
 else
-    echo "Notice: Agy CLI Account Swarm GUI requires Wine or .NET 9 Desktop runtime on Linux."
-    echo "To run natively on Linux, please ensure Wine or .NET runtime is installed."
+    echo "Notice: Agy CLI Account Swarm is a .NET 9 WPF application (Windows-only)."
+    echo "Native Linux desktop GUI is not yet supported. Please install 'wine' to run this Windows executable."
+    exit 1
 fi
 EOF
 chmod +x "$BIN_DIR/agy-cli-account-swarm"
