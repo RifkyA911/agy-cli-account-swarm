@@ -12,10 +12,19 @@ namespace AgyAccountSwarm.Services;
 
 public class AuthDetectorService : IAuthDetectorService
 {
+    private static readonly IQuotaConfigService DefaultQuotaConfig = new QuotaConfigService();
+    private readonly IQuotaConfigService _quotaConfigService;
+
+    public AuthDetectorService(IQuotaConfigService? quotaConfigService = null)
+    {
+        _quotaConfigService = quotaConfigService ?? DefaultQuotaConfig;
+    }
+
     public Task<ProfileAuthStatus> DetectAuthStatusAsync(AccountProfile profile)
     {
-        return Task.Run(() =>
+        return Task.Run(async () =>
         {
+
             var status = new ProfileAuthStatus();
             var profileDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
             Logger.Debug($"[AuthDetector] Scanning profile '{profile.Name}' directory: {profileDir}");
@@ -196,13 +205,13 @@ public class AuthDetectorService : IAuthDetectorService
 
             int dailyLimit = profile.QuotaLimit > 0 && profile.QuotaLimit != 500
                 ? profile.QuotaLimit
-                : GetDailyQuotaForTier(effectiveTier);
+                : _quotaConfigService.GetDailyQuota(effectiveTier);
 
             int weeklyLimit = profile.QuotaLimit > 0 && profile.QuotaLimit != 500
                 ? profile.QuotaLimit * 5
-                : GetWeeklyQuotaForTier(effectiveTier);
+                : _quotaConfigService.GetWeeklyQuota(effectiveTier);
 
-            long dailyTokensLimit = GetDailyTokensLimitForTier(effectiveTier);
+            long dailyTokensLimit = _quotaConfigService.GetDailyTokensLimit(effectiveTier);
             status.DailyQuotaLimit = dailyLimit;
             status.WeeklyQuotaLimit = weeklyLimit;
             status.DailyTokensLimit = dailyTokensLimit;
@@ -423,6 +432,50 @@ public class AuthDetectorService : IAuthDetectorService
             status.ContextUsageSummary = $"~{estContextInUse / 1000:N0}K / {contextCeiling / 1000:N0}K tokens ({status.ContextUsagePercentage:F1}%)";
             status.ContextHeadroomSummary = $"~{headroom / 1000:N0}K tokens free ({Math.Max(0.0, 100.0 - status.ContextUsagePercentage):F1}%)";
 
+            // 7. Check Authentication and Fetch Live Authentic Usage from agy CLI
+            bool hasValidAuth = File.Exists(oauthTokenPath) ||
+                                !string.IsNullOrEmpty(status.AccountEmail) ||
+                                (profile.IsMainDefaultProfile() && !string.IsNullOrEmpty(ReadWindowsCredential("gemini:antigravity")));
+
+            if (hasValidAuth)
+            {
+                var agyPath = TerminalLauncherService.ResolveAgyExecutablePath();
+                if (!string.IsNullOrEmpty(agyPath))
+                {
+                    try
+                    {
+                        var liveUsage = await AgyUsageParser.FetchUsageCachedAsync(profileDir, !profile.IsMainDefaultProfile(), agyPath);
+
+                        if (liveUsage != null && liveUsage.IsSuccess)
+                        {
+                            if (liveUsage.GeminiWeeklyRemainingPercent.HasValue)
+                                status.GeminiWeeklyRemainingPercent = liveUsage.GeminiWeeklyRemainingPercent.Value;
+                            if (!string.IsNullOrEmpty(liveUsage.GeminiWeeklyRefreshesIn))
+                                status.GeminiWeeklyRefreshesIn = liveUsage.GeminiWeeklyRefreshesIn;
+
+                            if (liveUsage.Gemini5HourRemainingPercent.HasValue)
+                                status.Gemini5HourRemainingPercent = liveUsage.Gemini5HourRemainingPercent.Value;
+                            if (!string.IsNullOrEmpty(liveUsage.Gemini5HourRefreshesIn))
+                                status.Gemini5HourRefreshesIn = liveUsage.Gemini5HourRefreshesIn;
+
+                            if (liveUsage.ClaudeGptWeeklyRemainingPercent.HasValue)
+                                status.ClaudeGptWeeklyRemainingPercent = liveUsage.ClaudeGptWeeklyRemainingPercent.Value;
+                            if (!string.IsNullOrEmpty(liveUsage.ClaudeGptWeeklyRefreshesIn))
+                                status.ClaudeGptWeeklyRefreshesIn = liveUsage.ClaudeGptWeeklyRefreshesIn;
+
+                            if (liveUsage.ClaudeGpt5HourRemainingPercent.HasValue)
+                                status.ClaudeGpt5HourRemainingPercent = liveUsage.ClaudeGpt5HourRemainingPercent.Value;
+                            if (!string.IsNullOrEmpty(liveUsage.ClaudeGpt5HourRefreshesIn))
+                                status.ClaudeGpt5HourRefreshesIn = liveUsage.ClaudeGpt5HourRefreshesIn;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"[AuthDetector] Failed querying live agy CLI usage for '{profile.Name}': {ex.Message}");
+                    }
+                }
+            }
+
             // Authentic CLI Inspection Previews (matching agy cli /usage)
             string geminiWeeklyBar = BuildAsciiProgressBar(status.GeminiWeeklyRemainingPercent, 50);
             string gemini5hBar = BuildAsciiProgressBar(status.Gemini5HourRemainingPercent, 50);
@@ -467,11 +520,7 @@ public class AuthDetectorService : IAuthDetectorService
                 "Integrations:   Google Gemini 3.8 / 2.5 Engine, Antislop, Swarm Sandbox\r\n" +
                 "========================================================================";
 
-            // 7. Determine Final Status
-            bool hasValidAuth = File.Exists(oauthTokenPath) ||
-                                !string.IsNullOrEmpty(status.AccountEmail) ||
-                                (profile.IsMainDefaultProfile() && !string.IsNullOrEmpty(ReadWindowsCredential("gemini:antigravity")));
-
+            // 8. Determine Final Status
             if (hasValidAuth)
             {
                 if (profile.IsQuotaExhausted || status.UsagePercentage >= 100.0)
@@ -696,38 +745,12 @@ public class AuthDetectorService : IAuthDetectorService
         }
     }
 
-    public static int GetDailyQuotaForTier(string? tier)
-    {
-        return tier?.ToLowerInvariant() switch
-        {
-            "ultra" or "enterprise" => 2500,
-            "plus" => 300,
-            "basic" or "free" or "unverified" => 100,
-            _ => 1000 // Pro default
-        };
-    }
+    public static int GetDailyQuotaForTier(string? tier) => DefaultQuotaConfig.GetDailyQuota(tier);
 
-    public static long GetDailyTokensLimitForTier(string? tier)
-    {
-        return tier?.ToLowerInvariant() switch
-        {
-            "ultra" or "enterprise" => 15000000L,
-            "plus" => 1500000L,
-            "basic" or "free" or "unverified" => 500000L,
-            _ => 5000000L // Pro default (5M tokens/day)
-        };
-    }
+    public static long GetDailyTokensLimitForTier(string? tier) => DefaultQuotaConfig.GetDailyTokensLimit(tier);
 
-    public static int GetWeeklyQuotaForTier(string? tier)
-    {
-        return tier?.ToLowerInvariant() switch
-        {
-            "ultra" or "enterprise" => 12500,
-            "plus" => 1500,
-            "basic" or "free" or "unverified" => 500,
-            _ => 5000 // Pro default (5,000 prompts/week)
-        };
-    }
+    public static int GetWeeklyQuotaForTier(string? tier) => DefaultQuotaConfig.GetWeeklyQuota(tier);
+
 
     public static string? ExtractEmailFromIdToken(string idToken)
     {

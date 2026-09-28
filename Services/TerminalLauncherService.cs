@@ -19,12 +19,17 @@ public class TerminalLauncherService : ITerminalLauncherService
             return _cachedAgyPath;
         }
 
+        _cachedAgyPath = ResolveAgyExecutablePath();
+        return _cachedAgyPath;
+    }
+
+    public static string? ResolveAgyExecutablePath()
+    {
         // 1. Common install location for Antigravity CLI on Windows
         var userLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var standardPath = Path.Combine(userLocal, "agy", "bin", "agy.exe");
         if (File.Exists(standardPath))
         {
-            _cachedAgyPath = standardPath;
             return standardPath;
         }
 
@@ -36,13 +41,13 @@ public class TerminalLauncherService : ITerminalLauncherService
             var candidate = Path.Combine(p.Trim(), "agy.exe");
             if (File.Exists(candidate))
             {
-                _cachedAgyPath = candidate;
                 return candidate;
             }
         }
 
         return null;
     }
+
 
     public bool IsWindowsTerminalAvailable()
     {

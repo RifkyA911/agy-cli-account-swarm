@@ -145,14 +145,8 @@ public partial class ProfileEditViewModel : ObservableObject
         QuotaLimit = GetDefaultQuotaForTier(value);
     }
 
-    private static int GetDefaultQuotaForTier(string? tier) => (tier?.ToLowerInvariant()) switch
-    {
-        "basic" => 100,
-        "plus" => 300,
-        "pro" => 1000,
-        "ultra" => 2500,
-        _ => 100
-    };
+    private static int GetDefaultQuotaForTier(string? tier) => AuthDetectorService.GetDailyQuotaForTier(tier);
+
 
     private void PopulateModels(IEnumerable<string>? availableModels)
     {
