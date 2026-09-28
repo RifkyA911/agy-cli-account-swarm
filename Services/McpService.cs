@@ -117,7 +117,7 @@ public class McpService : IMcpService
                 {
                     Name = "filesystem",
                     Command = "npx -y @modelcontextprotocol/server-filesystem",
-                    Arguments = "D:\\Works",
+                    Arguments = userHome,
                     Description = "Secure local directory read/write tool provider",
                     IsEnabled = true,
                     ToolsCount = 5,

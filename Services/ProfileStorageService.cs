@@ -53,7 +53,7 @@ public class ProfileStorageService : IProfileStorageService
             {
                 if (p.Name.Contains("Default", StringComparison.OrdinalIgnoreCase) || 
                     p.Name.Contains("Main", StringComparison.OrdinalIgnoreCase) ||
-                    (p.CustomProfilePath != null && p.CustomProfilePath.Equals("C:\\Users\\rifky", StringComparison.OrdinalIgnoreCase)))
+                    p.IsMainDefaultProfile())
                 {
                     if (string.IsNullOrWhiteSpace(p.Tier) || p.Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase) || p.Tier.Equals("Basic", StringComparison.OrdinalIgnoreCase))
                     {

@@ -9,8 +9,12 @@ public static class Logger
 {
     private static readonly object LockObj = new();
     private static readonly string LogFilePath;
-    private static readonly List<string> RecentBuffer = new(1000);
+    private static readonly Queue<string> RecentBuffer = new(1000);
     private const int MaxBufferSize = 1000;
+
+    private static readonly System.Text.RegularExpressions.Regex TokenRegex = new(
+        @"(eyJ[a-zA-Z0-9_\-]{10,}\.[a-zA-Z0-9_\-]{10,}\.[a-zA-Z0-9_\-]+)|((?:ya29\.|ya28\.)[a-zA-Z0-9_\-]+)|((?:access_token|refresh_token|id_token)[""':\s=]+)(""?[a-zA-Z0-9_\-\.]{15,}""?)",
+        System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
     static Logger()
     {
@@ -24,6 +28,18 @@ public static class Logger
     }
 
     public static string LogPath => LogFilePath;
+
+    public static string RedactSensitive(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return TokenRegex.Replace(input, match =>
+        {
+            if (match.Groups[1].Success) return "[REDACTED_JWT_TOKEN]";
+            if (match.Groups[2].Success) return "[REDACTED_OAUTH_TOKEN]";
+            if (match.Groups[3].Success) return match.Groups[3].Value + "\"[REDACTED_TOKEN]\"";
+            return "[REDACTED]";
+        });
+    }
 
     public static void Debug(string message)
     {
@@ -94,14 +110,15 @@ public static class Logger
 
     private static void Write(string level, string message)
     {
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {message}";
+        var safeMessage = RedactSensitive(message);
+        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {safeMessage}";
         lock (LockObj)
         {
             if (RecentBuffer.Count >= MaxBufferSize)
             {
-                RecentBuffer.RemoveAt(0);
+                RecentBuffer.Dequeue();
             }
-            RecentBuffer.Add(line);
+            RecentBuffer.Enqueue(line);
 
             try
             {

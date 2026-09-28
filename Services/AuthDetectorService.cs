@@ -67,14 +67,33 @@ public class AuthDetectorService : IAuthDetectorService
                 status.TokenModifiedAt = File.GetLastWriteTime(oauthTokenPath);
                 try
                 {
-                    var tokenJson = File.ReadAllText(oauthTokenPath);
+                    var rawToken = File.ReadAllText(oauthTokenPath);
+                    var dataProtection = new DataProtectionService();
+                    var tokenJson = dataProtection.Unprotect(rawToken);
+
+                    // Transparent migration: if token was stored in plain-text, encrypt it with DPAPI at rest
+                    if (!dataProtection.IsProtected(rawToken) && !string.IsNullOrWhiteSpace(tokenJson) && tokenJson.TrimStart().StartsWith("{"))
+                    {
+                        try
+                        {
+                            var encrypted = dataProtection.Protect(tokenJson);
+                            File.WriteAllText(oauthTokenPath, encrypted, Encoding.UTF8);
+                            Logger.Info($"[AuthDetector] Migrated plain-text token to DPAPI encrypted format at-rest for '{profile.Name}'");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Warn($"[AuthDetector] Failed migrating token to DPAPI for '{profile.Name}': {ex.Message}");
+                        }
+                    }
+
                     var info = ExtractUserInfoFromTokenJson(tokenJson);
                     if (!string.IsNullOrEmpty(info.Email)) status.AccountEmail = info.Email;
                     if (!string.IsNullOrEmpty(info.DisplayName)) status.DisplayName = info.DisplayName;
                     if (!string.IsNullOrEmpty(info.PictureUrl)) status.AvatarUrl = info.PictureUrl;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Logger.Error($"[AuthDetector] Error processing token for '{profile.Name}'", ex);
                     status.Status = AuthStatusType.Error;
                     status.StatusMessage = "Corrupt OAuth token file";
                     status.CurrentModel = null;

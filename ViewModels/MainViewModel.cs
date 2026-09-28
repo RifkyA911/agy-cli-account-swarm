@@ -1858,7 +1858,8 @@ public partial class MainViewModel : ObservableObject
 
         sb.AppendLine("<div class='header'>");
         sb.AppendLine("  <div><div class='title'>⚡ Agy CLI Account Swarm - Executive Telemetry Report</div><div style='color:#94a3b8; font-size:12px; margin-top:4px;'>Google Antigravity CLI Multi-Account Orchestration & Telemetry Audit</div></div>");
-        sb.AppendLine($"  <div style='text-align:right; font-size:12px; color:#94a3b8;'>Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}<br>Primary Operator: rifkyakhmad911@gmail.com</div>");
+        var primaryOperator = Profiles.FirstOrDefault(p => !string.IsNullOrEmpty(p.AccountEmail))?.AccountEmail ?? "Local Swarm Operator";
+        sb.AppendLine($"  <div style='text-align:right; font-size:12px; color:#94a3b8;'>Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}<br>Operator: {primaryOperator}</div>");
         sb.AppendLine("</div>");
 
         // KPI Row
