@@ -363,6 +363,7 @@ public partial class MainViewModel : ObservableObject
     // Swarm-Level Aggregate Quota & Burn-Rate Properties
     public int SwarmDailyCapacityTotal => Profiles.Sum(p => p.DailyQuotaLimit);
     public int SwarmTodayPromptsTotal => Profiles.Sum(p => p.TodayTurnsCount);
+    public int TotalSavedSessionsCount => Profiles.Sum(p => p.AvailableSessions.Count);
     public double SwarmPoolRemainingPercent => SwarmDailyCapacityTotal > 0
         ? Math.Max(0.0, (SwarmDailyCapacityTotal - SwarmTodayPromptsTotal) / (double)SwarmDailyCapacityTotal * 100.0)
         : 100.0;
@@ -375,9 +376,9 @@ public partial class MainViewModel : ObservableObject
             {
                 double remainingPool = Math.Max(0, SwarmDailyCapacityTotal - SwarmTodayPromptsTotal);
                 double hours = remainingPool / SwarmAggregateBurnRate;
-                return $"Dengan laju swarm saat ini ({SwarmAggregateBurnRate.ToString("F1", CultureInfo.InvariantCulture)} p/jam), pool aman untuk ±{hours.ToString("F1", CultureInfo.InvariantCulture)} jam";
+                return $"At current swarm velocity ({SwarmAggregateBurnRate.ToString("F1", CultureInfo.InvariantCulture)} req/hr), pool headroom lasts ~{hours.ToString("F1", CultureInfo.InvariantCulture)} hrs";
             }
-            return "Konsumsi swarm stabil • Kapasitas pool harian aman 100%";
+            return "Swarm consumption stable • Pool headroom healthy";
         }
     }
 
@@ -997,6 +998,12 @@ public partial class MainViewModel : ObservableObject
 
     public async Task DeleteProfileAsync(ProfileItemViewModel item)
     {
+        if (item.IsDefaultProfile)
+        {
+            ShowNotification("Cannot delete the system primary default account profile.");
+            return;
+        }
+
         if (ConfirmDeleteRequested != null)
         {
             var confirmed = await ConfirmDeleteRequested(
@@ -1663,8 +1670,8 @@ public partial class MainViewModel : ObservableObject
         {
             Command = "agy models",
             Title = "Fleet Multi-Model Intelligence & Reasoning",
-            Description = "Dukungan routing model multi-level reasoning (low, medium, high, thinking) langsung ke Google & Anthropic engine.",
-            Status = "Terverifikasi",
+            Description = "Multi-level reasoning routing (low, medium, high, thinking) across Google & Anthropic model architectures.",
+            Status = "Verified",
             StatusColor = "#10B981",
             BadgeText = "Active Fleet"
         });
@@ -1672,8 +1679,8 @@ public partial class MainViewModel : ObservableObject
         {
             Command = "agy -p \"/usage\"",
             Title = "Zero-Turn Live Quota Sentinel",
-            Description = "Monitoring 5-hour limit dan weekly quota buckets real-time tanpa konsumsi token ataupun agent turns.",
-            Status = "Terverifikasi",
+            Description = "Real-time monitoring of 5-hour limit and weekly quota buckets without consuming tokens or agent turns.",
+            Status = "Verified",
             StatusColor = "#10B981",
             BadgeText = "0 Tokens / Turn"
         });
@@ -1681,8 +1688,8 @@ public partial class MainViewModel : ObservableObject
         {
             Command = "agy agents",
             Title = "Multi-Agent Swarm Orchestration",
-            Description = "Koordinasi subagent paralel dengan isolasi sandbox profil dan workspace independen.",
-            Status = "Terverifikasi",
+            Description = "Parallel subagent coordination with isolated profile sandboxes and independent workspaces.",
+            Status = "Verified",
             StatusColor = "#10B981",
             BadgeText = "Multi-Process"
         });
@@ -1690,8 +1697,8 @@ public partial class MainViewModel : ObservableObject
         {
             Command = "agy mcp",
             Title = "Model Context Protocol Tool Bridge",
-            Description = "Integrasi tool kustom, SQLite, dan language server via komunikasi stdio IPC.",
-            Status = "Terverifikasi",
+            Description = "Integration of custom tools, SQLite databases, and language servers via stdio IPC communication.",
+            Status = "Verified",
             StatusColor = "#10B981",
             BadgeText = "Stdio IPC"
         });

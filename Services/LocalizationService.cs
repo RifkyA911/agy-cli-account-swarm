@@ -52,10 +52,10 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Card_Authenticated_Sub"] = "Active Google tokens",
         ["Card_SwarmTargets"] = "SWARM TARGETS",
         ["Card_SwarmTargets_Sub"] = "Queued for parallel launch",
-        ["Card_TotalPrompts"] = "TOTAL PROMPTS",
-        ["Card_TotalPrompts_Sub"] = "Real session turns",
-        ["Card_EstTokens"] = "ESTIMATED TOKENS",
-        ["Card_EstTokens_Sub"] = "Swarm consumption",
+        ["Card_TotalPrompts"] = "SAVED SESSIONS",
+        ["Card_TotalPrompts_Sub"] = "Indexed conversations",
+        ["Card_EstTokens"] = "MCP TOOLS ACTIVE",
+        ["Card_EstTokens_Sub"] = "Protocol integrations",
 
         // Chart
         ["Chart_Title"] = "Prompt & Token Activity Distribution",
@@ -68,18 +68,33 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Chart_Mode_Area"] = "Area",
         ["Chart_NoData"] = "No recorded prompt activity found in session history yet.",
 
-        // Accounts
+        // Accounts Actions & Labels
         ["Accounts_SearchPlaceholder"] = "Filter accounts by name, notes, email, model, or tier...",
         ["Accounts_SelectAll"] = "Select / Deselect All Swarm",
         ["Accounts_NewProfile"] = "New Profile",
         ["Accounts_Duplicate"] = "Duplicate",
+        ["Accounts_EditProfile"] = "Edit Profile",
+        ["Accounts_Delete"] = "Delete",
         ["Accounts_LaunchAgy"] = "▶ Launch agy",
-        ["Accounts_CopyCli"] = "📋 Copy",
-        ["Accounts_Folder"] = "📁 Folder",
-        ["Accounts_Edit"] = "✏️",
-        ["Accounts_Delete"] = "🗑️",
+        ["Accounts_StartConversation"] = "Start Conversation",
+        ["Accounts_CopyCli"] = "Copy CLI",
+        ["Accounts_Folder"] = "Open Folder",
         ["Accounts_PendingLogin"] = "Pending Login",
         ["Accounts_NotConnected"] = "Not Connected (Login Required)",
+        ["Accounts_Velocity"] = "Velocity",
+        ["Accounts_Headroom"] = "Headroom",
+        ["Accounts_Role_Default"] = "Primary (Host Default)",
+        ["Accounts_Role_Worker"] = "Isolated Sandbox Worker",
+
+        // Profile Doctor
+        ["Doctor_Title"] = "PROFILE DOCTOR",
+        ["Doctor_Subtitle"] = "Audit AGY CLI Internal",
+        ["Doctor_HealthCheck"] = "Health Check",
+        ["Doctor_Checking"] = "Checking...",
+        ["Doctor_CleanLocks"] = "Clean Stuck Locks",
+        ["Doctor_TrustWorkspace"] = "Trust Workspace",
+        ["Doctor_Clean"] = "Clean",
+        ["Doctor_Warning"] = "Attention Required",
 
         // Analytics
         ["Analytics_Title"] = "Swarm & Model Intelligence Telemetry",
@@ -87,7 +102,7 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Analytics_Recalculate"] = "Re-Calculate Telemetry",
         ["Analytics_ModelMatrix"] = "AI Model Performance & Efficiency Matrix",
         ["Analytics_HeatmapTitle"] = "24-Hour Swarm Execution Heatmap",
-        ["Analytics_AccountHealth"] = "Account Swarm Health & Rate-Limit Safety",
+        ["Analytics_AccountHealth"] = "Swarm Fleet Intelligence & CLI Capabilities",
 
         // MCP
         ["Mcp_Title"] = "Model Context Protocol (MCP) Integrations",
@@ -110,7 +125,12 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Settings_AudioGroup"] = "Audio Feedback & Sound Synthesizer",
         ["Settings_WelcomeGroup"] = "Cat Welcome Startup Animation",
         ["Settings_AboutGroup"] = "About & Open Source Credits",
-        ["Settings_StorageGroup"] = "Storage, Profiles & Data Maintenance"
+        ["Settings_StorageGroup"] = "Storage, Profiles & Data Maintenance",
+
+        // Dialogs
+        ["Dialog_AddTitle"] = "Add Account Profile",
+        ["Dialog_EditTitle"] = "Edit Profile: {0}",
+        ["Dialog_DefaultNotice"] = "System Default Account: Sandbox path is locked to primary host environment (%USERPROFILE%\\.gemini)."
     };
 
     private readonly Dictionary<string, string> _id = new(StringComparer.OrdinalIgnoreCase)
@@ -142,15 +162,15 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
 
         // Dashboard
         ["Card_TotalAccounts"] = "TOTAL AKUN",
-        ["Card_TotalAccounts_Sub"] = "Profil terdaftar",
+        ["Card_TotalAccounts_Sub"] = "Profil terkelola",
         ["Card_Authenticated"] = "TERAUTENTIKASI",
         ["Card_Authenticated_Sub"] = "Token Google aktif",
         ["Card_SwarmTargets"] = "TARGET SWARM",
-        ["Card_SwarmTargets_Sub"] = "Siap diluncurkan paralel",
-        ["Card_TotalPrompts"] = "TOTAL PROMPT",
-        ["Card_TotalPrompts_Sub"] = "Turn sesi aktual",
-        ["Card_EstTokens"] = "ESTIMASI TOKEN",
-        ["Card_EstTokens_Sub"] = "Konsumsi swarm",
+        ["Card_SwarmTargets_Sub"] = "Antrean eksekusi paralel",
+        ["Card_TotalPrompts"] = "SESI TERSIMPAN",
+        ["Card_TotalPrompts_Sub"] = "Percakapan terindeks",
+        ["Card_EstTokens"] = "ALAT MCP AKTIF",
+        ["Card_EstTokens_Sub"] = "Integrasi protokol",
 
         // Chart
         ["Chart_Title"] = "Distribusi Aktivitas Prompt & Token",
@@ -163,18 +183,33 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Chart_Mode_Area"] = "Area",
         ["Chart_NoData"] = "Belum ada riwayat aktivitas prompt yang tercatat di sesi ini.",
 
-        // Accounts
+        // Accounts Actions & Labels
         ["Accounts_SearchPlaceholder"] = "Cari profil berdasarkan nama, catatan, email, model, atau tier...",
         ["Accounts_SelectAll"] = "Pilih / Batalkan Semua Swarm",
         ["Accounts_NewProfile"] = "Tambah Profil",
         ["Accounts_Duplicate"] = "Duplikat",
+        ["Accounts_EditProfile"] = "Edit Profil",
+        ["Accounts_Delete"] = "Hapus",
         ["Accounts_LaunchAgy"] = "▶ Buka agy",
-        ["Accounts_CopyCli"] = "📋 Salin",
-        ["Accounts_Folder"] = "📁 Folder",
-        ["Accounts_Edit"] = "✏️",
-        ["Accounts_Delete"] = "🗑️",
+        ["Accounts_StartConversation"] = "Mulai Percakapan",
+        ["Accounts_CopyCli"] = "Salin CLI",
+        ["Accounts_Folder"] = "Buka Folder",
         ["Accounts_PendingLogin"] = "Belum Login",
         ["Accounts_NotConnected"] = "Belum Terhubung (Perlu Login)",
+        ["Accounts_Velocity"] = "Kecepatan",
+        ["Accounts_Headroom"] = "Kapasitas Sisa",
+        ["Accounts_Role_Default"] = "Utama (Host Default)",
+        ["Accounts_Role_Worker"] = "Worker Sandbox Terisolasi",
+
+        // Profile Doctor
+        ["Doctor_Title"] = "DOKTER PROFIL",
+        ["Doctor_Subtitle"] = "Audit Jeroan AGY CLI",
+        ["Doctor_HealthCheck"] = "Periksa Kesehatan",
+        ["Doctor_Checking"] = "Memeriksa...",
+        ["Doctor_CleanLocks"] = "Bersihkan Lock File",
+        ["Doctor_TrustWorkspace"] = "Daftarkan Workspace",
+        ["Doctor_Clean"] = "Bersih",
+        ["Doctor_Warning"] = "Perlu Tindakan",
 
         // Analytics
         ["Analytics_Title"] = "Telemetri Intelijen Swarm & Model",
@@ -182,7 +217,7 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Analytics_Recalculate"] = "Hitung Ulang Telemetri",
         ["Analytics_ModelMatrix"] = "Matriks Kinerja & Efisiensi Model AI",
         ["Analytics_HeatmapTitle"] = "Peta Intensitas Eksekusi Swarm 24-Jam",
-        ["Analytics_AccountHealth"] = "Kesehatan Akun Swarm & Keamanan Kuota",
+        ["Analytics_AccountHealth"] = "Armada Model & Kapabilitas agy CLI",
 
         // MCP
         ["Mcp_Title"] = "Integrasi Model Context Protocol (MCP)",
@@ -205,7 +240,12 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Settings_AudioGroup"] = "Umpan Balik Audio & Efek Suara",
         ["Settings_WelcomeGroup"] = "Animasi Sapaan Kucing",
         ["Settings_AboutGroup"] = "Tentang & Kontributor Open Source",
-        ["Settings_StorageGroup"] = "Penyimpanan, Profil & Pemeliharaan Data"
+        ["Settings_StorageGroup"] = "Penyimpanan, Profil & Pemeliharaan Data",
+
+        // Dialogs
+        ["Dialog_AddTitle"] = "Tambah Profil Akun",
+        ["Dialog_EditTitle"] = "Edit Profil: {0}",
+        ["Dialog_DefaultNotice"] = "Akun Default Sistem: Path sandbox terkunci ke lingkungan host utama (%USERPROFILE%\\.gemini)."
     };
 
     public string this[string key] => Get(key);

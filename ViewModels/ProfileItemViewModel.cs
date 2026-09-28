@@ -252,7 +252,21 @@ public partial class ProfileItemViewModel : ObservableObject
     public string QuotaResetCountdown => AuthStatus.QuotaResetCountdown;
     public string TodayQuotaFormatted => $"{TodayTurnsCount:N0} / {DailyQuotaLimit:N0} prompts today ({UsagePercentage:F1}%)";
     public string TodayTokensFormatted => $"{TodayTokensEstimated / 1000:N0}K / {DailyTokensLimit / 1000:N0}K est. tokens";
-    public string TierDailySummary => $"{TierBadgeText} Tier ({DailyQuotaLimit:N0} prompts/day)";
+    public string TierDailySummary => $"{TierBadgeText} Tier • {AccountRoleText}";
+    public string AccountRoleText => IsDefaultProfile ? "Primary System Profile" : "Sandboxed Worker Profile";
+    public string HeadroomSummaryText => $"{Math.Max(0, 100 - (int)UsagePercentage)}% headroom remaining";
+    public string SessionsCountText => AvailableSessions.Count <= 1
+        ? "1 active session"
+        : $"{AvailableSessions.Count} sessions detected";
+
+    public bool IsDefaultProfile =>
+        Profile.IsMainDefaultProfile() ||
+        string.Equals(Profile.Id, "main", StringComparison.OrdinalIgnoreCase) ||
+        Name.StartsWith("Default", StringComparison.OrdinalIgnoreCase) ||
+        Name.Contains("(Main Account)", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(Name, "Primary (Default)", StringComparison.OrdinalIgnoreCase);
+
+    public bool CanDelete => !IsDefaultProfile;
 
     // Burn-Rate & Quota Exhaustion Forecasting
     public double BurnRatePromptsPerHour
@@ -266,8 +280,8 @@ public partial class ProfileItemViewModel : ObservableObject
     }
 
     public string BurnRateFormatted => TodayTurnsCount > 0
-        ? $"{BurnRatePromptsPerHour.ToString("F1", CultureInfo.InvariantCulture)} prompt/jam"
-        : "0.0 prompt/jam (Idle)";
+        ? $"{BurnRatePromptsPerHour.ToString("F1", CultureInfo.InvariantCulture)} req/hr"
+        : "0.0 req/hr (Idle)";
 
     public int RemainingPrompts => Math.Max(0, DailyQuotaLimit - TodayTurnsCount);
 
@@ -282,9 +296,9 @@ public partial class ProfileItemViewModel : ObservableObject
         get
         {
             if (HasExhaustedQuota || RemainingPrompts == 0)
-                return "⚠️ Kuota harian habis: 100% kuota hari ini telah terpakai";
+                return "⚠️ Daily quota reached: 100% of today's allowance consumed";
             if (RemainingQuotaPercent <= 20.0)
-                return $"⚠️ Kuota menipis: tersisa {RemainingQuotaPercent.ToString("F0", CultureInfo.InvariantCulture)}% ({RemainingPrompts:N0} prompts tersisa)";
+                return $"⚠️ Low quota alert: {RemainingQuotaPercent.ToString("F0", CultureInfo.InvariantCulture)}% remaining ({RemainingPrompts:N0} requests left)";
             return string.Empty;
         }
     }
@@ -294,21 +308,21 @@ public partial class ProfileItemViewModel : ObservableObject
         get
         {
             if (HasExhaustedQuota || RemainingPrompts == 0)
-                return "Kuota harian telah habis (100% terpakai)";
+                return "Quota fully depleted for today";
             if (TodayTurnsCount == 0)
-                return "Belum ada aktivitas hari ini (Aman • Kuota utuh 100%)";
+                return "No activity today (Full headroom)";
 
             double rate = BurnRatePromptsPerHour;
             if (rate <= 0.01)
-                return "Kecepatan stabil (Konsumsi rendah)";
+                return "Steady velocity (Low consumption)";
 
             double hoursRemaining = RemainingPrompts / rate;
             if (hoursRemaining < 1.0)
             {
                 int mins = Math.Max(1, (int)(hoursRemaining * 60));
-                return $"Dengan laju sekarang, kuota habis dalam ±{mins} menit";
+                return $"At current velocity, quota depletes in ~{mins} mins";
             }
-            return $"Dengan laju sekarang, kuota habis dalam ±{hoursRemaining.ToString("F1", CultureInfo.InvariantCulture)} jam";
+            return $"At current velocity, quota depletes in ~{hoursRemaining.ToString("F1", CultureInfo.InvariantCulture)} hrs";
         }
     }
 
@@ -327,7 +341,7 @@ public partial class ProfileItemViewModel : ObservableObject
 
     partial void OnIsDoctorRunningChanged(bool value) => OnPropertyChanged(nameof(DoctorButtonText));
 
-    public string DoctorButtonText => IsDoctorRunning ? "Memeriksa..." : "Periksa Kesehatan";
+    public string DoctorButtonText => IsDoctorRunning ? "Diagnosing..." : "Profile Doctor";
 
     [ObservableProperty]
     private bool _isDoctorReportExpanded;
@@ -336,7 +350,7 @@ public partial class ProfileItemViewModel : ObservableObject
     private ProfileDoctorReport? _doctorReport;
 
     public bool HasDoctorReport => DoctorReport != null;
-    public string DoctorSummaryPill => DoctorReport == null ? "Belum Diperiksa" : DoctorReport.OverallStatusText;
+    public string DoctorSummaryPill => DoctorReport == null ? "Not Checked" : DoctorReport.OverallStatusText;
     public string DoctorSummaryColor => DoctorReport == null ? "#6B7280" : DoctorReport.OverallStatusColor;
 
     [RelayCommand]
@@ -351,12 +365,12 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(HasDoctorReport));
             OnPropertyChanged(nameof(DoctorSummaryPill));
             OnPropertyChanged(nameof(DoctorSummaryColor));
-            OnNotificationRequested?.Invoke($"Diagnosis selesai untuk '{Name}': {DoctorReport.OverallStatusText}");
+            OnNotificationRequested?.Invoke($"Health diagnosis completed for '{Name}': {DoctorReport.OverallStatusText}");
         }
         catch (Exception ex)
         {
             Logger.Error($"[ProfileItemViewModel] Doctor failed for '{Name}'", ex);
-            OnNotificationRequested?.Invoke($"Gagal memeriksa kesehatan '{Name}': {ex.Message}");
+            OnNotificationRequested?.Invoke($"Failed to diagnose '{Name}': {ex.Message}");
         }
         finally
         {
@@ -371,7 +385,7 @@ public partial class ProfileItemViewModel : ObservableObject
         try
         {
             int cleaned = await _doctorService.CleanStuckLocksAsync(Profile);
-            OnNotificationRequested?.Invoke($"Berhasil membersihkan {cleaned} file lock untuk '{Name}'");
+            OnNotificationRequested?.Invoke($"Successfully cleared {cleaned} lock file(s) for '{Name}'");
             await RunDoctorAsync();
         }
         catch (Exception ex)
@@ -389,7 +403,7 @@ public partial class ProfileItemViewModel : ObservableObject
             bool ok = await _doctorService.AddWorkspaceToTrustedAsync(Profile);
             if (ok)
             {
-                OnNotificationRequested?.Invoke($"Workspace '{DisplayWorkspace}' berhasil didaftarkan ke trustedWorkspaces!");
+                OnNotificationRequested?.Invoke($"Workspace '{DisplayWorkspace}' registered to trustedWorkspaces!");
                 await RunDoctorAsync();
             }
         }

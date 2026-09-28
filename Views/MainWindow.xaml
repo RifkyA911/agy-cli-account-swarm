@@ -81,21 +81,21 @@
                             </Button>
                         </Grid>
 
-                        <!-- Collapsed Header -->
-                        <Button Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}"
-                                Command="{Binding ToggleSidebarCommand}"
-                                Style="{StaticResource ModernButton}"
-                                Padding="8,6"
-                                HorizontalAlignment="Center"
-                                ToolTip="Expand Sidebar">
-                            <StackPanel HorizontalAlignment="Center">
-                                <Image Source="../Resources/favicon.ico" Width="24" Height="24" Margin="0,0,0,4" HorizontalAlignment="Center" />
+                        <!-- Collapsed Header: Dedicated Logo (not a button) and separate Toggle Button below it -->
+                        <StackPanel Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}"
+                                    HorizontalAlignment="Center">
+                            <Image Source="../Resources/favicon.ico" Width="26" Height="26" Margin="0,0,0,10" HorizontalAlignment="Center" />
+                            <Button Command="{Binding ToggleSidebarCommand}"
+                                    Style="{StaticResource ModernButton}"
+                                    Padding="6,6"
+                                    HorizontalAlignment="Center"
+                                    ToolTip="Expand Sidebar">
                                 <Path Data="{StaticResource HeroIconBars3}"
                                       Stroke="{DynamicResource BrushTextSecondary}"
                                       StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                      Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
+                                      Width="15" Height="15" Stretch="Uniform" HorizontalAlignment="Center" />
+                            </Button>
+                        </StackPanel>
                     </Grid>
 
                     <!-- Navigation Menu Items -->
@@ -108,27 +108,41 @@
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Dashboard"
                                     Style="{StaticResource SidebarButton}"
+                                    Padding="8,10"
                                     ToolTip="{Binding Strings[Nav_Dashboard]}">
                                 <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                            Background="#3B82F6" Margin="0,0,8,0"
-                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Expanded View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6" Margin="0,0,8,0"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconSquares2x2}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dashboard}"
+                                                  StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Nav_Dashboard]}"
+                                                       FontSize="13"
+                                                       FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Dashboard}"
+                                                       Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dashboard}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Collapsed View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                        <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}" />
                                         <Path Data="{StaticResource HeroIconSquares2x2}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dashboard}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Nav_Dashboard]}"
-                                                   FontSize="13"
-                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Dashboard}"
-                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dashboard}"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
-                                    </StackPanel>
+                                              Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
                                 </Grid>
                             </Button>
                         </Border>
@@ -141,37 +155,54 @@
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Accounts"
                                     Style="{StaticResource SidebarButton}"
+                                    Padding="8,10"
                                     ToolTip="{Binding Strings[Nav_Accounts]}">
                                 <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                            Background="#3B82F6" Margin="0,0,8,0"
-                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Accounts}" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Expanded View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6" Margin="0,0,8,0"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Accounts}" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconUsers}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Accounts}"
+                                                  StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Nav_Accounts]}"
+                                                       FontSize="13"
+                                                       FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Accounts}"
+                                                       Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Accounts}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="{DynamicResource BrushBadgeBg}"
+                                                BorderBrush="{DynamicResource BrushBadgeBorder}"
+                                                BorderThickness="1"
+                                                CornerRadius="10" Padding="8,2"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding TotalCount}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushBadgeText}" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Collapsed View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                        <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Accounts}" />
                                         <Path Data="{StaticResource HeroIconUsers}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Accounts}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Nav_Accounts]}"
-                                                   FontSize="13"
-                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Accounts}"
-                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Accounts}"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
-                                    </StackPanel>
-                                    <Border Grid.Column="2" Background="{DynamicResource BrushBadgeBg}"
-                                            BorderBrush="{DynamicResource BrushBadgeBorder}"
-                                            BorderThickness="1"
-                                            CornerRadius="10" Padding="8,2"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center"
-                                            Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}">
-                                        <TextBlock Text="{Binding TotalCount}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushBadgeText}" />
-                                    </Border>
+                                              Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Border Background="{DynamicResource BrushBadgeBg}" BorderBrush="{DynamicResource BrushBadgeBorder}" BorderThickness="1"
+                                                CornerRadius="5" Padding="3,0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-3,0">
+                                            <TextBlock Text="{Binding TotalCount}" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushBadgeText}" />
+                                        </Border>
+                                    </Grid>
                                 </Grid>
                             </Button>
                         </Border>
@@ -184,27 +215,41 @@
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Analytics"
                                     Style="{StaticResource SidebarButton}"
+                                    Padding="8,10"
                                     ToolTip="{Binding Strings[Nav_Analytics]}">
                                 <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                            Background="#3B82F6" Margin="0,0,8,0"
-                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Expanded View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6" Margin="0,0,8,0"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconChartBar}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Analytics}"
+                                                  StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Nav_Analytics]}"
+                                                       FontSize="13"
+                                                       FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Analytics}"
+                                                       Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Analytics}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Collapsed View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                        <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}" />
                                         <Path Data="{StaticResource HeroIconChartBar}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Analytics}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Nav_Analytics]}"
-                                                   FontSize="13"
-                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Analytics}"
-                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Analytics}"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
-                                    </StackPanel>
+                                              Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
                                 </Grid>
                             </Button>
                         </Border>
@@ -217,37 +262,54 @@
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Mcp"
                                     Style="{StaticResource SidebarButton}"
+                                    Padding="8,10"
                                     ToolTip="{Binding Strings[Nav_Mcp]}">
                                 <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                            Background="#3B82F6" Margin="0,0,8,0"
-                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Mcp}" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Expanded View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6" Margin="0,0,8,0"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Mcp}" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconCpuChip}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Mcp}"
+                                                  StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Nav_Mcp]}"
+                                                       FontSize="13"
+                                                       FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Mcp}"
+                                                       Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Mcp}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="{DynamicResource BrushBadgeBg}"
+                                                BorderBrush="{DynamicResource BrushBadgeBorder}"
+                                                BorderThickness="1"
+                                                CornerRadius="10" Padding="8,2"
+                                                HorizontalAlignment="Right"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding McpServersCount}" FontSize="11" FontWeight="Bold" Foreground="#3B82F6" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Collapsed View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                        <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Mcp}" />
                                         <Path Data="{StaticResource HeroIconCpuChip}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Mcp}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Nav_Mcp]}"
-                                                   FontSize="13"
-                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Mcp}"
-                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Mcp}"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
-                                    </StackPanel>
-                                    <Border Grid.Column="2" Background="{DynamicResource BrushBadgeBg}"
-                                            BorderBrush="{DynamicResource BrushBadgeBorder}"
-                                            BorderThickness="1"
-                                            CornerRadius="10" Padding="8,2"
-                                            HorizontalAlignment="Right"
-                                            VerticalAlignment="Center"
-                                            Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}">
-                                        <TextBlock Text="{Binding McpServersCount}" FontSize="11" FontWeight="Bold" Foreground="#3B82F6" />
-                                    </Border>
+                                              Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Border Background="{DynamicResource BrushBadgeBg}" BorderBrush="{DynamicResource BrushBadgeBorder}" BorderThickness="1"
+                                                CornerRadius="5" Padding="3,0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-3,0">
+                                            <TextBlock Text="{Binding McpServersCount}" FontSize="8.5" FontWeight="Bold" Foreground="#3B82F6" />
+                                        </Border>
+                                    </Grid>
                                 </Grid>
                             </Button>
                         </Border>
@@ -260,27 +322,41 @@
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Docs"
                                     Style="{StaticResource SidebarButton}"
+                                    Padding="8,10"
                                     ToolTip="{Binding Strings[Nav_Docs]}">
                                 <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                            Background="#3B82F6" Margin="0,0,8,0"
-                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Docs}" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Expanded View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6" Margin="0,0,8,0"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Docs}" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconBookOpen}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Docs}"
+                                                  StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Nav_Docs]}"
+                                                       FontSize="13"
+                                                       FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Docs}"
+                                                       Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Docs}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Collapsed View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                        <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Docs}" />
                                         <Path Data="{StaticResource HeroIconBookOpen}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Docs}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Nav_Docs]}"
-                                                   FontSize="13"
-                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Docs}"
-                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Docs}"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
-                                    </StackPanel>
+                                              Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
                                 </Grid>
                             </Button>
                         </Border>
@@ -293,27 +369,41 @@
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Logs"
                                     Style="{StaticResource SidebarButton}"
+                                    Padding="8,10"
                                     ToolTip="{Binding Strings[Nav_Logs]}">
                                 <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                            Background="#3B82F6" Margin="0,0,8,0"
-                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Logs}" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Expanded View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6" Margin="0,0,8,0"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Logs}" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconCommandLine}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Logs}"
+                                                  StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Nav_Logs]}"
+                                                       FontSize="13"
+                                                       FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Logs}"
+                                                       Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Logs}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Collapsed View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                        <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Logs}" />
                                         <Path Data="{StaticResource HeroIconCommandLine}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Logs}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Nav_Logs]}"
-                                                   FontSize="13"
-                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Logs}"
-                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Logs}"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
-                                    </StackPanel>
+                                              Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
                                 </Grid>
                             </Button>
                         </Border>
@@ -326,27 +416,41 @@
                                 Margin="0,0,0,4">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Settings"
                                     Style="{StaticResource SidebarButton}"
+                                    Padding="8,10"
                                     ToolTip="{Binding Strings[Nav_Settings]}">
                                 <Grid HorizontalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                            Background="#3B82F6" Margin="0,0,8,0"
-                                            Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Expanded View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6" Margin="0,0,8,0"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconCog6Tooth}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Settings}"
+                                                  StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Nav_Settings]}"
+                                                       FontSize="13"
+                                                       FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Settings}"
+                                                       Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Settings}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Collapsed View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                        <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="#3B82F6"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}" />
                                         <Path Data="{StaticResource HeroIconCog6Tooth}"
                                               Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Settings}"
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                              Width="17" Height="17" Stretch="Uniform" Margin="2,0,10,0" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Nav_Settings]}"
-                                                   FontSize="13"
-                                                   FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Settings}"
-                                                   Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Settings}"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" />
-                                    </StackPanel>
+                                              Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
                                 </Grid>
                             </Button>
                         </Border>
@@ -644,21 +748,21 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card 4: Total Prompts -->
+                            <!-- Card 4: Saved Sessions Detected -->
                             <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,10,0">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Strings[Card_TotalPrompts]}" FontSize="10" FontWeight="SemiBold" Foreground="#8B5CF6" />
-                                    <TextBlock Text="{Binding TotalInteractionsCount}" FontSize="22" FontWeight="Bold" Foreground="#8B5CF6" Margin="0,4,0,0" />
-                                    <TextBlock Text="{Binding Strings[Card_TotalPrompts_Sub]}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                    <TextBlock Text="{Binding Strings[Card_ActiveSessions]}" FontSize="10" FontWeight="SemiBold" Foreground="#8B5CF6" />
+                                    <TextBlock Text="{Binding TotalSavedSessionsCount}" FontSize="22" FontWeight="Bold" Foreground="#8B5CF6" Margin="0,4,0,0" />
+                                    <TextBlock Text="{Binding Strings[Card_ActiveSessions_Sub]}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card 5: Estimated Tokens -->
+                            <!-- Card 5: MCP Tools Active -->
                             <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Strings[Card_EstTokens]}" FontSize="10" FontWeight="SemiBold" Foreground="#F59E0B" />
-                                    <TextBlock Text="{Binding TotalEstimatedTokens}" FontSize="22" FontWeight="Bold" Foreground="#F59E0B" Margin="0,4,0,0" />
-                                    <TextBlock Text="{Binding Strings[Card_EstTokens_Sub]}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                    <TextBlock Text="{Binding Strings[Card_McpTools]}" FontSize="10" FontWeight="SemiBold" Foreground="#F59E0B" />
+                                    <TextBlock Text="{Binding McpToolsTotalCount}" FontSize="22" FontWeight="Bold" Foreground="#F59E0B" Margin="0,4,0,0" />
+                                    <TextBlock Text="{Binding Strings[Card_McpTools_Sub]}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
                                 </StackPanel>
                             </Border>
                         </UniformGrid>
@@ -1215,6 +1319,13 @@
                                                     <!-- Profile Name -->
                                                     <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" />
 
+                                                    <!-- System Primary Profile Badge -->
+                                                    <Border CornerRadius="6" Padding="8,3" Margin="0,0,8,0" VerticalAlignment="Center"
+                                                            Background="#1510B981" BorderBrush="#3510B981" BorderThickness="1"
+                                                            Visibility="{Binding IsDefaultProfile, Converter={StaticResource BoolToVisConverter}}">
+                                                        <TextBlock Text="Primary Default" FontSize="10.5" FontWeight="Bold" Foreground="#10B981" />
+                                                    </Border>
+
                                                     <!-- Tier Badge -->
                                                     <Border CornerRadius="6" Padding="10,3" Margin="0,0,8,0" VerticalAlignment="Center"
                                                             Background="{Binding TierBadgeBackground, Converter={StaticResource HexToBrushConverter}}">
@@ -1300,12 +1411,12 @@
                                                         <TextBlock Text=" • " FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" />
                                                         <TextBlock Text="{Binding ExhaustionForecastText}" FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" />
                                                     </StackPanel>
-                                                    <TextBlock Grid.Column="1" Text="Disarankan: Siapkan akun lain di swarm" FontSize="10.5" Foreground="#F87171" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="1" Text="Suggested: Switch to another swarm account" FontSize="10.5" Foreground="#F87171" VerticalAlignment="Center" />
                                                 </Grid>
                                             </Border>
 
                                             <!-- ============================================================== -->
-                                            <!-- FOLDABLE SECTION 1: BURN-RATE & PREDIKSI EXHAUSTION            -->
+                                            <!-- FOLDABLE SECTION 1: VELOCITY & DEPLETION FORECAST              -->
                                             <!-- ============================================================== -->
                                             <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,10">
                                                 <StackPanel>
@@ -1320,7 +1431,7 @@
                                                             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                                                 <TextBlock Text="{Binding IsDailyQuotaExpanded, Converter={StaticResource BoolToChevronConverter}}"
                                                                            FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="⚡ BURN-RATE &amp; PREDIKSI EXHAUSTION" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                <TextBlock Text="⚡ VELOCITY &amp; DEPLETION FORECAST" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                                                 <Border Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
                                                                     <TextBlock Text="{Binding TierDailySummary}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
                                                                 </Border>
@@ -1350,18 +1461,18 @@
                                                                      BorderThickness="0"
                                                                      Margin="0,0,0,8" />
 
-                                                        <!-- Prompts Today, Tokens, Session, and Real-time Exhaustion Forecast -->
+                                                        <!-- Meaningful Headroom, Sessions, Tokens, and Velocity -->
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="Auto" />
                                                             </Grid.ColumnDefinitions>
                                                             <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                                                <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                <TextBlock Text="{Binding HeadroomSummaryText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                                <TextBlock Text="{Binding SessionsCountText}" FontSize="10.5" Foreground="#38BDF8" VerticalAlignment="Center" Margin="0,0,6,0" />
                                                                 <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
                                                                 <TextBlock Text="{Binding TodayTokensFormatted}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                                <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                                                <TextBlock Text="{Binding SessionUsageLabel}" FontSize="10.5" Foreground="#38BDF8" VerticalAlignment="Center" />
                                                             </WrapPanel>
                                                             <Border Grid.Column="1" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="8,4" VerticalAlignment="Center">
                                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -1518,7 +1629,7 @@
                                                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                                                     <TextBlock Text="🩺 PROFILE DOCTOR" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                                                     <Border Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
-                                                                        <TextBlock Text="Audit Jeroan AGY CLI" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                        <TextBlock Text="CLI &amp; Profile Diagnostics" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
                                                                     </Border>
                                                                     <Border Background="{Binding DoctorSummaryColor, Converter={StaticResource HexToBrushConverter}}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                                                         <TextBlock Text="{Binding DoctorSummaryPill}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
@@ -1530,7 +1641,7 @@
                                                                     <Button Command="{Binding RunDoctorCommand}"
                                                                             IsEnabled="{Binding IsDoctorRunning, Converter={StaticResource InverseBoolConverter}}"
                                                                             Style="{StaticResource ModernButton}" Padding="10,4" Margin="0,0,6,0" Cursor="Hand"
-                                                                            ToolTip="Audit 5 titik jeroan: versi CLI, token OAuth, file lock nyangkut, trusted workspace, skema /usage">
+                                                                            ToolTip="Audit 5 system checkpoints: CLI version, OAuth tokens, stuck lock files, trusted workspaces, and /usage schema">
                                                                         <StackPanel Orientation="Horizontal">
                                                                             <TextBlock Text="🩺 " FontSize="10" VerticalAlignment="Center" />
                                                                             <TextBlock Text="{Binding DoctorButtonText}" FontSize="10.5" FontWeight="SemiBold" VerticalAlignment="Center" />
@@ -1576,97 +1687,116 @@
                                                                 <Button Command="{Binding CleanLocksCommand}"
                                                                         Visibility="{Binding DoctorReport.LockFilesCount, Converter={StaticResource IntToVisConverter}}"
                                                                         Style="{StaticResource DangerButton}" Padding="10,5" Margin="0,0,8,4" Cursor="Hand"
-                                                                        ToolTip="Hapus semua file lock yang tertinggal di sandbox akun ini">
+                                                                        ToolTip="Clean up all stuck .lock files left in this account sandbox">
                                                                     <StackPanel Orientation="Horizontal">
-                                                                        <TextBlock Text="🧹 Bersihkan " />
+                                                                        <TextBlock Text="🧹 Clear " />
                                                                         <TextBlock Text="{Binding DoctorReport.LockFilesCount}" />
-                                                                        <TextBlock Text=" Lock File Nyangkut" />
+                                                                        <TextBlock Text=" Stuck Lock(s)" />
                                                                     </StackPanel>
                                                                 </Button>
                                                                 <Button Command="{Binding TrustWorkspaceCommand}"
                                                                         Style="{StaticResource ModernButton}" Padding="10,5" Margin="0,0,8,4" Cursor="Hand"
-                                                                        ToolTip="Daftarkan folder workspace ke settings.json trustedWorkspaces">
-                                                                    <TextBlock Text="🛡️ Daftarkan Workspace ke Trusted" />
+                                                                        ToolTip="Register workspace directory to ~/.gemini/settings.json trustedWorkspaces">
+                                                                    <TextBlock Text="🛡️ Register Workspace as Trusted" />
                                                                 </Button>
                                                             </WrapPanel>
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </Border>
 
-                                                <!-- Row 4: Action Toolbar (Separated cleanly, never cramped!) -->
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
+                                                <!-- Row 4: Action Toolbar (2-Row Layout: Row 1 = Session + Start, Row 2 = Actions) -->
+                                                <StackPanel>
+                                                    <!-- Row 4a: Start Conversation / Launch -->
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
 
-                                                    <!-- Left Actions: Session Resume/New Chat Selector + Launch, Copy, Open Folder -->
-                                                    <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                                        <!-- Session Selector: New Chat / Continue Recent / Resume Specific with ModernComboBox -->
-                                                        <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="6,2" Margin="0,0,8,4" VerticalAlignment="Center">
-                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                <TextBlock Text="💬 Start:" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="2,0,6,0" />
-                                                                <ComboBox ItemsSource="{Binding AvailableSessions}" SelectedItem="{Binding SelectedSession}"
+                                                        <!-- Session Selector -->
+                                                        <Border Grid.Column="0" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="💬 Start:" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="2,0,8,0" />
+                                                                <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableSessions}" SelectedItem="{Binding SelectedSession}"
                                                                           Style="{StaticResource ModernComboBox}"
-                                                                          Width="220" Height="28" VerticalAlignment="Center" FontSize="10.5"
+                                                                          Height="30" VerticalAlignment="Center" FontSize="11"
                                                                           ToolTip="Select whether to start a new chat, continue most recent, or resume a specific past conversation">
                                                                     <ComboBox.ItemTemplate>
                                                                         <DataTemplate>
-                                                                            <TextBlock Text="{Binding DisplayText}" FontSize="10.5" TextTrimming="CharacterEllipsis" />
+                                                                            <TextBlock Text="{Binding DisplayText}" FontSize="11" TextTrimming="CharacterEllipsis" />
                                                                         </DataTemplate>
                                                                     </ComboBox.ItemTemplate>
                                                                 </ComboBox>
-                                                            </StackPanel>
+                                                            </Grid>
                                                         </Border>
 
-                                                        <Button Command="{Binding LaunchCommand}"
+                                                        <!-- Launch / Start Conversation Button -->
+                                                        <Button Grid.Column="1" Command="{Binding LaunchCommand}"
                                                                 CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                Style="{StaticResource PrimaryButton}" Padding="16,7" Margin="0,0,8,4"
+                                                                Style="{StaticResource PrimaryButton}" Padding="18,8"
                                                                 ToolTip="Launch Antigravity CLI session with chosen session mode">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                <Path Data="{StaticResource HeroIconPlay}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="Launch agy" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
+                                                                <Path Data="{StaticResource HeroIconPlay}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                                <TextBlock Text="Start Conversation" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Button>
-                                                        <Button Command="{Binding CopyCliSnippetCommand}"
-                                                                CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,4"
-                                                                ToolTip="Copy isolated terminal launch command">
-                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                <Path Data="{StaticResource HeroIconClipboard}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="Copy CLI" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
-                                                            </StackPanel>
-                                                        </Button>
-                                                        <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,4" ToolTip="Open profile directory">
-                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                <Path Data="{StaticResource HeroIconFolder}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="Open Folder" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
-                                                            </StackPanel>
-                                                        </Button>
-                                                        <Button Command="{Binding RequestDuplicateCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,4" ToolTip="Duplicate profile and copy all chat history and settings">
-                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                <Path Data="{StaticResource HeroIconDocumentDuplicate}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="{Binding DataContext.Strings[Accounts_Duplicate], RelativeSource={RelativeSource AncestorType=Window}}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
-                                                            </StackPanel>
-                                                        </Button>
-                                                    </WrapPanel>
+                                                    </Grid>
 
-                                                    <!-- Right Actions: Edit, Delete -->
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <Button Command="{Binding RequestEditCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,4" ToolTip="Edit profile settings">
-                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                <Path Data="{StaticResource HeroIconPencil}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="Edit Profile" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
-                                                            </StackPanel>
-                                                        </Button>
-                                                        <Button Command="{Binding RequestDeleteCommand}" Style="{StaticResource DangerButton}" Padding="12,7" Margin="0,0,0,4" ToolTip="Remove profile">
-                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                <Path Data="{StaticResource HeroIconTrash}" Stroke="#FFFFFF" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="Delete" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
-                                                            </StackPanel>
-                                                        </Button>
-                                                    </StackPanel>
-                                                </Grid>
+                                                    <!-- Row 4b: One Single Horizontal Row for Utility and Management Actions -->
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <!-- Left Actions: Copy CLI & Open Folder -->
+                                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Button Command="{Binding CopyCliSnippetCommand}"
+                                                                    CommandParameter="{Binding DataContext.SelectedTerminal, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0"
+                                                                    ToolTip="Copy isolated terminal launch command to clipboard">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Path Data="{StaticResource HeroIconClipboard}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="Copy CLI" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                            <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="12,7" ToolTip="Open isolated profile sandbox directory">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Path Data="{StaticResource HeroIconFolder}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="Open Folder" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                        </StackPanel>
+
+                                                        <!-- Right Actions: Duplicate, Edit Profile, Delete (Delete hidden for Default Account) -->
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Button Command="{Binding RequestDuplicateCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0" ToolTip="Duplicate profile and clone settings">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Path Data="{StaticResource HeroIconDocumentDuplicate}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="Duplicate" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                            <Button Command="{Binding RequestEditCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0" ToolTip="Edit profile settings and preferences">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Path Data="{StaticResource HeroIconPencil}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="Edit Profile" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                            <Button Command="{Binding RequestDeleteCommand}"
+                                                                    Visibility="{Binding CanDelete, Converter={StaticResource BoolToVisConverter}}"
+                                                                    Style="{StaticResource DangerButton}" Padding="12,7" ToolTip="Remove profile from manager">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Path Data="{StaticResource HeroIconTrash}" Stroke="#FFFFFF" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="Delete" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </StackPanel>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>

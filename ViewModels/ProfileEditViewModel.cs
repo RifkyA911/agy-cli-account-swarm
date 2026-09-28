@@ -72,6 +72,8 @@ public partial class ProfileEditViewModel : ObservableObject
     public ObservableCollection<ColorOptionItem> ColorPresets => ColorOptions;
 
     public bool IsEditMode { get; private set; }
+    public bool IsDefaultProfile { get; }
+    public bool CanEditProfilePath => !IsDefaultProfile;
     public AccountProfile ResultProfile { get; private set; } = new();
 
     public event Action<bool>? RequestClose;
@@ -80,6 +82,7 @@ public partial class ProfileEditViewModel : ObservableObject
     {
         _dialogTitle = "Add Account Profile";
         IsEditMode = false;
+        IsDefaultProfile = false;
         _tier = "Basic";
         _quotaLimit = 100;
         _preferredModel = "Gemini 3.8 Flash (Medium)";
@@ -92,9 +95,13 @@ public partial class ProfileEditViewModel : ObservableObject
     public ProfileEditViewModel(AccountProfile profileToEdit, IEnumerable<string>? availableModels = null)
     {
         IsEditMode = true;
-        _dialogTitle = $"Edit Profile: {profileToEdit.Name}";
         ResultProfile = profileToEdit;
+        IsDefaultProfile = profileToEdit.IsMainDefaultProfile() ||
+                           string.Equals(profileToEdit.Id, "main", StringComparison.OrdinalIgnoreCase) ||
+                           profileToEdit.Name.StartsWith("Default", StringComparison.OrdinalIgnoreCase) ||
+                           profileToEdit.Name.Contains("(Main Account)", StringComparison.OrdinalIgnoreCase);
 
+        _dialogTitle = IsDefaultProfile ? "Configure Primary Account Profile" : $"Edit Profile: {profileToEdit.Name}";
         _name = profileToEdit.Name;
         _description = profileToEdit.Description;
         _selectedColor = string.IsNullOrEmpty(profileToEdit.ColorTag) ? "#3B82F6" : profileToEdit.ColorTag;
@@ -219,7 +226,14 @@ public partial class ProfileEditViewModel : ObservableObject
         ResultProfile.Name = Name.Trim();
         ResultProfile.Description = Description.Trim();
         ResultProfile.ColorTag = SelectedColor;
-        ResultProfile.CustomProfilePath = string.IsNullOrWhiteSpace(CustomProfilePath) ? null : CustomProfilePath.Trim();
+        if (IsDefaultProfile)
+        {
+            ResultProfile.CustomProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+        else
+        {
+            ResultProfile.CustomProfilePath = string.IsNullOrWhiteSpace(CustomProfilePath) ? null : CustomProfilePath.Trim();
+        }
         ResultProfile.DefaultWorkspace = string.IsNullOrWhiteSpace(DefaultWorkspace) ? null : DefaultWorkspace.Trim();
         ResultProfile.ExtraArguments = string.IsNullOrWhiteSpace(ExtraArguments) ? null : ExtraArguments.Trim();
         ResultProfile.IsSelectedForSwarm = IsSelectedForSwarm;

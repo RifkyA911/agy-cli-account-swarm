@@ -5,7 +5,7 @@
         xmlns:vm="clr-namespace:AgyAccountSwarm.ViewModels"
         Title="{Binding DialogTitle}"
         Icon="../Resources/favicon.ico"
-        Height="640" Width="520"
+        Height="680" Width="640"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource BrushBg}"
@@ -35,6 +35,28 @@
             <!-- Form Content -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
                 <StackPanel>
+                    <!-- Default Profile Banner -->
+                    <Border Background="#1510B981"
+                            BorderBrush="#4010B981"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12,10"
+                            Margin="0,0,0,16"
+                            Visibility="{Binding IsDefaultProfile, Converter={StaticResource BoolToVisConverter}}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="🔒" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="System Primary Account (Default ~/.gemini)" FontWeight="Bold" FontSize="12" Foreground="#10B981" />
+                                <TextBlock Text="This profile is linked directly to your operating system's primary Google Antigravity identity. Profile path redirection is locked to ensure CLI ecosystem interoperability."
+                                           FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
                     <!-- Validation Error Banner -->
                     <Border Background="#331418"
                             BorderBrush="{DynamicResource BrushDanger}"
@@ -65,7 +87,7 @@
                     <Grid Margin="0,0,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="14" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         
@@ -86,33 +108,17 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- Quota Limit & Exhausted Status -->
-                    <Grid Margin="0,0,0,14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Daily Prompt Turns Quota" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
-                            <TextBox Text="{Binding QuotaLimit, UpdateSourceTrigger=PropertyChanged}"
-                                     Style="{StaticResource ModernTextBox}"
-                                     Margin="0,6,0,0" />
-                            <TextBlock Text="Auto-calculated per tier (Basic: 100, Plus: 300, Pro: 1k, Ultra: 2.5k)"
-                                       FontSize="10.5"
-                                       Foreground="{DynamicResource BrushTextMuted}"
-                                       Margin="0,3,0,0" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                            <CheckBox IsChecked="{Binding IsQuotaExhausted}"
-                                      Style="{StaticResource ModernCheckBox}"
-                                      Content="Flag as Quota Exhausted"
-                                      ToolTip="Manually flag quota exhausted to test notifications"
-                                      Margin="0,16,0,0" />
-                        </StackPanel>
-                    </Grid>
+                    <!-- Quota Limit (Auto per tier) -->
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="Daily Prompt Turns Quota" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                        <TextBox Text="{Binding QuotaLimit, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource ModernTextBox}"
+                                 Margin="0,6,0,0" />
+                        <TextBlock Text="Auto-calculated per tier (Basic: 100, Plus: 300, Pro: 1,000, Ultra: 2,500 prompts/day)"
+                                   FontSize="10.5"
+                                   Foreground="{DynamicResource BrushTextMuted}"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
 
                     <!-- Color Accent Selection -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
@@ -188,7 +194,12 @@
 
                     <!-- Custom Profile Directory -->
                     <TextBlock Text="Custom Isolated Home Directory (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
-                    <TextBlock Text="Leave empty to use default ~/.gemini-profiles/{Name}" FontSize="11" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,4" />
+                    <TextBlock Text="Locked to %USERPROFILE% for System Primary Account"
+                               Visibility="{Binding IsDefaultProfile, Converter={StaticResource BoolToVisConverter}}"
+                               FontSize="11" Foreground="#10B981" Margin="0,2,0,4" />
+                    <TextBlock Text="Leave empty to use default ~/.gemini-profiles/{Name}"
+                               Visibility="{Binding IsDefaultProfile, Converter={StaticResource InverseBoolToVisConverter}}"
+                               FontSize="11" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,4" />
                     <Grid Margin="0,2,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -196,10 +207,12 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Grid.Column="0"
                                  Text="{Binding CustomProfilePath, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{Binding CanEditProfilePath}"
                                  Style="{StaticResource ModernTextBox}" />
                         <Button Grid.Column="1"
                                 Content="Browse..."
                                 Click="BrowseProfileDir_Click"
+                                IsEnabled="{Binding CanEditProfilePath}"
                                 Style="{StaticResource ModernButton}"
                                 Margin="8,0,0,0"
                                 Padding="12,6" />

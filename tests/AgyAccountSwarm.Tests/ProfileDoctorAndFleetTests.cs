@@ -135,10 +135,10 @@ public class ProfileDoctorAndFleetTests
         Assert.Equal(40, vm.RemainingPrompts);
         Assert.Equal(40.0, vm.RemainingQuotaPercent);
         Assert.True(vm.BurnRatePromptsPerHour > 0);
-        Assert.Contains("prompt/jam", vm.BurnRateFormatted);
+        Assert.Contains("req/hr", vm.BurnRateFormatted);
 
         // Exhaustion: since 40 remaining and positive rate, it should forecast remaining hours/minutes
-        Assert.Contains("Dengan laju sekarang", vm.ExhaustionForecastText);
+        Assert.Contains("At current velocity", vm.ExhaustionForecastText);
         Assert.False(vm.IsNearQuotaExhausted); // 40% > 20%
     }
 
@@ -168,8 +168,51 @@ public class ProfileDoctorAndFleetTests
         Assert.Equal(15, vm.RemainingPrompts);
         Assert.Equal(15.0, vm.RemainingQuotaPercent);
         Assert.True(vm.IsNearQuotaExhausted);
-        Assert.Contains("tersisa 15%", vm.QuotaToastAlertText);
+        Assert.Contains("15% remaining", vm.QuotaToastAlertText);
         Assert.Equal("#F59E0B", vm.ExhaustionBadgeColor); // 15% is amber
+    }
+
+    [Fact]
+    public void ProfileItemViewModel_DefaultProfile_CannotBeDeleted()
+    {
+        var defaultProfile = new AccountProfile
+        {
+            Name = "Default (Main Account)",
+            CustomProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+        };
+
+        var launcher = new TerminalLauncherService();
+        var authDetector = new AuthDetectorService();
+        var audio = new AudioService { IsEnabled = false };
+        var doctor = new ProfileDoctorService();
+
+        var vm = new ProfileItemViewModel(defaultProfile, launcher, authDetector, audio, doctor);
+
+        Assert.True(vm.IsDefaultProfile);
+        Assert.False(vm.CanDelete);
+        Assert.Equal("Primary System Profile", vm.AccountRoleText);
+        Assert.Equal("Profile Doctor", vm.DoctorButtonText);
+    }
+
+    [Fact]
+    public void ProfileItemViewModel_WorkerProfile_CanBeDeleted()
+    {
+        var workerProfile = new AccountProfile
+        {
+            Name = "Worker Beta",
+            CustomProfilePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini-profiles", "worker-beta")
+        };
+
+        var launcher = new TerminalLauncherService();
+        var authDetector = new AuthDetectorService();
+        var audio = new AudioService { IsEnabled = false };
+        var doctor = new ProfileDoctorService();
+
+        var vm = new ProfileItemViewModel(workerProfile, launcher, authDetector, audio, doctor);
+
+        Assert.False(vm.IsDefaultProfile);
+        Assert.True(vm.CanDelete);
+        Assert.Equal("Sandboxed Worker Profile", vm.AccountRoleText);
     }
 
     [Fact]

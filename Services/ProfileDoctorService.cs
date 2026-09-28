@@ -154,9 +154,9 @@ public class ProfileDoctorService : IProfileDoctorService
                     return new DoctorCheckItem
                     {
                         Key = "cli_version",
-                        Title = "Versi agy Terpasang",
+                        Title = "Installed AGY CLI",
                         Status = DoctorCheckStatus.Passed,
-                        Message = $"CLI terdeteksi: {version}"
+                        Message = $"CLI detected: {version}"
                     };
                 }
             }
@@ -164,10 +164,10 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "cli_version",
-                Title = "Versi agy Terpasang",
+                Title = "Installed AGY CLI",
                 Status = DoctorCheckStatus.Failed,
-                Message = "Perintah 'agy' tidak merespons atau tidak ditemukan di sistem PATH",
-                ActionHint = "Pasang agy CLI atau pastikan path bin sudah terdaftar di environment PATH"
+                Message = "Command 'agy' is not responding or not found in system PATH",
+                ActionHint = "Install agy CLI or verify binary path is in your environment PATH"
             };
         }
         catch (Exception ex)
@@ -175,10 +175,10 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "cli_version",
-                Title = "Versi agy Terpasang",
+                Title = "Installed AGY CLI",
                 Status = DoctorCheckStatus.Failed,
-                Message = $"Gagal memverifikasi agy CLI: {ex.Message}",
-                ActionHint = "Periksa instalasi agy CLI di sistem"
+                Message = $"Failed to verify agy CLI: {ex.Message}",
+                ActionHint = "Check system agy CLI installation"
             };
         }
     }
@@ -206,10 +206,10 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "oauth_token",
-                Title = "Token Otentikasi OAuth",
+                Title = "OAuth Authentication Token",
                 Status = DoctorCheckStatus.Failed,
-                Message = "File token OAuth belum dibuat (akun belum login)",
-                ActionHint = "Buka sesi terminal dengan tombol 'Launch agy' untuk menyelesaikan login Google"
+                Message = "OAuth token file not created yet (Account requires login)",
+                ActionHint = "Launch a terminal session via 'Start Conversation' to complete Google sign-in"
             };
         }
 
@@ -223,10 +223,10 @@ public class ProfileDoctorService : IProfileDoctorService
                 return new DoctorCheckItem
                 {
                     Key = "oauth_token",
-                    Title = "Token Otentikasi OAuth",
+                    Title = "OAuth Authentication Token",
                     Status = DoctorCheckStatus.Failed,
-                    Message = "File token kosong atau tidak dapat didekripsi",
-                    ActionHint = "Login ulang diperlukan"
+                    Message = "Token file is empty or cannot be decrypted",
+                    ActionHint = "Re-authentication required"
                 };
             }
 
@@ -268,24 +268,24 @@ public class ProfileDoctorService : IProfileDoctorService
                     return new DoctorCheckItem
                     {
                         Key = "oauth_token",
-                        Title = "Token Otentikasi OAuth",
+                        Title = "OAuth Authentication Token",
                         Status = DoctorCheckStatus.Warning,
-                        Message = $"Token telah kadaluarsa pada {expDate:dd MMM yyyy HH:mm} UTC (refresh token otomatis diperlukan saat launch)",
-                        ActionHint = "Jalankan agy untuk melakukan refresh token otomatis"
+                        Message = $"Token expired on {expDate:dd MMM yyyy HH:mm} UTC (Automatic refresh will trigger on launch)",
+                        ActionHint = "Launch session to trigger automatic token refresh"
                     };
                 }
 
                 var remaining = expDate - DateTime.UtcNow;
                 var remainingStr = remaining.TotalDays >= 1
-                    ? $"{remaining.Days} hari {remaining.Hours} jam"
-                    : $"{remaining.Hours} jam {remaining.Minutes} menit";
+                    ? $"{remaining.Days}d {remaining.Hours}h"
+                    : $"{remaining.Hours}h {remaining.Minutes}m";
 
                 return new DoctorCheckItem
                 {
                     Key = "oauth_token",
-                    Title = "Token Otentikasi OAuth",
+                    Title = "OAuth Authentication Token",
                     Status = DoctorCheckStatus.Passed,
-                    Message = $"Token valid dan aktif (Sisa masa aktif: {remainingStr})"
+                    Message = $"Token valid and active (Remaining validity: {remainingStr})"
                 };
             }
 
@@ -294,9 +294,9 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "oauth_token",
-                Title = "Token Otentikasi OAuth",
+                Title = "OAuth Authentication Token",
                 Status = DoctorCheckStatus.Passed,
-                Message = $"Token aktif terverifikasi (Terakhir diperbarui {lastWrite:dd MMM yyyy HH:mm})"
+                Message = $"Active token verified (Last refreshed: {lastWrite:dd MMM yyyy HH:mm})"
             };
         }
         catch (Exception ex)
@@ -304,10 +304,10 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "oauth_token",
-                Title = "Token Otentikasi OAuth",
+                Title = "OAuth Authentication Token",
                 Status = DoctorCheckStatus.Failed,
-                Message = $"Gagal memvalidasi token: {ex.Message}",
-                ActionHint = "Periksa izin baca file atau lakukan login ulang"
+                Message = $"Failed to validate token: {ex.Message}",
+                ActionHint = "Check file access permissions or log in again"
             };
         }
     }
@@ -342,19 +342,19 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "lock_files",
-                Title = "Lock File Nyangkut",
+                Title = "Stuck Lock Files",
                 Status = DoctorCheckStatus.Warning,
-                Message = $"Terdeteksi {locks.Count} file lock nyangkut: {lockNames}",
-                ActionHint = "Klik 'Bersihkan Lock File' untuk menghapus file lock yang tertinggal dari sesi sebelumnya"
+                Message = $"Detected {locks.Count} stuck lock file(s): {lockNames}",
+                ActionHint = "Click 'Clean Stuck Locks' to remove leftover locks from previous sessions"
             };
         }
 
         return new DoctorCheckItem
         {
             Key = "lock_files",
-            Title = "Lock File Nyangkut",
+            Title = "Stuck Lock Files",
             Status = DoctorCheckStatus.Passed,
-            Message = "Bersih • Tidak ada file lock nyangkut terdeteksi"
+            Message = "Clean • No lingering lock files detected"
         };
     }
 
@@ -366,9 +366,9 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "workspace_trust",
-                Title = "Status Trusted Workspace",
+                Title = "Workspace Trust Status",
                 Status = DoctorCheckStatus.Passed,
-                Message = "Default Home Workspace (otomatis terpercaya)"
+                Message = "Default Home Workspace (implicitly trusted)"
             };
         }
 
@@ -377,10 +377,10 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "workspace_trust",
-                Title = "Status Trusted Workspace",
+                Title = "Workspace Trust Status",
                 Status = DoctorCheckStatus.Warning,
-                Message = $"Folder workspace tidak ditemukan di disk: {ws}",
-                ActionHint = "Buat folder tersebut atau perbarui path pada Edit Profile"
+                Message = $"Workspace directory not found on disk: {ws}",
+                ActionHint = "Create directory or update path via Edit Profile"
             };
         }
 
@@ -440,19 +440,19 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "workspace_trust",
-                Title = "Status Trusted Workspace",
+                Title = "Workspace Trust Status",
                 Status = DoctorCheckStatus.Passed,
-                Message = "Folder workspace sudah terdaftar di trustedWorkspaces"
+                Message = "Workspace directory is registered in trustedWorkspaces"
             };
         }
 
         return new DoctorCheckItem
         {
             Key = "workspace_trust",
-            Title = "Status Trusted Workspace",
+            Title = "Workspace Trust Status",
             Status = DoctorCheckStatus.Warning,
-            Message = "Workspace belum masuk daftar trustedWorkspaces (dapat memicu konfirmasi manual)",
-            ActionHint = "Klik 'Daftarkan Workspace' untuk mendaftarkan workspace secara otomatis"
+            Message = "Workspace not registered in trustedWorkspaces (may trigger manual confirmation)",
+            ActionHint = "Click 'Trust Workspace' to automatically register directory"
         };
     }
 
@@ -492,29 +492,29 @@ public class ProfileDoctorService : IProfileDoctorService
                     return new DoctorCheckItem
                     {
                         Key = "usage_schema",
-                        Title = "Format /usage agy CLI",
+                        Title = "CLI /usage Schema",
                         Status = DoctorCheckStatus.Passed,
-                        Message = "Skema JSON cocok (Model quota groups & buckets terdeteksi)"
+                        Message = "JSON schema verified (Model quota groups & buckets recognized)"
                     };
                 }
 
                 return new DoctorCheckItem
                 {
                     Key = "usage_schema",
-                    Title = "Format /usage agy CLI",
+                    Title = "CLI /usage Schema",
                     Status = DoctorCheckStatus.Warning,
-                    Message = "Output didapat tetapi struktur skema JSON berbeda dari format standar",
-                    ActionHint = "Periksa pembaruan versi agy CLI"
+                    Message = "Output received but schema differed from standard specification",
+                    ActionHint = "Check agy CLI version updates"
                 };
             }
 
             return new DoctorCheckItem
             {
                 Key = "usage_schema",
-                Title = "Format /usage agy CLI",
+                Title = "CLI /usage Schema",
                 Status = DoctorCheckStatus.Warning,
-                Message = "Perintah agy -p /usage tidak merespons dalam 6 detik atau memerlukan autentikasi",
-                ActionHint = "Pastikan akun sudah login dan memiliki akses internet"
+                Message = "Command agy -p /usage did not respond in 6s or requires authentication",
+                ActionHint = "Ensure account is logged in with active network connection"
             };
         }
         catch (Exception ex)
@@ -522,9 +522,9 @@ public class ProfileDoctorService : IProfileDoctorService
             return new DoctorCheckItem
             {
                 Key = "usage_schema",
-                Title = "Format /usage agy CLI",
+                Title = "CLI /usage Schema",
                 Status = DoctorCheckStatus.Warning,
-                Message = $"Gagal memeriksa /usage: {ex.Message}"
+                Message = $"Failed to inspect /usage: {ex.Message}"
             };
         }
     }
