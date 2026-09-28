@@ -58,14 +58,50 @@ public class AccountProfile
 
     public string GetEffectiveProfileDirectory()
     {
+        var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var profilesBase = System.IO.Path.Combine(userHome, ".gemini-profiles");
+
         if (!string.IsNullOrWhiteSpace(CustomProfilePath))
         {
-            return Environment.ExpandEnvironmentVariables(CustomProfilePath);
+            var expanded = Environment.ExpandEnvironmentVariables(CustomProfilePath.Trim());
+            try
+            {
+                var fullPath = System.IO.Path.GetFullPath(expanded);
+                var winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+                var sysDir = Environment.GetFolderPath(Environment.SpecialFolder.System);
+                var root = System.IO.Path.GetPathRoot(fullPath);
+
+                // Prevent pointing to root drive or Windows system directories
+                if (!string.Equals(fullPath, root, StringComparison.OrdinalIgnoreCase) &&
+                    !fullPath.StartsWith(winDir, StringComparison.OrdinalIgnoreCase) &&
+                    !fullPath.StartsWith(sysDir, StringComparison.OrdinalIgnoreCase))
+                {
+                    return fullPath;
+                }
+            }
+            catch
+            {
+                // Fall back to safe sandbox directory if invalid path
+            }
         }
 
-        var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var safeName = SanitizeFolderName(Name);
-        return System.IO.Path.Combine(userHome, ".gemini-profiles", safeName);
+        var target = System.IO.Path.Combine(profilesBase, safeName);
+        try
+        {
+            var fullTarget = System.IO.Path.GetFullPath(target);
+            var fullBase = System.IO.Path.GetFullPath(profilesBase);
+            if (fullTarget.StartsWith(fullBase, StringComparison.OrdinalIgnoreCase))
+            {
+                return fullTarget;
+            }
+        }
+        catch
+        {
+            // Fall back
+        }
+
+        return System.IO.Path.Combine(profilesBase, "safe_profile");
     }
 
     public bool IsMainDefaultProfile()
@@ -75,10 +111,16 @@ public class AccountProfile
         return effectiveDir.Equals(userHome, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string SanitizeFolderName(string name)
+    public static string SanitizeFolderName(string name)
     {
+        if (string.IsNullOrWhiteSpace(name)) return "unnamed_profile";
+
+        // Remove path traversal sequences and separators
+        var cleaned = name.Replace('/', '_').Replace('\\', '_').Replace("..", "_");
         var invalid = System.IO.Path.GetInvalidFileNameChars();
-        var cleaned = string.Join("_", name.Split(invalid, StringSplitOptions.RemoveEmptyEntries)).Trim();
+        cleaned = string.Join("_", cleaned.Split(invalid, StringSplitOptions.RemoveEmptyEntries)).Trim();
+        cleaned = cleaned.Trim('.', ' ');
+
         return string.IsNullOrEmpty(cleaned) ? "unnamed_profile" : cleaned;
     }
 }

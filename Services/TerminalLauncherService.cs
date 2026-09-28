@@ -64,13 +64,16 @@ public class TerminalLauncherService : ITerminalLauncherService
 
         var workDir = GetValidWorkingDirectory(profile);
         var agyBinary = FindAgyExecutablePath() ?? "agy";
-        var extraArgs = string.IsNullOrWhiteSpace(profile.ExtraArguments) ? "" : " " + profile.ExtraArguments.Trim();
-        var title = $"AGY [{profile.Name}]";
+        var extraArgs = string.IsNullOrWhiteSpace(profile.ExtraArguments) ? "" : " " + SanitizeCommandLineArgs(profile.ExtraArguments);
+        var rawTitle = $"AGY [{profile.Name}]";
+        var safeTitle = SanitizeBatchString(rawTitle);
+        var safeWorkDir = workDir.Replace("\"", "");
+        var safeAgyBinary = agyBinary.Replace("\"", "");
 
         var scriptPath = Path.Combine(effectiveDir, "run-agy.cmd");
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("@echo off");
-        sb.AppendLine($"title {title}");
+        sb.AppendLine($"title {safeTitle}");
         sb.AppendLine($"set \"USERPROFILE={effectiveDir}\"");
         sb.AppendLine($"set \"HOME={effectiveDir}\"");
         sb.AppendLine($"set \"ANTIGRAVITY_APP_DATA_DIR={effectiveDir}\\.gemini\\antigravity-cli\"");
@@ -85,44 +88,83 @@ public class TerminalLauncherService : ITerminalLauncherService
             sb.AppendLine("set \"SSH_CLIENT=1\"");
         }
 
-        sb.AppendLine($"cd /d \"{workDir}\"");
-        sb.AppendLine($"\"{agyBinary}\"{extraArgs} %*");
+        sb.AppendLine($"cd /d \"{safeWorkDir}\"");
+        sb.AppendLine($"\"{safeAgyBinary}\"{extraArgs} %*");
 
-        File.WriteAllText(scriptPath, sb.ToString(), System.Text.Encoding.ASCII);
-        Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{scriptPath}' (Target: '{agyBinary}', Isolated: {!profile.IsMainDefaultProfile()})");
+        File.WriteAllText(scriptPath, sb.ToString(), new System.Text.UTF8Encoding(false));
+        Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{scriptPath}' (Target: '{safeAgyBinary}', Isolated: {!profile.IsMainDefaultProfile()})");
         return scriptPath;
     }
 
     public static string BuildCmdArguments(string scriptPath)
     {
-        return $"/k call \"{scriptPath}\"";
+        var cleanPath = scriptPath.Replace("\"", "");
+        return $"/k call \"{cleanPath}\"";
     }
 
     public static string BuildWindowsTerminalArguments(string title, string workingDir, string scriptPath)
     {
-        return $"--title \"{title}\" -d \"{workingDir}\" cmd.exe /k call \"{scriptPath}\"";
+        var cleanTitle = System.Text.RegularExpressions.Regex.Replace(title.Replace("\"", "").Replace(";", " - "), @"\s+", " ").Trim();
+        var cleanWorkDir = workingDir.Replace("\"", "");
+        var cleanScript = scriptPath.Replace("\"", "");
+        return $"--title \"{cleanTitle}\" -d \"{cleanWorkDir}\" cmd.exe /k call \"{cleanScript}\"";
     }
 
     public static string BuildPowerShellCommand(string title, string effectiveDir, string workingDir, string agyBinary, string? extraArgs, bool isIsolated = false)
     {
-        var escapedTitle = title.Replace("'", "''");
-        var escapedEffectiveDir = effectiveDir.Replace("'", "''");
-        var escapedWorkingDir = workingDir.Replace("'", "''");
-        var escapedAgy = agyBinary.Replace("'", "''");
-        var cleanExtra = string.IsNullOrWhiteSpace(extraArgs) ? "" : " " + extraArgs.Trim();
+        var cleanTitle = title.Replace("'", "''").Replace("\"", "").Replace("\r", "").Replace("\n", "");
+        var cleanEffectiveDir = effectiveDir.Replace("'", "''").Replace("\"", "");
+        var cleanWorkingDir = workingDir.Replace("'", "''").Replace("\"", "");
+        var cleanAgy = agyBinary.Replace("'", "''").Replace("\"", "");
+        var cleanExtra = string.IsNullOrWhiteSpace(extraArgs) ? "" : " " + SanitizeCommandLineArgs(extraArgs);
 
         var isolationSnippet = isIsolated
             ? "$env:SSH_CONNECTION = '1'; $env:SSH_CLIENT = '1'; "
             : "";
 
-        return $"$host.UI.RawUI.WindowTitle = '{escapedTitle}'; " +
-               $"$env:USERPROFILE = '{escapedEffectiveDir}'; " +
-               $"$env:HOME = '{escapedEffectiveDir}'; " +
-               $"$env:ANTIGRAVITY_APP_DATA_DIR = '{escapedEffectiveDir}\\.gemini\\antigravity-cli'; " +
-               $"$env:JETSKI_APP_DATA_DIR = '{escapedEffectiveDir}\\.gemini\\antigravity-cli'; " +
+        return $"$host.UI.RawUI.WindowTitle = '{cleanTitle}'; " +
+               $"$env:USERPROFILE = '{cleanEffectiveDir}'; " +
+               $"$env:HOME = '{cleanEffectiveDir}'; " +
+               $"$env:ANTIGRAVITY_APP_DATA_DIR = '{cleanEffectiveDir}\\.gemini\\antigravity-cli'; " +
+               $"$env:JETSKI_APP_DATA_DIR = '{cleanEffectiveDir}\\.gemini\\antigravity-cli'; " +
                isolationSnippet +
-               $"Set-Location '{escapedWorkingDir}'; " +
-               $"& '{escapedAgy}'{cleanExtra}";
+               $"Set-Location '{cleanWorkingDir}'; " +
+               $"& '{cleanAgy}'{cleanExtra}";
+    }
+
+    public static string SanitizeBatchString(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+        var banned = new[] { '&', '|', '<', '>', '^', '"', '%', '\r', '\n' };
+        var chars = input.Where(c => !banned.Contains(c)).ToArray();
+        return new string(chars).Trim();
+    }
+
+    public static string SanitizeCommandLineArgs(string? args)
+    {
+        if (string.IsNullOrWhiteSpace(args)) return string.Empty;
+        var banned = new[] { ';', '&', '|', '`', '$', '\r', '\n' };
+        var chars = args.Where(c => !banned.Contains(c)).ToArray();
+        return new string(chars).Trim();
+    }
+
+    public static string? SanitizeSessionArgs(string? sessionArgs)
+    {
+        if (string.IsNullOrWhiteSpace(sessionArgs)) return null;
+        var trimmed = sessionArgs.Trim();
+        if (trimmed.Equals("--continue", StringComparison.OrdinalIgnoreCase))
+        {
+            return "--continue";
+        }
+        if (trimmed.StartsWith("--conversation ", StringComparison.OrdinalIgnoreCase))
+        {
+            var idPart = trimmed.Substring("--conversation ".Length).Trim();
+            if (System.Text.RegularExpressions.Regex.IsMatch(idPart, @"^[a-zA-Z0-9_\-]+$"))
+            {
+                return $"--conversation {idPart}";
+            }
+        }
+        return null;
     }
 
     public Task<Process?> LaunchProfileAsync(AccountProfile profile, TerminalType terminal, bool forceLoginPrompt = false, string? sessionArgs = null)
@@ -137,15 +179,17 @@ public class TerminalLauncherService : ITerminalLauncherService
 
             var workingDir = GetValidWorkingDirectory(profile);
             var agyBinary = FindAgyExecutablePath() ?? "agy";
-            var extraArgs = profile.ExtraArguments?.Trim() ?? string.Empty;
-            if (!string.IsNullOrWhiteSpace(sessionArgs))
+            var extraArgs = SanitizeCommandLineArgs(profile.ExtraArguments);
+            var safeSession = SanitizeSessionArgs(sessionArgs);
+
+            if (!string.IsNullOrWhiteSpace(safeSession))
             {
-                extraArgs = string.IsNullOrWhiteSpace(extraArgs) ? sessionArgs.Trim() : $"{extraArgs} {sessionArgs.Trim()}";
+                extraArgs = string.IsNullOrWhiteSpace(extraArgs) ? safeSession : $"{extraArgs} {safeSession}";
             }
 
             var title = $"AGY [{profile.Name}]";
             var scriptPath = EnsureLauncherScript(profile);
-            var scriptCallSuffix = string.IsNullOrWhiteSpace(sessionArgs) ? "" : " " + sessionArgs.Trim();
+            var scriptCallSuffix = string.IsNullOrWhiteSpace(safeSession) ? "" : " " + safeSession;
 
             ProcessStartInfo psi;
 
@@ -163,11 +207,12 @@ public class TerminalLauncherService : ITerminalLauncherService
             else if (terminal == TerminalType.PowerShell)
             {
                 var psScript = BuildPowerShellCommand(title, effectiveDir, workingDir, agyBinary, extraArgs, !profile.IsMainDefaultProfile());
+                var encodedCommand = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(psScript));
 
                 psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
-                    Arguments = $"-NoExit -Command \"{psScript}\"",
+                    Arguments = $"-NoExit -EncodedCommand {encodedCommand}",
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
@@ -185,7 +230,7 @@ public class TerminalLauncherService : ITerminalLauncherService
 
             profile.LastLaunchedAt = DateTime.UtcNow;
             var proc = Process.Start(psi);
-            Logger.Info($"[TerminalLauncher] Launched profile '{profile.Name}' via {terminal} (PID: {proc?.Id.ToString() ?? "detached"}) with args '{sessionArgs ?? "none"}' in '{workingDir}'");
+            Logger.Info($"[TerminalLauncher] Launched profile '{profile.Name}' via {terminal} (PID: {proc?.Id.ToString() ?? "detached"}) with args '{safeSession ?? "none"}' in '{workingDir}'");
             return proc;
         });
     }

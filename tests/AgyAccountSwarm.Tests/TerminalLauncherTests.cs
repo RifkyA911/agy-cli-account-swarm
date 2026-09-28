@@ -192,14 +192,80 @@ public class TerminalLauncherTests
     }
 
     [Fact]
-    public void ReadWindowsKeyring_Inspect()
+    public void EnsureLauncherScript_WithInjectionCharactersInProfileName_SanitizesTitleAndCommands()
     {
-        var raw = AuthDetectorService.ReadWindowsCredential("gemini:antigravity");
-        if (raw != null)
+        var service = new TerminalLauncherService();
+        var tempDir = Path.Combine(Path.GetTempPath(), "agy_sec_test_" + Guid.NewGuid().ToString("N"));
+        try
         {
-            var email = AuthDetectorService.ExtractEmailFromTokenJson(raw);
-            Assert.True(email == "rifkyakhmad911@gmail.com" || email == "missfaruzan@gmail.com");
+            var profile = new AccountProfile
+            {
+                Name = "Worker & calc.exe | echo pwned",
+                CustomProfilePath = tempDir,
+                ExtraArguments = "--dangerously-skip-permissions; whoami"
+            };
+
+            var scriptPath = service.EnsureLauncherScript(profile);
+            var content = File.ReadAllText(scriptPath);
+
+            // Assert: dangerous characters are stripped from title and extraArgs
+            Assert.DoesNotContain("&", content.Split('\n').First(l => l.StartsWith("title ")));
+            Assert.DoesNotContain("|", content.Split('\n').First(l => l.StartsWith("title ")));
+            Assert.DoesNotContain(";", content);
         }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+            }
+        }
+    }
+
+    [Fact]
+    public void BuildWindowsTerminalArguments_WithSemicolonInTitleOrPath_SanitizesDelimiter()
+    {
+        string title = "AGY [Worker; new-tab cmd.exe]";
+        string workDir = @"D:\Works\Project; evil";
+        string scriptPath = @"C:\Profiles\Worker\run-agy.cmd";
+
+        string args = TerminalLauncherService.BuildWindowsTerminalArguments(title, workDir, scriptPath);
+
+        // Windows Terminal semicolon delimiter should be replaced
+        Assert.DoesNotContain("Worker;", args);
+        Assert.Contains("Worker - new-tab cmd.exe", args);
+    }
+
+    [Fact]
+    public void SanitizeSessionArgs_OnlyAllowsWhitelistedArguments()
+    {
+        Assert.Equal("--continue", TerminalLauncherService.SanitizeSessionArgs("--continue"));
+        Assert.Equal("--conversation conv-123_abc", TerminalLauncherService.SanitizeSessionArgs("--conversation conv-123_abc"));
+        
+        // Malicious or arbitrary inputs should be rejected
+        Assert.Null(TerminalLauncherService.SanitizeSessionArgs("--conversation conv-123; calc.exe"));
+        Assert.Null(TerminalLauncherService.SanitizeSessionArgs("--conversation conv-123 & whoami"));
+        Assert.Null(TerminalLauncherService.SanitizeSessionArgs("rm -rf /"));
+        Assert.Null(TerminalLauncherService.SanitizeSessionArgs("--dangerously-skip-permissions"));
+    }
+
+    [Fact]
+    public void AccountProfile_PathTraversal_SanitizesProperly()
+    {
+        var profile = new AccountProfile
+        {
+            Name = "../../../Windows/System32"
+        };
+
+        var safeName = AccountProfile.SanitizeFolderName(profile.Name);
+        Assert.DoesNotContain("..", safeName);
+        Assert.DoesNotContain("/", safeName);
+        Assert.DoesNotContain("\\", safeName);
+
+        var effDir = profile.GetEffectiveProfileDirectory();
+        Assert.DoesNotContain("..", effDir);
+        var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        Assert.StartsWith(Path.Combine(userHome, ".gemini-profiles"), effDir);
     }
 
     [Fact]
@@ -210,8 +276,8 @@ public class TerminalLauncherTests
         Directory.CreateDirectory(cliDir);
         try
         {
-            // Valid base64 payload: {"email":"testuser@example.com","name":"Test User"}
-            string base64Payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("{\"email\":\"testuser@example.com\",\"name\":\"Test User\"}")).TrimEnd('=');
+            // Valid base64 payload: {"email":"dummy_user@example.com","name":"Test User"}
+            string base64Payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("{\"email\":\"dummy_user@example.com\",\"name\":\"Test User\"}")).TrimEnd('=');
             string json = $"{{\"id_token\":\"eyJhbGciOiJub25lIn0.{base64Payload}.dummy_sig\"}}";
             await File.WriteAllTextAsync(Path.Combine(cliDir, "antigravity-oauth-token"), json);
 
@@ -222,7 +288,7 @@ public class TerminalLauncherTests
                 CustomProfilePath = tempDir
             };
             var status = await service.DetectAuthStatusAsync(profile);
-            Assert.Equal("testuser@example.com", status.AccountEmail);
+            Assert.Equal("dummy_user@example.com", status.AccountEmail);
             Assert.Equal(AuthStatusType.Authenticated, status.Status);
         }
         finally
@@ -232,40 +298,6 @@ public class TerminalLauncherTests
                 Directory.Delete(tempDir, true);
             }
         }
-    }
-
-    [Fact]
-    public async Task DetectAuthStatus_WorkerSpace_DetectsEmail()
-    {
-        string path = @"C:\Users\rifky\.gemini-profiles\Worker Space";
-        if (!Directory.Exists(path)) return; // Skip in non-host CI environments
-
-        var service = new AuthDetectorService();
-        var profile = new AccountProfile
-        {
-            Name = "Worker Space",
-            CustomProfilePath = path
-        };
-        var status = await service.DetectAuthStatusAsync(profile);
-        Assert.Equal("missfaruzan@gmail.com", status.AccountEmail);
-        Assert.Equal(AuthStatusType.Authenticated, status.Status);
-    }
-
-    [Fact]
-    public async Task DetectAuthStatus_DefaultProfile_DetectsEmail()
-    {
-        string defaultPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini");
-        if (!Directory.Exists(defaultPath)) return; // Skip in non-host CI environments
-
-        var service = new AuthDetectorService();
-        var profile = new AccountProfile
-        {
-            Name = "Default",
-            CustomProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
-        };
-        var status = await service.DetectAuthStatusAsync(profile);
-        Assert.NotNull(status.AccountEmail);
-        Assert.Equal(AuthStatusType.Authenticated, status.Status);
     }
 
     [Fact]
