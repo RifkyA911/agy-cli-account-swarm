@@ -39,7 +39,7 @@
                     Background="{DynamicResource BrushSurface}"
                     BorderBrush="{DynamicResource BrushCardBorder}"
                     BorderThickness="0,0,1,0"
-                    Padding="10,20">
+                    Padding="8,20">
                 <Grid>
                     <Grid.RowDefinitions>
                         <!-- App Logo, Title & Sidebar Toggle -->
@@ -101,11 +101,19 @@
                     <!-- Navigation Menu Items -->
                     <StackPanel Grid.Row="1">
                         <!-- /dashboard -->
-                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Dashboard}"
-                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Dashboard}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Margin="0,0,0,4">
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Dashboard">
+                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Dashboard"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -134,7 +142,7 @@
                                     </Grid>
 
                                     <!-- Collapsed View -->
-                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="28" Width="44" HorizontalAlignment="Center" ClipToBounds="False">
                                         <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
                                                 Background="#3B82F6"
                                                 Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dashboard}" />
@@ -148,11 +156,19 @@
                         </Border>
 
                         <!-- /accounts -->
-                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Accounts}"
-                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Accounts}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Margin="0,0,0,4">
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Accounts">
+                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Accounts"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -190,7 +206,7 @@
                                     </Grid>
 
                                     <!-- Collapsed View -->
-                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="28" Width="44" HorizontalAlignment="Center" ClipToBounds="False">
                                         <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
                                                 Background="#3B82F6"
                                                 Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Accounts}" />
@@ -199,7 +215,7 @@
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                               Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         <Border Background="{DynamicResource BrushBadgeBg}" BorderBrush="{DynamicResource BrushBadgeBorder}" BorderThickness="1"
-                                                CornerRadius="5" Padding="3,0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-3,0">
+                                                CornerRadius="6" Padding="3.5,1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-3,0">
                                             <TextBlock Text="{Binding TotalCount}" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushBadgeText}" />
                                         </Border>
                                     </Grid>
@@ -208,11 +224,19 @@
                         </Border>
 
                         <!-- /analytic -->
-                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Analytics}"
-                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Analytics}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Margin="0,0,0,4">
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Analytics">
+                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Analytics"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -241,7 +265,7 @@
                                     </Grid>
 
                                     <!-- Collapsed View -->
-                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="28" Width="44" HorizontalAlignment="Center" ClipToBounds="False">
                                         <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
                                                 Background="#3B82F6"
                                                 Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Analytics}" />
@@ -255,11 +279,19 @@
                         </Border>
 
                         <!-- /mcp -->
-                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Mcp}"
-                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Mcp}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Margin="0,0,0,4">
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Mcp">
+                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Mcp"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -297,7 +329,7 @@
                                     </Grid>
 
                                     <!-- Collapsed View -->
-                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="28" Width="44" HorizontalAlignment="Center" ClipToBounds="False">
                                         <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
                                                 Background="#3B82F6"
                                                 Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Mcp}" />
@@ -306,7 +338,7 @@
                                               StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                               Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         <Border Background="{DynamicResource BrushBadgeBg}" BorderBrush="{DynamicResource BrushBadgeBorder}" BorderThickness="1"
-                                                CornerRadius="5" Padding="3,0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-3,0">
+                                                CornerRadius="6" Padding="3.5,1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-3,0">
                                             <TextBlock Text="{Binding McpServersCount}" FontSize="8.5" FontWeight="Bold" Foreground="#3B82F6" />
                                         </Border>
                                     </Grid>
@@ -315,11 +347,19 @@
                         </Border>
 
                         <!-- /docs -->
-                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Docs}"
-                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Docs}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Margin="0,0,0,4">
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Docs">
+                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Docs"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -348,7 +388,7 @@
                                     </Grid>
 
                                     <!-- Collapsed View -->
-                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="28" Width="44" HorizontalAlignment="Center" ClipToBounds="False">
                                         <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
                                                 Background="#3B82F6"
                                                 Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Docs}" />
@@ -362,11 +402,19 @@
                         </Border>
 
                         <!-- /logs -->
-                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Logs}"
-                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Logs}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Margin="0,0,0,4">
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Logs">
+                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Logs"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -395,7 +443,7 @@
                                     </Grid>
 
                                     <!-- Collapsed View -->
-                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="28" Width="44" HorizontalAlignment="Center" ClipToBounds="False">
                                         <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
                                                 Background="#3B82F6"
                                                 Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Logs}" />
@@ -409,11 +457,19 @@
                         </Border>
 
                         <!-- /settings -->
-                        <Border Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Settings}"
-                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Settings}"
-                                BorderThickness="1"
-                                CornerRadius="8"
-                                Margin="0,0,0,4">
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderBrush" Value="Transparent" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Settings">
+                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
+                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Settings"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -442,7 +498,7 @@
                                     </Grid>
 
                                     <!-- Collapsed View -->
-                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="26" Width="38" HorizontalAlignment="Center">
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="28" Width="44" HorizontalAlignment="Center" ClipToBounds="False">
                                         <Border HorizontalAlignment="Left" VerticalAlignment="Center" Width="3.5" Height="18" CornerRadius="1.75"
                                                 Background="#3B82F6"
                                                 Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Settings}" />
@@ -1292,7 +1348,7 @@
                                                                  StrokeThickness="2"
                                                                  Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}">
                                                             <Ellipse.Fill>
-                                                                <ImageBrush ImageSource="{Binding AvatarUrl}" Stretch="UniformToFill" />
+                                                                <ImageBrush ImageSource="{Binding AvatarImageSource}" Stretch="UniformToFill" />
                                                             </Ellipse.Fill>
                                                         </Ellipse>
 
@@ -1391,10 +1447,38 @@
                                                 </WrapPanel>
                                             </StackPanel>
 
-                                            <!-- Horizontal Accent Line (<hr>) in Profile's ColorTag before Metrics -->
-                                            <Border Height="2" CornerRadius="1"
-                                                    Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
-                                                    Margin="0,4,0,12" Opacity="0.85" />
+                                            <!-- Horizontal Accent Line (<hr>) & Diagnostics Fold Toggle Button -->
+                                            <Grid Margin="0,4,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border Grid.Column="0" Height="2" CornerRadius="1"
+                                                        Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                        VerticalAlignment="Center" Opacity="0.85" />
+                                                <Button Grid.Column="1" Command="{Binding ToggleDetailsCommand}"
+                                                        Style="{StaticResource ModernButton}"
+                                                        Background="{DynamicResource BrushSurface}"
+                                                        BorderBrush="{DynamicResource BrushCardBorder}"
+                                                        BorderThickness="1"
+                                                        Padding="12,4" Margin="10,0" Cursor="Hand"
+                                                        ToolTip="Toggle expandable detailed quota analytics, token burn-rate, and Profile Doctor">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Path Data="{StaticResource HeroIconShieldCheck}"
+                                                              Stroke="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                              StrokeThickness="1.5" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding DetailsToggleText}" FontSize="11" FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Border Grid.Column="2" Height="2" CornerRadius="1"
+                                                        Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                        VerticalAlignment="Center" Opacity="0.85" />
+                                            </Grid>
+
+                                            <!-- Collapsible Details & Diagnostics Section (Default Folded) -->
+                                            <StackPanel Visibility="{Binding IsDetailsExpanded, Converter={StaticResource BoolToVisConverter}}">
 
                                             <!-- Quota Depletion / Toast Warning Banner (if near exhaustion <= 20% or exhausted) -->
                                             <Border Visibility="{Binding IsNearQuotaExhausted, Converter={StaticResource BoolToVisConverter}}"
@@ -1627,7 +1711,8 @@
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
                                                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <TextBlock Text="🩺 PROFILE DOCTOR" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                                    <Path Data="{StaticResource HeroIconShieldCheck}" Stroke="#3B82F6" StrokeThickness="1.75" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="PROFILE DOCTOR" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
                                                                     <Border Background="{DynamicResource BrushCardBorder}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,8,0">
                                                                         <TextBlock Text="CLI &amp; Profile Diagnostics" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
                                                                     </Border>
@@ -1642,8 +1727,8 @@
                                                                             IsEnabled="{Binding IsDoctorRunning, Converter={StaticResource InverseBoolConverter}}"
                                                                             Style="{StaticResource ModernButton}" Padding="10,4" Margin="0,0,6,0" Cursor="Hand"
                                                                             ToolTip="Audit 5 system checkpoints: CLI version, OAuth tokens, stuck lock files, trusted workspaces, and /usage schema">
-                                                                        <StackPanel Orientation="Horizontal">
-                                                                            <TextBlock Text="🩺 " FontSize="10" VerticalAlignment="Center" />
+                                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                            <Path Data="{StaticResource HeroIconShieldCheck}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                                                             <TextBlock Text="{Binding DoctorButtonText}" FontSize="10.5" FontWeight="SemiBold" VerticalAlignment="Center" />
                                                                         </StackPanel>
                                                                     </Button>
@@ -1703,6 +1788,7 @@
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </Border>
+                                            </StackPanel>
 
                                                 <!-- Row 4: Action Toolbar (2-Row Layout: Row 1 = Session + Start, Row 2 = Actions) -->
                                                 <StackPanel>
@@ -1790,8 +1876,8 @@
                                                                     Visibility="{Binding CanDelete, Converter={StaticResource BoolToVisConverter}}"
                                                                     Style="{StaticResource DangerButton}" Padding="12,7" ToolTip="Remove profile from manager">
                                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <Path Data="{StaticResource HeroIconTrash}" Stroke="#FFFFFF" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                    <TextBlock Text="Delete" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
+                                                                    <Path Data="{StaticResource HeroIconTrash}" Stroke="#EF4444" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="Delete" FontWeight="Bold" FontSize="11" Foreground="#EF4444" VerticalAlignment="Center" />
                                                                 </StackPanel>
                                                             </Button>
                                                         </StackPanel>
@@ -2366,7 +2452,7 @@
                                             <TextBlock Text="🚀 " FontSize="16" VerticalAlignment="Center" />
                                             <TextBlock Text="Swarm Fleet Intelligence &amp; CLI Capabilities" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                         </StackPanel>
-                                        <TextBlock Text="Orkestrasi armada model CLI, kapasitas pool agregat swarm, dan integrasi kapabilitas resmi agy v1.2.12" FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,3,0,0" />
+                                        <TextBlock Text="CLI model fleet orchestration, aggregate swarm pool capacity, and verified agy v1.2.12 capabilities" FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,3,0,0" />
                                     </StackPanel>
                                     <Border Grid.Column="1" Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="6" Padding="10,5" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -2396,21 +2482,21 @@
                                             <StackPanel Grid.Column="0" Margin="0,0,12,0">
                                                 <TextBlock Text="TOTAL SWARM DAILY POOL" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,3" />
                                                 <TextBlock Text="{Binding SwarmDailyCapacityTotal, StringFormat='{}{0:N0} prompts/day'}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                <TextBlock Text="Kapasitas seluruh akun aktif" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                                <TextBlock Text="Capacity across all active accounts" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
                                             </StackPanel>
 
                                             <!-- Stat 2: Total Prompts Consumed Today -->
                                             <StackPanel Grid.Column="1" Margin="0,0,12,0">
                                                 <TextBlock Text="SWARM PROMPTS TODAY" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,3" />
                                                 <TextBlock Text="{Binding SwarmTodayPromptsTotal, StringFormat='{}{0:N0} prompts'}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
-                                                <TextBlock Text="{Binding SwarmPoolRemainingPercent, StringFormat='{}{0:F1}% pool sisa'}" FontSize="10.5" Foreground="#10B981" FontWeight="SemiBold" Margin="0,2,0,0" />
+                                                <TextBlock Text="{Binding SwarmPoolRemainingPercent, StringFormat='{}{0:F1}% pool remaining'}" FontSize="10.5" Foreground="#10B981" FontWeight="SemiBold" Margin="0,2,0,0" />
                                             </StackPanel>
 
                                             <!-- Stat 3: Swarm Aggregate Burn-Rate -->
                                             <StackPanel Grid.Column="2" Margin="0,0,12,0">
                                                 <TextBlock Text="AGGREGATE BURN-RATE" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,3" />
                                                 <TextBlock Text="{Binding SwarmAggregateBurnRate, StringFormat='{}{0:F1} p/hr'}" FontSize="15" FontWeight="Bold" Foreground="#F59E0B" />
-                                                <TextBlock Text="Kecepatan gabungan" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
+                                                <TextBlock Text="Combined swarm burn-rate" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,0" />
                                             </StackPanel>
 
                                             <!-- Stat 4: Exhaustion Forecast -->
@@ -2418,7 +2504,7 @@
                                                 <StackPanel>
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,2">
                                                         <TextBlock Text="⚡ " FontSize="11" VerticalAlignment="Center" />
-                                                        <TextBlock Text="PREDIKSI EXHAUSTION SWARM" FontSize="10" FontWeight="Bold" Foreground="#3B82F6" VerticalAlignment="Center" />
+                                                        <TextBlock Text="SWARM EXHAUSTION FORECAST" FontSize="10" FontWeight="Bold" Foreground="#3B82F6" VerticalAlignment="Center" />
                                                     </StackPanel>
                                                     <TextBlock Text="{Binding SwarmExhaustionForecast}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" TextWrapping="Wrap" />
                                                 </StackPanel>
@@ -2438,7 +2524,7 @@
                                 </Border>
 
                                 <!-- 2. Fleet Model Engines (agy models) -->
-                                <TextBlock Text="Armada Engine Model Aktif (agy models)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
+                                <TextBlock Text="Active Fleet Engine Models (agy models)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
                                 <ItemsControl ItemsSource="{Binding SwarmFleetModels}" Margin="0,0,0,20">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -2479,7 +2565,7 @@
 
                                                         <!-- Assigned Swarm Accounts -->
                                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="Akun terhubung: " FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                            <TextBlock Text="Connected accounts: " FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" />
                                                             <TextBlock Text="{Binding AssignedAccountsList}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
                                                         </StackPanel>
                                                     </StackPanel>
@@ -2506,7 +2592,7 @@
                                 </ItemsControl>
 
                                 <!-- 3. Verified AGY Subcommands Matrix -->
-                                <TextBlock Text="Kapabilitas Resmi agy CLI (Empiris &amp; Terverifikasi)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
+                                <TextBlock Text="Verified agy CLI Official Capabilities" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
                                 <ItemsControl ItemsSource="{Binding SwarmCliCapabilities}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -2756,6 +2842,7 @@
                             <StackPanel Grid.Column="3" Orientation="Horizontal">
                                 <Button Content="Refresh" Command="{Binding LoadLogsCommand}" Style="{StaticResource ModernButton}" Margin="0,0,8,0" />
                                 <Button Content="Copy Logs" Command="{Binding CopyLogsCommand}" Style="{StaticResource ModernButton}" Margin="0,0,8,0" />
+                                <Button Content="Export Excel" Command="{Binding ExportLogsToExcelCommand}" Style="{StaticResource ModernButton}" Margin="0,0,8,0" ToolTip="Export current logs as genuine .xlsx Excel workbook" />
                                 <Button Content="Open in Editor" Command="{Binding OpenLogFileCommand}" Style="{StaticResource ModernButton}" Margin="0,0,8,0" />
                                 <Button Content="Clear" Command="{Binding ClearLogsCommand}" Style="{StaticResource DangerButton}" />
                             </StackPanel>
@@ -2771,8 +2858,9 @@
                              Foreground="{DynamicResource BrushTextPrimary}"
                              BorderThickness="0"
                              Padding="20"
+                             TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Auto" />
+                             HorizontalScrollBarVisibility="Disabled" />
                 </Grid>
 
                 <!-- ============================================================== -->

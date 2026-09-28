@@ -160,7 +160,9 @@ public static class AgyUsageParser
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                CreateNoWindow = true
+                RedirectStandardInput = true,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
 
             psi.Environment["USERPROFILE"] = effectiveProfileDir;

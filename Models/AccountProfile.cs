@@ -56,9 +56,37 @@ public class AccountProfile
     [JsonIgnore]
     public ProfileAuthStatus AuthStatus { get; set; } = new();
 
+    public bool IsMainDefaultProfile()
+    {
+        if (string.Equals(Id, "main", StringComparison.OrdinalIgnoreCase) ||
+            Name.StartsWith("Default", StringComparison.OrdinalIgnoreCase) ||
+            Name.Contains("(Main Account)", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Name, "Primary (Default)", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).TrimEnd('\\', '/');
+        if (string.IsNullOrWhiteSpace(CustomProfilePath)) return false;
+        try
+        {
+            var expanded = Environment.ExpandEnvironmentVariables(CustomProfilePath.Trim()).TrimEnd('\\', '/');
+            return expanded.Equals(userHome, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public string GetEffectiveProfileDirectory()
     {
         var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (IsMainDefaultProfile())
+        {
+            return userHome;
+        }
+
         var profilesBase = System.IO.Path.Combine(userHome, ".gemini-profiles");
 
         if (!string.IsNullOrWhiteSpace(CustomProfilePath))
@@ -102,13 +130,6 @@ public class AccountProfile
         }
 
         return System.IO.Path.Combine(profilesBase, "safe_profile");
-    }
-
-    public bool IsMainDefaultProfile()
-    {
-        var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).TrimEnd('\\', '/');
-        var effectiveDir = GetEffectiveProfileDirectory().TrimEnd('\\', '/');
-        return effectiveDir.Equals(userHome, StringComparison.OrdinalIgnoreCase);
     }
 
     public static string SanitizeFolderName(string name)

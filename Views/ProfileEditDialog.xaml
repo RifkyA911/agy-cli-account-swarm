@@ -5,7 +5,7 @@
         xmlns:vm="clr-namespace:AgyAccountSwarm.ViewModels"
         Title="{Binding DialogTitle}"
         Icon="../Resources/favicon.ico"
-        Height="680" Width="640"
+        Height="700" Width="740"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{DynamicResource BrushBg}"
@@ -72,8 +72,14 @@
                     </Border>
 
                     <!-- Profile Name -->
-                    <TextBlock Text="Profile Name *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Profile Name *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                        <TextBlock Text="• Locked for primary system profile"
+                                   Visibility="{Binding IsDefaultProfile, Converter={StaticResource BoolToVisConverter}}"
+                                   FontSize="10.5" FontWeight="SemiBold" Foreground="#10B981" Margin="8,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
                     <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding CanEditName}"
                              Style="{StaticResource ModernTextBox}"
                              Margin="0,6,0,14" />
 
@@ -193,13 +199,13 @@
                     </Grid>
 
                     <!-- Custom Profile Directory -->
-                    <TextBlock Text="Custom Isolated Home Directory (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBlock Text="Custom Isolated Home Directory (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                     <TextBlock Text="Locked to %USERPROFILE% for System Primary Account"
                                Visibility="{Binding IsDefaultProfile, Converter={StaticResource BoolToVisConverter}}"
                                FontSize="11" Foreground="#10B981" Margin="0,2,0,4" />
                     <TextBlock Text="Leave empty to use default ~/.gemini-profiles/{Name}"
                                Visibility="{Binding IsDefaultProfile, Converter={StaticResource InverseBoolToVisConverter}}"
-                               FontSize="11" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,4" />
+                               FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,4" />
                     <Grid Margin="0,2,0,14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -219,8 +225,8 @@
                     </Grid>
 
                     <!-- Extra Arguments -->
-                    <TextBlock Text="Extra agy CLI Flags (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
-                    <TextBlock Text="e.g. --dangerously-skip-permissions --model 'Gemini 3.8 Flash'" FontSize="11" Foreground="{StaticResource BrushTextMuted}" Margin="0,2,0,4" />
+                    <TextBlock Text="Extra agy CLI Flags (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                    <TextBlock Text="e.g. --dangerously-skip-permissions --model 'Gemini 3.8 Flash'" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,2,0,4" />
                     <TextBox Text="{Binding ExtraArguments, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource ModernTextBox}"
                              Margin="0,2,0,14" />

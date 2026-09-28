@@ -26,7 +26,10 @@ Agy CLI Account Swarm isolates each account:
 ## Platform Support
 
 - **Windows 10 / 11 (64-bit)**: Supported natively (built with WPF on .NET 9).
-- **Linux & macOS**: Not natively supported. WPF requires the Windows Desktop runtime. Running via Wine or a future cross-platform build is experimental/planned.
+  - Tightly utilizes Windows Desktop APIs: Windows DPAPI for token encryption at rest, Windows Credential Manager (`advapi32.dll`), and Windows Terminal multi-pane launching (`wt.exe`).
+- **Linux & macOS**:
+  - **Why not Wine?** Running modern WPF desktop applications through Wine/Proton is unreliable. WPF's Direct3D rendering pipeline, hardware acceleration, Windows DPAPI (`CryptProtectData`), and process-tree sandboxing frequently crash or fail silently under translation layers. We intentionally reject shipping Wine-bundled wrappers.
+  - **Cross-Platform Roadmap**: To deliver true, native, zero-compromise Linux and macOS desktop experiences, the business logic and telemetry engine (`Services/`) will be decoupled into `AgyAccountSwarm.Core`, paired with an [Avalonia UI](https://avaloniaui.net/) multi-platform presentation layer with native SecretService/Keychain integration.
 
 ---
 

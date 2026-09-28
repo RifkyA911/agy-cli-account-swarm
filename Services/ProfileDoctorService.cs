@@ -131,15 +131,18 @@ public class ProfileDoctorService : IProfileDoctorService
     {
         try
         {
+            var agyPath = TerminalLauncherService.ResolveAgyExecutablePath() ?? "agy";
             using var proc = new Process();
             proc.StartInfo = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = "/c agy --version",
+                FileName = agyPath,
+                Arguments = "--version",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                RedirectStandardInput = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
 
             proc.Start();
@@ -461,15 +464,18 @@ public class ProfileDoctorService : IProfileDoctorService
         try
         {
             var profileDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
+            var agyPath = TerminalLauncherService.ResolveAgyExecutablePath() ?? "agy";
             using var proc = new Process();
             proc.StartInfo = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = "/c agy -p \"/usage\" --output-format json",
+                FileName = agyPath,
+                Arguments = "-p \"/usage\" --output-format json",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                RedirectStandardInput = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
 
             // Isolate sandbox environment if not main profile
@@ -477,6 +483,10 @@ public class ProfileDoctorService : IProfileDoctorService
             {
                 proc.StartInfo.Environment["USERPROFILE"] = profileDir;
                 proc.StartInfo.Environment["HOME"] = profileDir;
+                proc.StartInfo.Environment["ANTIGRAVITY_APP_DATA_DIR"] = Path.Combine(profileDir, ".gemini", "antigravity-cli");
+                proc.StartInfo.Environment["JETSKI_APP_DATA_DIR"] = Path.Combine(profileDir, ".gemini", "antigravity-cli");
+                proc.StartInfo.Environment["SSH_CONNECTION"] = "1";
+                proc.StartInfo.Environment["SSH_CLIENT"] = "1";
             }
 
             proc.Start();

@@ -33,6 +33,35 @@ public partial class App : System.Windows.Application
             ITelemetryService telemetryService = new TelemetryService();
             IAgyModelService modelService = new AgyModelService();
 
+            // Pre-initialize persisted theme before MainWindow is constructed
+            try
+            {
+                var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                var settingsPath = System.IO.Path.Combine(appData, "AgyAccountSwarm", "settings.json");
+                if (System.IO.File.Exists(settingsPath))
+                {
+                    var json = System.IO.File.ReadAllText(settingsPath);
+                    using var doc = System.Text.Json.JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("Theme", out var themeProp) && themeProp.GetString() is { Length: > 0 } theme)
+                    {
+                        ThemeManager.ApplyTheme(theme);
+                    }
+                    else
+                    {
+                        ThemeManager.ApplyTheme("System");
+                    }
+                }
+                else
+                {
+                    ThemeManager.ApplyTheme("System");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"[App] Could not pre-apply theme: {ex.Message}");
+                ThemeManager.ApplyTheme("Dark");
+            }
+
             // 3. Setup MainViewModel
             var mainViewModel = new MainViewModel(
                 storageService,

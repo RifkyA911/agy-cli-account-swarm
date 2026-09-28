@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using AgyAccountSwarm.Services;
 using WpfApp = System.Windows.Application;
 using WpfBrush = System.Windows.Media.Brush;
 
@@ -118,6 +119,8 @@ public class PageToActiveBgConverter : IValueConverter
         if (matches)
         {
             if (WpfApp.Current?.Resources["BrushNavActiveBg"] is WpfBrush brush) return brush;
+            if (string.Equals(ThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase))
+                return (SolidColorBrush)new BrushConverter().ConvertFromString("#E0E7FF")!;
             return (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!;
         }
         return System.Windows.Media.Brushes.Transparent;
@@ -150,9 +153,13 @@ public class PageToActiveTextConverter : IValueConverter
         if (matches)
         {
             if (WpfApp.Current?.Resources["BrushNavActiveText"] is WpfBrush brush) return brush;
+            if (string.Equals(ThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase))
+                return (SolidColorBrush)new BrushConverter().ConvertFromString("#1E3A8A")!;
             return System.Windows.Media.Brushes.White;
         }
         if (WpfApp.Current?.Resources["BrushNavInactiveText"] is WpfBrush inact) return inact;
+        if (string.Equals(ThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase))
+            return (SolidColorBrush)new BrushConverter().ConvertFromString("#475569")!;
         return (SolidColorBrush)new BrushConverter().ConvertFromString("#9CA3AF")!;
     }
 

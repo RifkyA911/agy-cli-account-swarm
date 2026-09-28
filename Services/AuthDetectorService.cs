@@ -148,23 +148,53 @@ public class AuthDetectorService : IAuthDetectorService
                 }
             }
 
-            // 3. Resolve Avatar & Determine Tier
+            // 3. Resolve Avatar (Authentic Google Profile Avatar or Local Disk Cache)
+            string? detectedAvatar = null;
+
+            // Check 1: Antigravity Browser Profile authentic Google Profile Picture.png
+            var browserProfilePic = Path.Combine(geminiDir, "antigravity-browser-profile", "Default", "Google Profile Picture.png");
+            if (File.Exists(browserProfilePic))
+            {
+                detectedAvatar = browserProfilePic;
+            }
+            else if (profile.IsMainDefaultProfile())
+            {
+                var globalPic = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini", "antigravity-browser-profile", "Default", "Google Profile Picture.png");
+                if (File.Exists(globalPic))
+                {
+                    detectedAvatar = globalPic;
+                }
+            }
+
+            // Check 2: If we have an avatar URL from token/JWT picture claim
+            if (string.IsNullOrEmpty(detectedAvatar) && !string.IsNullOrEmpty(status.AvatarUrl))
+            {
+                var cached = EnsureAvatarCached(status.AvatarUrl, status.AccountEmail ?? profile.Name);
+                if (!string.IsNullOrEmpty(cached) && File.Exists(cached))
+                {
+                    detectedAvatar = cached;
+                }
+            }
+
+            // Check 3: Check %LOCALAPPDATA%\AgyAccountSwarm\avatars\ cache
+            if (string.IsNullOrEmpty(detectedAvatar))
+            {
+                var identifier = status.AccountEmail ?? profile.Name;
+                var safeId = Math.Abs(identifier.GetHashCode()).ToString("X8");
+                var localAvatarDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgyAccountSwarm", "avatars");
+                var cachedFile = Path.Combine(localAvatarDir, $"{safeId}.jpg");
+                if (File.Exists(cachedFile) && new FileInfo(cachedFile).Length > 0)
+                {
+                    detectedAvatar = cachedFile;
+                }
+            }
+
+            // Set final authentic avatar paths (or null to activate authentic initial circle fallback)
+            status.AvatarUrl = detectedAvatar;
+            status.LocalAvatarPath = detectedAvatar;
+
             if (!string.IsNullOrEmpty(status.AccountEmail))
             {
-                if (!string.IsNullOrEmpty(status.AvatarUrl))
-                {
-                    status.AvatarUrl = EnsureAvatarCached(status.AvatarUrl, status.AccountEmail ?? profile.Name);
-                    if (File.Exists(status.AvatarUrl))
-                    {
-                        status.LocalAvatarPath = status.AvatarUrl;
-                    }
-                }
-                else
-                {
-                    var accent = profile.ColorTag?.TrimStart('#') ?? "3B82F6";
-                    status.AvatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(status.DisplayName ?? profile.Name)}&background={accent}&color=ffffff&size=128&bold=true";
-                }
-
                 if (!string.IsNullOrEmpty(status.CurrentModel) &&
                     (status.CurrentModel.Contains("3.8", StringComparison.OrdinalIgnoreCase) ||
                      status.CurrentModel.Contains("pro", StringComparison.OrdinalIgnoreCase) ||
@@ -196,8 +226,6 @@ public class AuthDetectorService : IAuthDetectorService
                 // Not authenticated
                 status.CurrentModel = null;
                 status.DetectedTier = "Unverified";
-                var accent = profile.ColorTag?.TrimStart('#') ?? "3B82F6";
-                status.AvatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(profile.Name)}&background={accent}&color=ffffff&size=128&bold=true";
             }
 
             // 5. Calculate Tier-Aware Daily Quotas and Today's Usage
@@ -689,21 +717,24 @@ public class AuthDetectorService : IAuthDetectorService
                 return filePath;
             }
 
-            _ = Task.Run(async () =>
+            try
             {
-                try
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(3));
+                var response = _httpClient.GetAsync(pictureUrl, cts.Token).GetAwaiter().GetResult();
+                if (response.IsSuccessStatusCode)
                 {
-                    var bytes = await _httpClient.GetByteArrayAsync(pictureUrl);
+                    var bytes = response.Content.ReadAsByteArrayAsync(cts.Token).GetAwaiter().GetResult();
                     if (bytes.Length > 0)
                     {
-                        await File.WriteAllBytesAsync(filePath, bytes);
+                        File.WriteAllBytes(filePath, bytes);
+                        return filePath;
                     }
                 }
-                catch (Exception ex)
-                {
-                    Logger.Debug($"[AuthDetector] Failed caching avatar image from '{pictureUrl}': {ex.Message}");
-                }
-            });
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"[AuthDetector] Failed caching avatar image from '{pictureUrl}': {ex.Message}");
+            }
 
             return File.Exists(filePath) ? filePath : pictureUrl;
         }

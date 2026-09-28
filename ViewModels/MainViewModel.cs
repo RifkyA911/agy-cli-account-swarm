@@ -119,7 +119,7 @@ public partial class MainViewModel : ObservableObject
     {
         _audioService.PlayClick();
         IsSidebarCollapsed = !IsSidebarCollapsed;
-        SidebarColumnWidth = IsSidebarCollapsed ? new GridLength(72) : new GridLength(250);
+        SidebarColumnWidth = IsSidebarCollapsed ? new GridLength(76) : new GridLength(250);
     }
 
     [ObservableProperty]
@@ -1252,6 +1252,42 @@ public partial class MainViewModel : ObservableObject
                 FileName = Logger.LogPath,
                 UseShellExecute = true
             });
+        }
+    }
+
+    [RelayCommand]
+    public async Task ExportLogsToExcelAsync()
+    {
+        _audioService.PlayClick();
+        try
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                FileName = $"AgyAccountSwarm_Logs_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
+                Title = "Export Application Logs to Excel Workbook"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                var logLines = !string.IsNullOrWhiteSpace(LogContent)
+                    ? LogContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                    : Logger.GetRecentLogLines();
+
+                await LogExcelExportService.ExportToFileAsync(saveFileDialog.FileName, logLines);
+                _audioService.PlaySuccess();
+                ShowNotification($"Logs exported to Excel: {Path.GetFileName(saveFileDialog.FileName)}");
+
+                if (File.Exists(saveFileDialog.FileName))
+                {
+                    Process.Start(new ProcessStartInfo(saveFileDialog.FileName) { UseShellExecute = true });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Failed to export logs to Excel", ex);
+            ShowNotification($"Excel export failed: {ex.Message}");
         }
     }
 

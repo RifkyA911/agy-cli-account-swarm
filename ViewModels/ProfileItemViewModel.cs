@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgyAccountSwarm.Models;
@@ -45,6 +47,23 @@ public partial class ProfileItemViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isBusy;
+
+    [ObservableProperty]
+    private bool _isDetailsExpanded;
+
+    partial void OnIsDetailsExpandedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(DetailsToggleText));
+    }
+
+    public string DetailsToggleText => IsDetailsExpanded ? "Hide Details & Diagnostics ▴" : "Show Details & Diagnostics ▾";
+
+    [RelayCommand]
+    public void ToggleDetails()
+    {
+        _audioService.PlayClick();
+        IsDetailsExpanded = !IsDetailsExpanded;
+    }
 
     public event Action<ProfileItemViewModel>? OnEditRequested;
     public event Action<ProfileItemViewModel>? OnDeleteRequested;
@@ -239,10 +258,66 @@ public partial class ProfileItemViewModel : ObservableObject
     }
 
     public string? AccountEmail => AuthStatus.AccountEmail;
-    public string? AvatarUrl => !string.IsNullOrEmpty(AuthStatus.LocalAvatarPath) && System.IO.File.Exists(AuthStatus.LocalAvatarPath)
-        ? AuthStatus.LocalAvatarPath
-        : AuthStatus.AvatarUrl;
-    public bool HasAvatarUrl => !string.IsNullOrEmpty(AvatarUrl);
+    public string? AvatarUrl
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(AuthStatus.LocalAvatarPath) && System.IO.File.Exists(AuthStatus.LocalAvatarPath))
+                return AuthStatus.LocalAvatarPath;
+            if (!string.IsNullOrEmpty(AuthStatus.AvatarUrl))
+            {
+                if (System.IO.File.Exists(AuthStatus.AvatarUrl)) return AuthStatus.AvatarUrl;
+                if (AuthStatus.AvatarUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return AuthStatus.AvatarUrl;
+            }
+            return null;
+        }
+    }
+
+    public ImageSource? AvatarImageSource
+    {
+        get
+        {
+            var path = AvatarUrl;
+            if (string.IsNullOrWhiteSpace(path)) return null;
+            try
+            {
+                if (File.Exists(path))
+                {
+                    var bi = new BitmapImage();
+                    bi.BeginInit();
+                    bi.CacheOption = BitmapCacheOption.OnLoad;
+                    using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        var ms = new MemoryStream();
+                        fs.CopyTo(ms);
+                        ms.Position = 0;
+                        bi.StreamSource = ms;
+                        bi.EndInit();
+                    }
+                    bi.Freeze();
+                    return bi;
+                }
+                else if (Uri.TryCreate(path, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                {
+                    var bi = new BitmapImage();
+                    bi.BeginInit();
+                    bi.UriSource = uri;
+                    bi.CacheOption = BitmapCacheOption.OnLoad;
+                    bi.EndInit();
+                    bi.Freeze();
+                    return bi;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"[ProfileItem] Failed loading avatar image from '{path}': {ex.Message}");
+            }
+            return null;
+        }
+    }
+
+    public bool HasAvatarUrl => AvatarImageSource != null;
+
 
     public int DailyQuotaLimit => AuthStatus.DailyQuotaLimit > 0 ? AuthStatus.DailyQuotaLimit : AuthDetectorService.GetDailyQuotaForTier(TierBadgeText);
     public int TodayTurnsCount => AuthStatus.TodayTurnsCount;
@@ -583,6 +658,7 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(AvatarInitial));
             OnPropertyChanged(nameof(AccountEmail));
             OnPropertyChanged(nameof(AvatarUrl));
+            OnPropertyChanged(nameof(AvatarImageSource));
             OnPropertyChanged(nameof(HasAvatarUrl));
             OnPropertyChanged(nameof(DailyQuotaLimit));
             OnPropertyChanged(nameof(TodayTurnsCount));

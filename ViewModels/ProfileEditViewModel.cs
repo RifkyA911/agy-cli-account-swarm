@@ -74,6 +74,7 @@ public partial class ProfileEditViewModel : ObservableObject
     public bool IsEditMode { get; private set; }
     public bool IsDefaultProfile { get; }
     public bool CanEditProfilePath => !IsDefaultProfile;
+    public bool CanEditName => !IsDefaultProfile;
     public AccountProfile ResultProfile { get; private set; } = new();
 
     public event Action<bool>? RequestClose;
