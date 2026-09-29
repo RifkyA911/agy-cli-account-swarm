@@ -49,6 +49,9 @@ public partial class ProfileEditViewModel : ObservableObject
     private string? _extraArguments;
 
     [ObservableProperty]
+    private bool _dangerouslySkipPermissions = false;
+
+    [ObservableProperty]
     private bool _isSelectedForSwarm = true;
 
     [ObservableProperty]
@@ -88,6 +91,7 @@ public partial class ProfileEditViewModel : ObservableObject
         _quotaLimit = 100;
         _preferredModel = "Gemini 3.8 Flash (Medium)";
         _selectedColor = "#3B82F6";
+        _dangerouslySkipPermissions = false;
 
         InitializeColorOptions();
         PopulateModels(availableModels);
@@ -106,6 +110,7 @@ public partial class ProfileEditViewModel : ObservableObject
         _customProfilePath = profileToEdit.CustomProfilePath;
         _defaultWorkspace = profileToEdit.DefaultWorkspace;
         _extraArguments = profileToEdit.ExtraArguments;
+        _dangerouslySkipPermissions = profileToEdit.DangerouslySkipPermissions;
         _isSelectedForSwarm = profileToEdit.IsSelectedForSwarm;
         _tier = string.IsNullOrWhiteSpace(profileToEdit.Tier) ? "Pro" : profileToEdit.Tier;
         _preferredModel = string.IsNullOrWhiteSpace(profileToEdit.PreferredModel) ? "Gemini 3.8 Flash (Medium)" : profileToEdit.PreferredModel;
@@ -239,6 +244,7 @@ public partial class ProfileEditViewModel : ObservableObject
         }
         ResultProfile.DefaultWorkspace = string.IsNullOrWhiteSpace(DefaultWorkspace) ? null : DefaultWorkspace.Trim();
         ResultProfile.ExtraArguments = string.IsNullOrWhiteSpace(ExtraArguments) ? null : ExtraArguments.Trim();
+        ResultProfile.DangerouslySkipPermissions = DangerouslySkipPermissions;
         ResultProfile.IsSelectedForSwarm = IsSelectedForSwarm;
         ResultProfile.Tier = Tier;
         ResultProfile.PreferredModel = PreferredModel;

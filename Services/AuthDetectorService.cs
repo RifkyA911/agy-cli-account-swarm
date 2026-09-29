@@ -81,19 +81,32 @@ public class AuthDetectorService : IAuthDetectorService
                     var dataProtection = new DataProtectionService();
                     var tokenJson = dataProtection.Unprotect(rawToken);
 
-                    // Transparent migration: if token was stored in plain-text, encrypt it with DPAPI at rest
-                    if (!dataProtection.IsProtected(rawToken) && !string.IsNullOrWhiteSpace(tokenJson) && tokenJson.TrimStart().StartsWith("{"))
+                    // Critical AGY CLI Compatibility & Token Preservation:
+                    // The agy Go CLI directly reads and unmarshals antigravity-oauth-token as plain UTF-8 JSON without BOM.
+                    // If the token was previously encrypted with DPAPI or contains a UTF-8 BOM, restore it immediately
+                    // to pure UTF-8 JSON without BOM so agy CLI never fails with "invalid character '\ufeff'" or syntax error.
+                    if (dataProtection.IsProtected(rawToken) && !string.IsNullOrWhiteSpace(tokenJson) && tokenJson.TrimStart().StartsWith("{"))
                     {
                         try
                         {
-                            var encrypted = dataProtection.Protect(tokenJson);
-                            File.WriteAllText(oauthTokenPath, encrypted, Encoding.UTF8);
-                            Logger.Info($"[AuthDetector] Migrated plain-text token to DPAPI encrypted format at-rest for '{profile.Name}'");
+                            var utf8NoBom = new UTF8Encoding(false);
+                            File.WriteAllText(oauthTokenPath, tokenJson, utf8NoBom);
+                            Logger.Info($"[AuthDetector] Restored DPAPI-encrypted token to pure UTF-8 JSON without BOM for '{profile.Name}' to guarantee agy CLI persistence");
                         }
                         catch (Exception ex)
                         {
-                            Logger.Warn($"[AuthDetector] Failed migrating token to DPAPI for '{profile.Name}': {ex.Message}");
+                            Logger.Warn($"[AuthDetector] Failed restoring token to pure JSON for '{profile.Name}': {ex.Message}");
                         }
+                    }
+                    else if (rawToken.StartsWith('\ufeff') && !string.IsNullOrWhiteSpace(tokenJson))
+                    {
+                        try
+                        {
+                            var utf8NoBom = new UTF8Encoding(false);
+                            File.WriteAllText(oauthTokenPath, tokenJson.TrimStart('\ufeff'), utf8NoBom);
+                            Logger.Info($"[AuthDetector] Stripped UTF-8 BOM from token for '{profile.Name}' to guarantee agy CLI persistence");
+                        }
+                        catch { }
                     }
 
                     var info = ExtractUserInfoFromTokenJson(tokenJson);

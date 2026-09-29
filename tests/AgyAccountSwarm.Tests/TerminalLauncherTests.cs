@@ -411,4 +411,123 @@ public class TerminalLauncherTests
         vm.CloseInspectorCommand.Execute(null);
         Assert.False(vm.IsInspectorOpen);
     }
+
+    [Fact]
+    public void DangerouslySkipPermissions_IncludedInLauncherScriptAndSnippet()
+    {
+        var launcher = new TerminalLauncherService();
+        var profile = new AccountProfile
+        {
+            Name = "Automation Bot",
+            DangerouslySkipPermissions = true,
+            ExtraArguments = "--model gemini-2.5-flash"
+        };
+
+        var scriptPath = launcher.EnsureLauncherScript(profile);
+        var scriptContent = File.ReadAllText(scriptPath);
+
+        Assert.Contains("--dangerously-skip-permissions", scriptContent);
+
+        var psSnippet = launcher.GetCliSnippet(profile, TerminalType.PowerShell);
+        Assert.Contains("--dangerously-skip-permissions", psSnippet);
+
+        var cmdSnippet = launcher.GetCliSnippet(profile, TerminalType.CommandPrompt);
+        Assert.Contains("--dangerously-skip-permissions", cmdSnippet);
+    }
+
+    [Fact]
+    public async Task TokenRestoration_DpapiEncryptedToken_RestoredToPureUtf8JsonWithoutBom()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), "agy_token_restore_test_" + Guid.NewGuid().ToString("N"));
+        var cliDir = Path.Combine(tempDir, ".gemini", "antigravity-cli");
+        Directory.CreateDirectory(cliDir);
+
+        try
+        {
+            var authDetector = new AuthDetectorService();
+            var dpapi = new DataProtectionService();
+
+            string rawJson = "{\"access_token\":\"ya29.secret\",\"id_token\":\"eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6InRlc3RAY2xvbmUuY29tIn0.sig\"}";
+            string protectedToken = dpapi.Protect(rawJson);
+            var tokenFile = Path.Combine(cliDir, "antigravity-oauth-token");
+
+            // Write encrypted token as might happen from old buggy version
+            File.WriteAllText(tokenFile, protectedToken);
+
+            var profile = new AccountProfile
+            {
+                Name = "Clone Account",
+                CustomProfilePath = tempDir
+            };
+
+            // Act: Detect status should detect and immediately restore to pure JSON without BOM
+            var status = await authDetector.DetectAuthStatusAsync(profile);
+
+            Assert.Equal("test@clone.com", status.AccountEmail);
+
+            // Read raw bytes on disk
+            var bytes = await File.ReadAllBytesAsync(tokenFile);
+            Assert.True(bytes.Length > 0);
+
+            // Ensure no UTF-8 BOM (EF BB BF)
+            if (bytes.Length >= 3)
+            {
+                bool hasBom = bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
+                Assert.False(hasBom, "Token file must NOT contain UTF-8 BOM");
+            }
+
+            // Ensure it starts with valid JSON '{'
+            var restoredText = System.Text.Encoding.UTF8.GetString(bytes);
+            Assert.StartsWith("{", restoredText.TrimStart());
+            Assert.DoesNotContain("dpapi::", restoredText);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+            }
+        }
+    }
+
+    [Fact]
+    public void SearchableConversationDropdown_FilterAndSelection_BehavesAccurately()
+    {
+        var profile = new AccountProfile { Name = "Chat Filter Test" };
+        var vm = new ProfileItemViewModel(profile, new TerminalLauncherService(), new AuthDetectorService(), new AudioService());
+
+        // Add dummy sessions
+        var s1 = new ConversationSessionItem { Id = "conv-1", DisplayText = "Fix login bug in terminal", Snippet = "Fix login bug in terminal" };
+        var s2 = new ConversationSessionItem { Id = "conv-2", DisplayText = "Add responsive SVG header", Snippet = "Add responsive SVG header" };
+        var s3 = new ConversationSessionItem { Id = "conv-3", DisplayText = "Refactor Avalonia Linux UI", Snippet = "Refactor Avalonia Linux UI" };
+
+        vm.AvailableSessions.Clear();
+        vm.AvailableSessions.Add(s1);
+        vm.AvailableSessions.Add(s2);
+        vm.AvailableSessions.Add(s3);
+        vm.ApplySessionFilter();
+
+        Assert.Equal(3, vm.FilteredSessions.Count);
+        Assert.True(vm.HasFilteredSessions);
+        Assert.False(vm.HasNoMatchingSessions);
+
+        // Filter for "Avalonia"
+        vm.SessionSearchText = "Avalonia";
+        Assert.Single(vm.FilteredSessions);
+        Assert.Equal(s3, vm.FilteredSessions[0]);
+
+        // Select session
+        vm.ToggleSessionDropdown();
+        Assert.True(vm.IsSessionDropdownOpen);
+
+        vm.SelectSession(s3);
+        Assert.Equal(s3, vm.SelectedSession);
+        Assert.False(vm.IsSessionDropdownOpen); // Closes dropdown
+
+        // Clear search
+        vm.ClearSessionSearch();
+        Assert.Equal(string.Empty, vm.SessionSearchText);
+        Assert.Equal(3, vm.FilteredSessions.Count);
+    }
 }
+

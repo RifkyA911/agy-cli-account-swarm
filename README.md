@@ -7,12 +7,12 @@
 > **A high-performance desktop orchestrator & sandbox session manager for Google Antigravity CLI (`agy`).**  
 > Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing.
 
-[![Version](https://img.shields.io/badge/Version-0.9.6--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.9.7--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
 [![UI: WPF](https://img.shields.io/badge/UI-WPF%20XAML-0078D4?style=flat&logo=windows)](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D7?style=flat&logo=windows)](https://microsoft.com/windows)
-[![Tests: 72 Passed](https://img.shields.io/badge/Tests-72%20Passed-brightgreen?logo=xunit)]()
+[![Tests: 76 Passed](https://img.shields.io/badge/Tests-76%20Passed-brightgreen?logo=xunit)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
 
@@ -50,7 +50,9 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 
 ### 🛡️ Sandboxing & Multi-Account Isolation
 - **Per-Worker Profile Sandboxes**: Each profile operates in its own isolated folder (`~/.gemini-profiles/{id}/`) with independent OAuth tokens, conversation logs, and presence locks.
-- **Keyring Decoupling**: Prevents secondary accounts from inheriting the host Windows Credential Manager session.
+- **Keyring Decoupling & Token Preservation**: Prevents secondary accounts from inheriting the host Windows Credential Manager session. Tokens are preserved in pure UTF-8 JSON without BOM, guaranteeing complete persistence across swarm launches.
+- **`--dangerously-skip-permissions` Toggle**: Dedicated checkbox card in Profile Configuration to bypass interactive tool, file write, and terminal confirmation prompts during automated swarm tasks.
+- **Cross-Platform POSIX & Batch Launchers**: Every sandbox generates both `run-agy.cmd` (Windows) and `run-agy.sh` (Linux/macOS/WSL) with environment variable isolation.
 - **Clean Profile Duplication**: 1-click clone feature (`📋 Duplicate`) to duplicate profile settings, model configurations, and workspace paths into dedicated isolated sandboxes without polluting the primary profile.
 - **Far-Left Accounts Filter & Sort**: Interactive filter popup anchored on the far-left of the Accounts toolbar to slice accounts by Subscription Tier (Basic, Plus, Pro, Ultra), Status / Health (Authenticated, Needs Login, Quota Exhausted, Warning), and sort by Name or Quota Consumption.
 - **Dedicated Single-Account Quick Sync**: Discrete refresh button on every account card header for on-demand OAuth & quota synchronization without triggering a full multi-account swarm scan.
@@ -62,9 +64,9 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
   - Embedded inspection cards inside each Account Card below a sleek divider.
   - **`/usage` Tab**: Real-time daily prompt quota consumption, current session turn counts, estimated swarm token metrics, and daily quota reset timer (00:00 UTC).
   - **`/context` Tab**: Dynamic model context window capacity (1M / 2M tokens), prompt context headroom, and cached context metrics.
-- **Searchable Chat Session Selector with Smooth Scrolling**:
-  - Integrated search box inside the session selector dropdown to quickly locate specific conversation IDs or prompt titles.
-  - Disabled discrete pixel jumping for smooth, natural wheel scrolling.
+- **Integrated In-Popup Searchable Conversation Selector**:
+  - Search input box sits directly inside the dropdown popup (`HeroIconMagnifyingGlass`, live filter, and clear button), keeping the account card row completely clean.
+  - Disabled discrete pixel jumping (`ScrollViewer.CanContentScroll="False"`) for butter-smooth mouse wheel scrolling.
   - Options include:
     - `✨ New Chat (Fresh Session)` (default launch)
     - `🔄 Continue Recent Session (/continue)`
@@ -285,6 +287,7 @@ This application orchestrates local Antigravity CLI sessions and parses telemetr
 
 ## 📖 Technical Reference & Documentation
 
+- [`docs/CROSS_PLATFORM_AVALONIA_ROADMAP.md`](docs/CROSS_PLATFORM_AVALONIA_ROADMAP.md): Cross-platform Linux GUI (Avalonia UI) and macOS feasibility evaluation.
 - [`docs/NEXT_FEATURES.md`](docs/NEXT_FEATURES.md): Swarm propagation architecture, Git Worktree parallelization, and inflow roadmap.
 - [`docs/TERMS_OF_SERVICE_AND_RISKS.md`](docs/TERMS_OF_SERVICE_AND_RISKS.md): Google ToS, policies, credential sandboxing, and risk advisory.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Deep-dive into process isolation and environment virtualization.

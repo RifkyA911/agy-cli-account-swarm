@@ -1926,39 +1926,147 @@
                                                             <ColumnDefinition Width="Auto" />
                                                         </Grid.ColumnDefinitions>
 
-                                                        <!-- Session Selector with Search Filter & Smooth Scrolling -->
-                                                        <Border Grid.Column="0" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                        <!-- Session Selector with In-Popup Search Filter & Smooth Scrolling -->
+                                                        <Border Grid.Column="0" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="6,3" VerticalAlignment="Center" Margin="0,0,8,0">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="Auto" />
                                                                     <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
-                                                                <TextBlock Grid.Column="0" Text="💬 Start:" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="2,0,8,0" />
-                                                                <ComboBox Grid.Column="1" ItemsSource="{Binding FilteredSessions}" SelectedItem="{Binding SelectedSession}"
-                                                                          Style="{StaticResource ModernComboBox}"
-                                                                          Height="30" VerticalAlignment="Center" FontSize="11"
-                                                                          ScrollViewer.CanContentScroll="False"
-                                                                          MaxDropDownHeight="320"
-                                                                          ToolTip="Select whether to start a new chat, continue most recent, or resume a specific past conversation">
-                                                                    <ComboBox.ItemTemplate>
-                                                                        <DataTemplate>
-                                                                            <TextBlock Text="{Binding DisplayText}" FontSize="11" TextTrimming="CharacterEllipsis" />
-                                                                        </DataTemplate>
-                                                                    </ComboBox.ItemTemplate>
-                                                                </ComboBox>
+                                                                <TextBlock Grid.Column="0" Text="💬 Start:" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="4,0,8,0" />
 
-                                                                <!-- Inline Search Input for Conversations -->
-                                                                <Border Grid.Column="2" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="6,0,0,0" VerticalAlignment="Center"
-                                                                        Visibility="{Binding HasMultipleSessions, Converter={StaticResource BoolToVisConverter}}">
-                                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                        <Path Data="{StaticResource HeroIconMagnifyingGlass}" Stroke="{DynamicResource BrushTextMuted}" StrokeThickness="1.5" Width="11" Height="11" Stretch="Uniform" Margin="0,0,4,0" VerticalAlignment="Center" />
-                                                                        <TextBox Text="{Binding SessionSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                                                 Width="120" Height="22" FontSize="10.5" BorderThickness="0" Background="Transparent"
-                                                                                 Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center"
-                                                                                 ToolTip="Search / filter past conversations" />
-                                                                    </StackPanel>
-                                                                </Border>
+                                                                <!-- Dropdown Trigger Button -->
+                                                                <ToggleButton x:Name="SessionDropdownBtn" Grid.Column="1"
+                                                                              IsChecked="{Binding IsSessionDropdownOpen, Mode=TwoWay}"
+                                                                              Height="28" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="4,0"
+                                                                              ToolTip="Click to select past conversation or start fresh">
+                                                                    <ToggleButton.Template>
+                                                                        <ControlTemplate TargetType="ToggleButton">
+                                                                            <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="6,4">
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="*" />
+                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                    </Grid.ColumnDefinitions>
+                                                                                    <TextBlock Grid.Column="0"
+                                                                                               Text="{Binding SelectedSession.DisplayText, FallbackValue='🆕 Start Fresh Session (New Chat)'}"
+                                                                                               FontSize="11" Foreground="{DynamicResource BrushTextPrimary}"
+                                                                                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                                                    <Path Grid.Column="1" Data="M 0,0 L 4,4 L 8,0" Stroke="{DynamicResource BrushTextMuted}" StrokeThickness="1.5"
+                                                                                          Width="8" Height="5" Stretch="Uniform" VerticalAlignment="Center" Margin="8,0,4,0" />
+                                                                                </Grid>
+                                                                            </Border>
+                                                                            <ControlTemplate.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter Property="Background" Value="{DynamicResource BrushHover}" />
+                                                                                </Trigger>
+                                                                            </ControlTemplate.Triggers>
+                                                                        </ControlTemplate>
+                                                                    </ToggleButton.Template>
+                                                                </ToggleButton>
+
+                                                                <!-- Searchable Dropdown Popup -->
+                                                                <Popup x:Name="SessionPopup"
+                                                                       PlacementTarget="{Binding ElementName=SessionDropdownBtn}"
+                                                                       Placement="Bottom"
+                                                                       IsOpen="{Binding IsChecked, ElementName=SessionDropdownBtn, Mode=TwoWay}"
+                                                                       StaysOpen="False"
+                                                                       AllowsTransparency="True"
+                                                                       PopupAnimation="Slide"
+                                                                       VerticalOffset="4"
+                                                                       DataContext="{Binding}">
+                                                                    <Border x:Name="SessionPopupRoot"
+                                                                            DataContext="{Binding DataContext, ElementName=SessionPopup}"
+                                                                            Background="{DynamicResource BrushPopupBg}"
+                                                                            BorderBrush="{DynamicResource BrushCardBorder}"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="8"
+                                                                            Padding="8"
+                                                                            MinWidth="340"
+                                                                            MaxWidth="520"
+                                                                            MaxHeight="360">
+                                                                        <Border.Effect>
+                                                                            <DropShadowEffect BlurRadius="16" ShadowDepth="4" Opacity="0.35" Direction="270" Color="#000000" />
+                                                                        </Border.Effect>
+                                                                        <Grid>
+                                                                            <Grid.RowDefinitions>
+                                                                                <RowDefinition Height="Auto" />
+                                                                                <RowDefinition Height="*" />
+                                                                            </Grid.RowDefinitions>
+
+                                                                            <!-- Search Input Row Inside Popup -->
+                                                                            <Border Grid.Row="0" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}"
+                                                                                    BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,0,0,8">
+                                                                                <Grid>
+                                                                                    <Grid.ColumnDefinitions>
+                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                        <ColumnDefinition Width="*" />
+                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                    </Grid.ColumnDefinitions>
+                                                                                    <Path Grid.Column="0" Data="{StaticResource HeroIconMagnifyingGlass}" Stroke="{DynamicResource BrushTextMuted}"
+                                                                                          StrokeThickness="1.5" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                                    <TextBox Grid.Column="1"
+                                                                                             Text="{Binding SessionSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                                                             FontSize="11" BorderThickness="0" Background="Transparent"
+                                                                                             Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center"
+                                                                                             ToolTip="Type to filter past conversations..." />
+                                                                                    <Button Grid.Column="2" Command="{Binding ClearSessionSearchCommand}"
+                                                                                            Visibility="{Binding SessionSearchText.Length, Converter={StaticResource IntToVisConverter}}"
+                                                                                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="2" Margin="2,0,0,0"
+                                                                                            ToolTip="Clear search">
+                                                                                        <Path Data="M 0,0 L 7,7 M 7,0 L 0,7" Stroke="{DynamicResource BrushTextMuted}" StrokeThickness="1.5"
+                                                                                              Width="7" Height="7" Stretch="Uniform" />
+                                                                                    </Button>
+                                                                                </Grid>
+                                                                            </Border>
+
+                                                                            <!-- Filtered Conversations List with Smooth Scrolling -->
+                                                                            <ScrollViewer Grid.Row="1" MaxHeight="280" CanContentScroll="False"
+                                                                                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                                                                <StackPanel>
+                                                                                    <ItemsControl ItemsSource="{Binding FilteredSessions}">
+                                                                                        <ItemsControl.ItemTemplate>
+                                                                                            <DataTemplate>
+                                                                                                <Button Command="{Binding DataContext.SelectSessionCommand, ElementName=SessionPopupRoot}"
+                                                                                                        CommandParameter="{Binding}"
+                                                                                                        Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                                                                        HorizontalContentAlignment="Stretch" Padding="8,6" Margin="0,1">
+                                                                                                    <Button.Template>
+                                                                                                        <ControlTemplate TargetType="Button">
+                                                                                                            <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                                                                                <Grid>
+                                                                                                                    <Grid.ColumnDefinitions>
+                                                                                                                        <ColumnDefinition Width="*" />
+                                                                                                                        <ColumnDefinition Width="Auto" />
+                                                                                                                    </Grid.ColumnDefinitions>
+                                                                                                                    <TextBlock Grid.Column="0" Text="{Binding DisplayText}" FontSize="11"
+                                                                                                                               Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                                                                                    <Path x:Name="CheckIcon" Grid.Column="1" Data="M 1,4 L 4,7 L 9,1" Stroke="#10B981" StrokeThickness="2"
+                                                                                                                          Width="9" Height="7" Stretch="Uniform" Margin="6,0,0,0" VerticalAlignment="Center" Visibility="Collapsed" />
+                                                                                                                </Grid>
+                                                                                                            </Border>
+                                                                                                            <ControlTemplate.Triggers>
+                                                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource BrushHover}" />
+                                                                                                                </Trigger>
+                                                                                                            </ControlTemplate.Triggers>
+                                                                                                        </ControlTemplate>
+                                                                                                    </Button.Template>
+                                                                                                </Button>
+                                                                                            </DataTemplate>
+                                                                                        </ItemsControl.ItemTemplate>
+                                                                                    </ItemsControl>
+
+                                                                                    <!-- Empty State text if no conversations match filter -->
+                                                                                    <TextBlock Text="No conversations match search query"
+                                                                                               FontSize="11" Foreground="{DynamicResource BrushTextMuted}"
+                                                                                               HorizontalAlignment="Center" Margin="12,16"
+                                                                                               Visibility="{Binding HasNoMatchingSessions, Converter={StaticResource BoolToVisConverter}}" />
+                                                                                </StackPanel>
+                                                                            </ScrollViewer>
+                                                                        </Grid>
+                                                                    </Border>
+                                                                </Popup>
                                                             </Grid>
                                                         </Border>
 
@@ -2895,7 +3003,8 @@
                                 <Button Content="Data &amp; Configs" Command="{Binding SelectDocTabCommand}" CommandParameter="DataStorage" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
                                 <Button Content="MCP Guide" Command="{Binding SelectDocTabCommand}" CommandParameter="McpGuide" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
                                 <Button Content="ToS &amp; Risks" Command="{Binding SelectDocTabCommand}" CommandParameter="ToSRisks" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
-                                <Button Content="🚀 Next Features &amp; Propagation" Command="{Binding SelectDocTabCommand}" CommandParameter="NextFeatures" Style="{StaticResource PrimaryButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="🚀 Next Features" Command="{Binding SelectDocTabCommand}" CommandParameter="NextFeatures" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="🐧 Cross-Platform (Linux/macOS)" Command="{Binding SelectDocTabCommand}" CommandParameter="CrossPlatform" Style="{StaticResource PrimaryButton}" Margin="0,0,8,6" Padding="12,6" />
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -3054,6 +3163,44 @@
                                         </Border>
 
                                         <Button Content="🌐 Open Complete Swarm Propagation Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="NextFeatures" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- TAB 7: Cross-Platform (Linux & macOS Architecture) -->
+                            <StackPanel Visibility="{Binding SelectedDocTab, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=CrossPlatform}">
+                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
+                                    <StackPanel>
+                                        <TextBlock Text="🐧 Cross-Platform Architecture: Linux GUI &amp; macOS Status" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
+                                        <TextBlock Text="Comprehensive technical evaluation of WPF Win32 constraints, Avalonia UI 11+ migration roadmap, and detailed feasibility assessment for Linux and Apple macOS." FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="20" TextWrapping="Wrap" Margin="0,0,0,14" />
+
+                                        <!-- Reality Check Callout -->
+                                        <Border Background="#451A1A" BorderBrush="#DC2626" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,0,0,14">
+                                            <StackPanel>
+                                                <TextBlock Text="⚠️ Honest Assessment: Is macOS Safe &amp; Issue-Free?" FontSize="13" FontWeight="Bold" Foreground="#FCA5A5" Margin="0,0,0,4" />
+                                                <TextBlock Text="NO. Running current WPF binaries on macOS is impossible. macOS requires Avalonia UI with Metal rendering, dedicated AppleScript (osascript) terminal launchers, Apple Keychain authentication hooks, and Apple Developer ID Gatekeeper notarization." FontSize="11.5" Foreground="#FECACA" TextWrapping="Wrap" LineHeight="18" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Linux Architecture Card -->
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <TextBlock Text="🐧 1. Linux GUI Migration via Avalonia UI 11+:" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6" />
+                                                <TextBlock Text="• Avalonia UI renders natively via Skia on Linux Wayland and X11 display servers, matching our dark/light modern UI design system." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• 100% of ViewModels (CommunityToolkit.Mvvm), models, and detection services are shared without modification." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- POSIX Sandbox Launcher Card -->
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="📜 2. Cross-Platform POSIX Sandbox Launcher (run-agy.sh):" FontSize="12.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,6" />
+                                                <TextBlock Text="• Every account sandbox automatically generates an isolated 'run-agy.sh' script alongside 'run-agy.cmd'." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Properly exports SSH_CONNECTION=1 to trigger agy CLI's file-based token storage and isolates $USERPROFILE and $HOME." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Button Content="🌐 Open Interactive Cross-Platform Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="CrossPlatform" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

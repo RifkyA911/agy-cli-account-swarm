@@ -90,6 +90,7 @@ public partial class ProfileItemViewModel : ObservableObject
         _customProfilePath = profile.CustomProfilePath;
         _defaultWorkspace = profile.DefaultWorkspace;
         _extraArguments = profile.ExtraArguments;
+        _dangerouslySkipPermissions = profile.DangerouslySkipPermissions;
         _isSelectedForSwarm = profile.IsSelectedForSwarm;
         _authStatus = profile.AuthStatus;
         _tier = profile.Tier;
@@ -125,7 +126,34 @@ public partial class ProfileItemViewModel : ObservableObject
         ApplySessionFilter();
     }
 
+    [ObservableProperty]
+    private bool _isSessionDropdownOpen;
+
     public bool HasMultipleSessions => AvailableSessions.Count > 1;
+    public bool HasFilteredSessions => FilteredSessions.Count > 0;
+    public bool HasNoMatchingSessions => FilteredSessions.Count == 0;
+
+    [RelayCommand]
+    public void SelectSession(ConversationSessionItem? item)
+    {
+        if (item != null)
+        {
+            SelectedSession = item;
+        }
+        IsSessionDropdownOpen = false;
+    }
+
+    [RelayCommand]
+    public void ClearSessionSearch()
+    {
+        SessionSearchText = string.Empty;
+    }
+
+    [RelayCommand]
+    public void ToggleSessionDropdown()
+    {
+        IsSessionDropdownOpen = !IsSessionDropdownOpen;
+    }
 
     public void ApplySessionFilter()
     {
@@ -155,6 +183,17 @@ public partial class ProfileItemViewModel : ObservableObject
         {
             SelectedSession = FilteredSessions[0];
         }
+
+        OnPropertyChanged(nameof(HasFilteredSessions));
+        OnPropertyChanged(nameof(HasNoMatchingSessions));
+    }
+
+    [ObservableProperty]
+    private bool _dangerouslySkipPermissions;
+
+    partial void OnDangerouslySkipPermissionsChanged(bool value)
+    {
+        Profile.DangerouslySkipPermissions = value;
     }
 
     [ObservableProperty]

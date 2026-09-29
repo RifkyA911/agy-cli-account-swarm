@@ -69,7 +69,12 @@ public class TerminalLauncherService : ITerminalLauncherService
 
         var workDir = GetValidWorkingDirectory(profile);
         var agyBinary = FindAgyExecutablePath() ?? "agy";
-        var extraArgs = string.IsNullOrWhiteSpace(profile.ExtraArguments) ? "" : " " + SanitizeCommandLineArgs(profile.ExtraArguments);
+        var rawExtra = profile.ExtraArguments;
+        var extraArgs = string.IsNullOrWhiteSpace(rawExtra) ? "" : " " + SanitizeCommandLineArgs(rawExtra);
+        if (profile.DangerouslySkipPermissions && !extraArgs.Contains("--dangerously-skip-permissions"))
+        {
+            extraArgs = " --dangerously-skip-permissions" + extraArgs;
+        }
         var rawTitle = $"AGY [{profile.Name}]";
         var safeTitle = SanitizeBatchString(rawTitle);
         var safeWorkDir = workDir.Replace("\"", "");
@@ -112,6 +117,43 @@ public class TerminalLauncherService : ITerminalLauncherService
         sb.AppendLine("goto :eof");
 
         File.WriteAllText(scriptPath, sb.ToString(), new System.Text.UTF8Encoding(false));
+
+        // Cross-Platform POSIX launcher for Linux / macOS / WSL
+        try
+        {
+            var shPath = Path.Combine(effectiveDir, "run-agy.sh");
+            var shSb = new System.Text.StringBuilder();
+            shSb.AppendLine("#!/usr/bin/env bash");
+            shSb.AppendLine($"# AGY Sandbox Shell - Profile: {profile.Name}");
+            shSb.AppendLine($"export USERPROFILE=\"{effectiveDir.Replace('\\', '/')}\"");
+            shSb.AppendLine($"export HOME=\"{effectiveDir.Replace('\\', '/')}\"");
+            shSb.AppendLine($"export ANTIGRAVITY_APP_DATA_DIR=\"{effectiveDir.Replace('\\', '/')}/.gemini/antigravity-cli\"");
+            shSb.AppendLine($"export JETSKI_APP_DATA_DIR=\"{effectiveDir.Replace('\\', '/')}/.gemini/antigravity-cli\"");
+            if (!profile.IsMainDefaultProfile())
+            {
+                shSb.AppendLine("export SSH_CONNECTION=1");
+                shSb.AppendLine("export SSH_CLIENT=1");
+            }
+            else
+            {
+                shSb.AppendLine("unset SSH_CONNECTION");
+                shSb.AppendLine("unset SSH_CLIENT");
+            }
+            shSb.AppendLine($"cd \"{safeWorkDir.Replace('\\', '/')}\" || exit 1");
+            shSb.AppendLine("if [ \"$1\" = \"--cli-only\" ]; then");
+            shSb.AppendLine($"    echo \"[AGY Sandbox Shell - Profile: {profile.Name}]\"");
+            shSb.AppendLine("    echo \"Environment variables isolated. Ready for agy or agy -p <prompt>.\"");
+            shSb.AppendLine("    exec \"${SHELL:-bash}\"");
+            shSb.AppendLine("else");
+            shSb.AppendLine($"    exec agy{extraArgs} \"$@\"");
+            shSb.AppendLine("fi");
+            File.WriteAllText(shPath, shSb.ToString(), new System.Text.UTF8Encoding(false));
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[TerminalLauncher] Could not write run-agy.sh: {ex.Message}");
+        }
+
         Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{scriptPath}' (Target: '{safeAgyBinary}', Isolated: {!profile.IsMainDefaultProfile()})");
         return scriptPath;
     }
@@ -208,6 +250,10 @@ public class TerminalLauncherService : ITerminalLauncherService
             var workingDir = GetValidWorkingDirectory(profile);
             var agyBinary = FindAgyExecutablePath() ?? "agy";
             var extraArgs = SanitizeCommandLineArgs(profile.ExtraArguments);
+            if (profile.DangerouslySkipPermissions && !extraArgs.Contains("--dangerously-skip-permissions"))
+            {
+                extraArgs = string.IsNullOrWhiteSpace(extraArgs) ? "--dangerously-skip-permissions" : $"--dangerously-skip-permissions {extraArgs}";
+            }
             var safeSession = SanitizeSessionArgs(sessionArgs);
             bool isCliOnly = safeSession == "--cli-only";
 
@@ -291,14 +337,18 @@ public class TerminalLauncherService : ITerminalLauncherService
                 }
                 else
                 {
+                    var cleanTitle = System.Text.RegularExpressions.Regex.Replace(title.Replace("\"", "").Replace(";", " - "), @"\s+", " ").Trim();
+                    var cleanWorkDir = workDir.Replace("\"", "");
+                    var cleanScript = scriptPath.Replace("\"", "");
+
                     if (swarmMode == SwarmLaunchMode.SplitPanes)
                     {
                         var splitFlag = (i % 2 == 1) ? "-V" : "-H";
-                        wtArgs.Add($"; split-pane {splitFlag} --title \"{title}\" -d \"{workDir}\" cmd.exe /k call \"{scriptPath}\"");
+                        wtArgs.Add($"; split-pane {splitFlag} --title \"{cleanTitle}\" -d \"{cleanWorkDir}\" cmd.exe /k call \"{cleanScript}\"");
                     }
                     else
                     {
-                        wtArgs.Add($"; new-tab --title \"{title}\" -d \"{workDir}\" cmd.exe /k call \"{scriptPath}\"");
+                        wtArgs.Add($"; new-tab --title \"{cleanTitle}\" -d \"{cleanWorkDir}\" cmd.exe /k call \"{cleanScript}\"");
                     }
                 }
 
@@ -334,7 +384,12 @@ public class TerminalLauncherService : ITerminalLauncherService
     {
         var effectiveDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
         var workDir = GetValidWorkingDirectory(profile);
-        var extraArgs = string.IsNullOrWhiteSpace(profile.ExtraArguments) ? "" : $" {profile.ExtraArguments.Trim()}";
+        var rawExtra = profile.ExtraArguments?.Trim();
+        var extraArgs = string.IsNullOrWhiteSpace(rawExtra) ? "" : $" {rawExtra}";
+        if (profile.DangerouslySkipPermissions && !extraArgs.Contains("--dangerously-skip-permissions"))
+        {
+            extraArgs = $" --dangerously-skip-permissions{extraArgs}";
+        }
         bool isIsolated = !profile.IsMainDefaultProfile();
 
         string snippet = terminal switch

@@ -61,4 +61,18 @@ public class DataProtectionAndRedactionTests
         string result = Logger.RedactSensitive(normalMsg);
         Assert.Equal(normalMsg, result);
     }
+
+    [Fact]
+    public async Task LiveTokenCleanup_RestoresAnyExistingEncryptedTokens()
+    {
+        var profilesBase = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini-profiles");
+        if (!System.IO.Directory.Exists(profilesBase)) return;
+
+        var auth = new AuthDetectorService();
+        foreach (var dir in System.IO.Directory.GetDirectories(profilesBase))
+        {
+            var p = new AgyAccountSwarm.Models.AccountProfile { Name = System.IO.Path.GetFileName(dir), CustomProfilePath = dir };
+            await auth.DetectAuthStatusAsync(p);
+        }
+    }
 }

@@ -249,6 +249,27 @@
                              Style="{StaticResource ModernTextBox}"
                              Margin="0,2,0,14" />
 
+                    <!-- Dangerously Skip Permissions Flag Toggle -->
+                    <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="⚡ Non-Interactive Permission Bypass" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <Border Background="#DC2626" CornerRadius="3" Padding="5,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="--dangerously-skip-permissions" FontSize="10" FontFamily="{StaticResource FontMono}" Foreground="#FFFFFF" FontWeight="Bold" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Bypasses interactive tool, file write, and shell execution confirmations. Ideal for automated swarm runs."
+                                           FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,3,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding DangerouslySkipPermissions}" Style="{StaticResource ModernCheckBox}" VerticalAlignment="Center" Margin="12,0,0,0" ToolTip="Enable --dangerously-skip-permissions flag" />
+                        </Grid>
+                    </Border>
+
                     <!-- Swarm Checkbox -->
                     <CheckBox IsChecked="{Binding IsSelectedForSwarm}"
                               Style="{StaticResource ModernCheckBox}"

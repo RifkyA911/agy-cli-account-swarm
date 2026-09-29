@@ -2,6 +2,27 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.7-beta] - 2026-09-29
+### Added
+- **Integrated In-Popup Conversation Search**:
+  - Replaced the external card-row search textbox with a clean, searchable dropdown popup.
+  - Clicking the conversation selector opens a dropdown popup with a search input at the top (`HeroIconMagnifyingGlass`, live text filter, and [x] clear button) and a pixel-smooth scrollable list of filtered sessions below it.
+- **Dedicated `--dangerously-skip-permissions` Toggle**:
+  - Added an explicit toggle card in `ProfileEditDialog` with badge `--dangerously-skip-permissions`.
+  - Automatically appends `--dangerously-skip-permissions` to launcher scripts, PowerShell/Cmd execution, and CLI snippets when enabled.
+- **Cross-Platform Architecture Roadmap & Linux/macOS Assessment**:
+  - Authored [docs/CROSS_PLATFORM_AVALONIA_ROADMAP.md](docs/CROSS_PLATFORM_AVALONIA_ROADMAP.md) and companion in-app documentation [docs/html/cross_platform.html](docs/html/cross_platform.html) (TAB 7 in Documentation view).
+  - Detailed feasibility assessment answering whether macOS is safe/issue-free (honest answer: NO, due to missing WPF runtime on Darwin, lack of Windows Terminal, Apple Keychain differences, and Gatekeeper notarization requirements).
+  - Detailed the Avalonia UI 11+ migration roadmap for native Linux (Wayland / X11) and macOS Metal.
+  - Automatically generates cross-platform POSIX launcher script (`run-agy.sh`) in every account sandbox alongside `run-agy.cmd`.
+
+### Fixed
+- **Cloned Profile Session Reset & Persistence Loss in Swarm Launch**:
+  - Diagnosed and resolved the root cause of OAuth token reset on cloned accounts: `AuthDetectorService` previously attempted to encrypt `antigravity-oauth-token` at rest using Windows DPAPI with UTF-8 BOM (`\ufeff`), which corrupted the token for the Go-compiled `agy` CLI binary (`keyringAuth: failed to load stored token: failed to unmarshal token: invalid character '\ufeff'`).
+  - Completely removed destructive DPAPI encryption of `antigravity-oauth-token`, preserving pure valid UTF-8 JSON without BOM as required by `agy`.
+  - Implemented automatic self-healing migration in `AuthDetectorService` that detects and restores any previously scrambled DPAPI/BOM tokens on disk, ensuring 100% login persistence across Swarm launches.
+  - Sanitized profile titles and working directories in Windows Terminal split-pane and new-tab arguments (`LaunchSwarmAsync`).
+
 ## [v0.9.6-beta] - 2026-09-29
 ### Added
 - **Dynamic Swarm Process Lifecycle (Launch & Stop Swarm)**:

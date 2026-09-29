@@ -1220,6 +1220,7 @@ public partial class MainViewModel : ObservableObject
                 PreferredModel = item.PreferredModel,
                 QuotaLimit = item.QuotaLimit,
                 ExtraArguments = item.ExtraArguments,
+                DangerouslySkipPermissions = item.DangerouslySkipPermissions,
                 DefaultWorkspace = item.DefaultWorkspace,
                 CustomProfilePath = Path.Combine(userHome, ".gemini-profiles", string.IsNullOrEmpty(safeFolder) ? newId : safeFolder),
                 IsSelectedForSwarm = true
@@ -2198,6 +2199,7 @@ public partial class MainViewModel : ObservableObject
                 "datastorage" => "database_config.html",
                 "tosrisks" => "terms_of_service_and_risks.html",
                 "nextfeatures" => "next_features.html",
+                "crossplatform" => "cross_platform.html",
                 _ => "architecture.html"
             };
 

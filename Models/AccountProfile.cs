@@ -26,6 +26,11 @@ public class AccountProfile
     public string? ExtraArguments { get; set; }
 
     /// <summary>
+    /// Whether to automatically pass --dangerously-skip-permissions to bypass all interactive CLI confirmation prompts.
+    /// </summary>
+    public bool DangerouslySkipPermissions { get; set; } = false;
+
+    /// <summary>
     /// Whether this profile is selected for Swarm Launch (batch execution).
     /// </summary>
     public bool IsSelectedForSwarm { get; set; } = true;
