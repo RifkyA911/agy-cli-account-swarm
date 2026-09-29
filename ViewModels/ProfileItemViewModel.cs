@@ -105,6 +105,7 @@ public partial class ProfileItemViewModel : ObservableObject
             {
                 AvailableSessions.Add(s);
             }
+            ApplySessionFilter();
             if (AvailableSessions.Count > 0)
             {
                 SelectedSession = AvailableSessions[0];
@@ -114,6 +115,76 @@ public partial class ProfileItemViewModel : ObservableObject
     }
 
     public ObservableCollection<ConversationSessionItem> AvailableSessions { get; } = new();
+    public ObservableCollection<ConversationSessionItem> FilteredSessions { get; } = new();
+
+    [ObservableProperty]
+    private string _sessionSearchText = string.Empty;
+
+    partial void OnSessionSearchTextChanged(string value)
+    {
+        ApplySessionFilter();
+    }
+
+    public bool HasMultipleSessions => AvailableSessions.Count > 1;
+
+    public void ApplySessionFilter()
+    {
+        FilteredSessions.Clear();
+        var query = SessionSearchText?.Trim();
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            foreach (var s in AvailableSessions)
+            {
+                FilteredSessions.Add(s);
+            }
+        }
+        else
+        {
+            foreach (var s in AvailableSessions)
+            {
+                if (s.DisplayText.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(s.Snippet) && s.Snippet.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(s.Id) && s.Id.Contains(query, StringComparison.OrdinalIgnoreCase)))
+                {
+                    FilteredSessions.Add(s);
+                }
+            }
+        }
+
+        if (SelectedSession != null && !FilteredSessions.Contains(SelectedSession) && FilteredSessions.Count > 0)
+        {
+            SelectedSession = FilteredSessions[0];
+        }
+    }
+
+    [ObservableProperty]
+    private bool _isRunningInSwarm;
+
+    partial void OnIsRunningInSwarmChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SwarmStatusColor));
+        OnPropertyChanged(nameof(SwarmStatusTooltip));
+    }
+
+    public string SwarmStatusColor
+    {
+        get
+        {
+            if (IsRunningInSwarm) return "#10B981"; // Vibrant Emerald = Active / In Swarm
+            if (AuthStatus.Status is AuthStatusType.NeedsLogin or AuthStatusType.NotInitialized) return "#F59E0B"; // Amber = Needs Login
+            return "#64748B"; // Neutral Slate = Idle / Offline
+        }
+    }
+
+    public string SwarmStatusTooltip
+    {
+        get
+        {
+            if (IsRunningInSwarm) return "Swarm Active (Online)";
+            if (AuthStatus.Status is AuthStatusType.NeedsLogin or AuthStatusType.NotInitialized) return "Needs Login (Offline)";
+            return "Idle / Ready (Offline)";
+        }
+    }
 
     [ObservableProperty]
     private ConversationSessionItem? _selectedSession;
@@ -166,12 +237,11 @@ public partial class ProfileItemViewModel : ObservableObject
                 return "Pending Login";
             }
             if (!string.IsNullOrWhiteSpace(Tier) && 
-                !Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase) && 
-                !Tier.Equals("Basic", StringComparison.OrdinalIgnoreCase))
+                !Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase))
             {
                 return Tier;
             }
-            return !string.IsNullOrWhiteSpace(AuthStatus.DetectedTier) ? AuthStatus.DetectedTier : "Pro";
+            return !string.IsNullOrWhiteSpace(AuthStatus.DetectedTier) ? AuthStatus.DetectedTier : "Basic";
         }
     }
 
@@ -636,6 +706,8 @@ public partial class ProfileItemViewModel : ObservableObject
             {
                 AvailableSessions.Add(s);
             }
+            ApplySessionFilter();
+            OnPropertyChanged(nameof(HasMultipleSessions));
             if (SelectedSession == null && AvailableSessions.Count > 0)
             {
                 SelectedSession = AvailableSessions[0];
@@ -643,6 +715,8 @@ public partial class ProfileItemViewModel : ObservableObject
 
             OnPropertyChanged(nameof(StatusBadgeColor));
             OnPropertyChanged(nameof(StatusBadgeText));
+            OnPropertyChanged(nameof(SwarmStatusColor));
+            OnPropertyChanged(nameof(SwarmStatusTooltip));
             OnPropertyChanged(nameof(CurrentModel));
             OnPropertyChanged(nameof(IsModelActive));
             OnPropertyChanged(nameof(TierBadgeText));
@@ -804,6 +878,17 @@ public partial class ProfileItemViewModel : ObservableObject
         OnImportChatRequested?.Invoke(this);
     }
 
+    [RelayCommand]
+    public async Task SingleSyncAsync()
+    {
+        _audioService.PlayClick();
+        await RefreshAuthStatusAsync();
+        if (IsDetailsExpanded)
+        {
+            await RunDoctorAsync();
+        }
+    }
+
     public void RefreshAvailableSessions()
     {
         try
@@ -814,6 +899,8 @@ public partial class ProfileItemViewModel : ObservableObject
             {
                 AvailableSessions.Add(s);
             }
+            ApplySessionFilter();
+            OnPropertyChanged(nameof(HasMultipleSessions));
             if (AvailableSessions.Count > 0)
             {
                 SelectedSession = AvailableSessions[0];

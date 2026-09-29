@@ -204,18 +204,18 @@ public class AuthDetectorService : IAuthDetectorService
                 if (!string.IsNullOrEmpty(status.CurrentModel) &&
                     (status.CurrentModel.Contains("3.8", StringComparison.OrdinalIgnoreCase) ||
                      status.CurrentModel.Contains("pro", StringComparison.OrdinalIgnoreCase) ||
-                     status.CurrentModel.Contains("opus", StringComparison.OrdinalIgnoreCase)))
+                     status.CurrentModel.Contains("opus", StringComparison.OrdinalIgnoreCase) ||
+                     status.CurrentModel.Contains("ultra", StringComparison.OrdinalIgnoreCase)))
                 {
-                    status.DetectedTier = "Pro";
+                    status.DetectedTier = status.CurrentModel.Contains("ultra", StringComparison.OrdinalIgnoreCase) ? "Ultra" : "Pro";
                 }
                 else
                 {
-                    status.DetectedTier = "Pro";
+                    status.DetectedTier = "Basic";
                 }
 
                 if (string.IsNullOrWhiteSpace(profile.Tier) ||
-                    profile.Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase) ||
-                    profile.Tier.Equals("Basic", StringComparison.OrdinalIgnoreCase))
+                    profile.Tier.Equals("Unverified", StringComparison.OrdinalIgnoreCase))
                 {
                     profile.Tier = status.DetectedTier;
                 }

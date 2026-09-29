@@ -1315,6 +1315,12 @@ public partial class MainViewModel : ObservableObject
     }
 
 
+    [ObservableProperty]
+    private bool _isSwarmRunning;
+
+    private readonly List<Process> _activeSwarmProcesses = new();
+    private readonly object _swarmLock = new();
+
     [RelayCommand]
     public async Task LaunchSwarmAsync()
     {
@@ -1333,12 +1339,120 @@ public partial class MainViewModel : ObservableObject
                 SelectedTerminal,
                 SelectedSwarmMode);
 
+            lock (_swarmLock)
+            {
+                _activeSwarmProcesses.Clear();
+                if (procs != null && procs.Count > 0)
+                {
+                    foreach (var proc in procs)
+                    {
+                        try
+                        {
+                            proc.EnableRaisingEvents = true;
+                            proc.Exited += (s, e) =>
+                            {
+                                App.Current?.Dispatcher?.Invoke(() =>
+                                {
+                                    CheckSwarmStatus();
+                                });
+                            };
+                            _activeSwarmProcesses.Add(proc);
+                        }
+                        catch
+                        {
+                            // Process may have already exited
+                        }
+                    }
+                }
+            }
+
+            foreach (var t in targets)
+            {
+                t.IsRunningInSwarm = true;
+            }
+
+            IsSwarmRunning = _activeSwarmProcesses.Count > 0 || (procs != null && procs.Count > 0);
             ShowNotification($"Swarm launched: {targets.Count} account sessions started ({SelectedSwarmMode})!");
         }
         catch (Exception ex)
         {
             Logger.Error("Failed to launch swarm", ex);
             ShowNotification($"Failed to launch swarm: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public void StopSwarm()
+    {
+        _audioService.PlayClick();
+        int killed = 0;
+        lock (_swarmLock)
+        {
+            foreach (var proc in _activeSwarmProcesses)
+            {
+                try
+                {
+                    if (!proc.HasExited)
+                    {
+                        proc.Kill(entireProcessTree: true);
+                        killed++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"[Swarm] Exception stopping swarm process: {ex.Message}");
+                }
+                finally
+                {
+                    try { proc.Dispose(); } catch { }
+                }
+            }
+            _activeSwarmProcesses.Clear();
+        }
+
+        foreach (var p in Profiles)
+        {
+            p.IsRunningInSwarm = false;
+        }
+
+        IsSwarmRunning = false;
+        ShowNotification(killed > 0 ? $"Swarm stopped: {killed} processes terminated." : "Swarm stopped.");
+    }
+
+    private void CheckSwarmStatus()
+    {
+        lock (_swarmLock)
+        {
+            _activeSwarmProcesses.RemoveAll(p =>
+            {
+                try { return p.HasExited; } catch { return true; }
+            });
+
+            if (_activeSwarmProcesses.Count == 0)
+            {
+                IsSwarmRunning = false;
+                foreach (var p in Profiles)
+                {
+                    p.IsRunningInSwarm = false;
+                }
+            }
+        }
+    }
+
+    [RelayCommand]
+    public void OpenGitHubRepo()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://github.com/RifkyA911/agy-cli-account-swarm",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Failed to open GitHub repo link: {ex.Message}");
         }
     }
 
@@ -2258,7 +2372,7 @@ public partial class MainViewModel : ObservableObject
         sb.AppendLine("  </tbody></table>");
         sb.AppendLine("</div>");
 
-        sb.AppendLine("<div style='text-align:center; font-size:11px; color:#64748b; margin-top:30px;'>Agy CLI Account Swarm v0.9.3-beta (MIT Open Source) • Authored by RifkyA911 • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
+        sb.AppendLine("<div style='text-align:center; font-size:11px; color:#64748b; margin-top:30px;'>Agy CLI Account Swarm v0.9.3-beta • Authored by RifkyA911 • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
         sb.AppendLine("</body></html>");
         return sb.ToString();
     }

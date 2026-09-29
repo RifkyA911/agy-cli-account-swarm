@@ -7,7 +7,7 @@
 > **A high-performance desktop orchestrator & sandbox session manager for Google Antigravity CLI (`agy`).**  
 > Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing.
 
-[![Version](https://img.shields.io/badge/Version-0.9.4--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.9.6--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
 [![UI: WPF](https://img.shields.io/badge/UI-WPF%20XAML-0078D4?style=flat&logo=windows)](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
@@ -52,7 +52,8 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 - **Per-Worker Profile Sandboxes**: Each profile operates in its own isolated folder (`~/.gemini-profiles/{id}/`) with independent OAuth tokens, conversation logs, and presence locks.
 - **Keyring Decoupling**: Prevents secondary accounts from inheriting the host Windows Credential Manager session.
 - **Clean Profile Duplication**: 1-click clone feature (`📋 Duplicate`) to duplicate profile settings, model configurations, and workspace paths into dedicated isolated sandboxes without polluting the primary profile.
-- **Interactive Accounts Filter & Sort**: Filter popup to instantly slice accounts by Subscription Tier (Basic, Plus, Pro, Ultra), Status / Health (Authenticated, Needs Login, Quota Exhausted, Warning), and sort by Name or Quota Consumption.
+- **Far-Left Accounts Filter & Sort**: Interactive filter popup anchored on the far-left of the Accounts toolbar to slice accounts by Subscription Tier (Basic, Plus, Pro, Ultra), Status / Health (Authenticated, Needs Login, Quota Exhausted, Warning), and sort by Name or Quota Consumption.
+- **Dedicated Single-Account Quick Sync**: Discrete refresh button on every account card header for on-demand OAuth & quota synchronization without triggering a full multi-account swarm scan.
 - **Cross-Account Chat Migration (`Import Chat`)**: Migrate past conversation history, turn logs, and transcripts from one profile sandbox to another with 1-click, preserving developer context without violating Google authentication tokens.
 - **Workspace Anchoring**: Configurable project workspaces per profile with automated path and quote escaping for spaces.
 
@@ -61,12 +62,18 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
   - Embedded inspection cards inside each Account Card below a sleek divider.
   - **`/usage` Tab**: Real-time daily prompt quota consumption, current session turn counts, estimated swarm token metrics, and daily quota reset timer (00:00 UTC).
   - **`/context` Tab**: Dynamic model context window capacity (1M / 2M tokens), prompt context headroom, and cached context metrics.
-- **Chat Session Start / Resume / Shell Selector**:
-  - Dropdown selector on every Account Card to choose launch behavior:
+- **Searchable Chat Session Selector with Smooth Scrolling**:
+  - Integrated search box inside the session selector dropdown to quickly locate specific conversation IDs or prompt titles.
+  - Disabled discrete pixel jumping for smooth, natural wheel scrolling.
+  - Options include:
     - `✨ New Chat (Fresh Session)` (default launch)
     - `🔄 Continue Recent Session (/continue)`
     - `💻 Sandbox Terminal Shell (CLI Only - agy -p ready)` (drops into an isolated shell ready for scripts and prompt commands)
     - `💬 Resume Specific Conversation (--conversation <id>)`
+- **Dynamic Swarm Lifecycle (Launch / Stop Swarm)**:
+  - Tracks background worker terminal PIDs. Dynamically switches between emerald `Launch Swarm` and crimson `Stop Swarm` for 1-click instant termination.
+- **Real-Time Swarm Status Dot**:
+  - Glowing status dot on each avatar (emerald green for active swarm execution, slate gray when idle).
 - **Dynamic Quota Usage Bar Colors**:
   - Emerald Green (< 70% quota used)
   - Amber Yellow (70% - 90% warning threshold)
@@ -101,6 +108,7 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 - **Live Sync Pulsing Beacon & Audio Synthesizer**: Pulsing emerald green auto-sync badge in the top navigation bar with toggleable audio chimes (`AutoSyncAudioEnabled`).
 - **Tailwind Heroicons Suite**: Modern vector icons across all navigation buttons, cards, and toolbars.
 - **Comprehensive Logging Console (`/logs`)**: Thread-safe memory ring buffer with real-time log level filtering, search, and native Excel (`.xlsx`) export.
+- **Dedicated About View (`/about`)**: Modern about page highlighting architectural pillars, project scope, and repository links.
 - **Bilingual Interface**: Seamless runtime switching between **English (EN)** and **Bahasa Indonesia (ID)**.
 
 ---
@@ -150,6 +158,17 @@ graph TD
     end
 ```
 
+### 🧠 Swarm Propagation Concepts (Architectural Roadmap)
+How should propagation work across multiple sandboxed Antigravity CLI accounts?
+1. **Configuration & Customization Propagation**:
+   - Master-to-worker propagation of global `.gemini/settings.json`, custom rules (`GEMINI.md`), and MCP configurations (`mcp_config.json`) across all profile sandboxes with opt-out overrides.
+2. **Context & Conversation Forking (Branch Propagation)**:
+   - Branching an active conversation from Account A into Account B, C, and D to explore divergent coding solutions or benchmark different models concurrently without contaminating the parent chat.
+3. **Prompt Fan-Out & Aggregation (Swarm Consensus Propagation)**:
+   - Broadcast a single user prompt simultaneously across *N* selected profiles (e.g. Gemini 2.5 Pro vs Gemini 2.5 Flash), comparing output accuracy and response speeds in parallel.
+4. **Dynamic Quota Failover Propagation (Rolling Relay)**:
+   - Automated task handover: when Worker A encounters a 5-hour quota exhaustion or rate limit, pending tasks seamlessly propagate to Worker B with serialized conversation history transfer.
+
 ---
 
 ## 📦 Installation & Uninstallation Guide
@@ -159,7 +178,7 @@ graph TD
 #### Option A: Windows Installer (.exe Setup Wizard)
 1. Download the latest installer from [GitHub Releases](https://github.com/RifkyA911/agy-cli-account-swarm/releases):
    ```
-   Agy-CLI-Account-Swarm-Setup-v0.9.4-beta.exe
+   Agy-CLI-Account-Swarm-Setup-v0.9.6-beta.exe
    ```
 2. Double-click the `.exe` and follow the setup wizard.
 3. The installer automatically:
@@ -177,7 +196,7 @@ You can cleanly uninstall **Agy CLI Account Swarm** at any time through any of t
   ```
 
 #### Option B: Windows Portable ZIP (Zero Installation)
-1. Download `Agy-CLI-Account-Swarm-v0.9.4-beta-win-x64.zip`.
+1. Download `Agy-CLI-Account-Swarm-v0.9.6-beta-win-x64.zip`.
 2. Extract the archive to any folder of your choice.
 3. Run `AgyAccountSwarm.exe`.
 4. *To remove*: Simply delete the extracted folder.
@@ -189,7 +208,7 @@ You can cleanly uninstall **Agy CLI Account Swarm** at any time through any of t
 > [!NOTE]
 > The GUI is built on .NET 9 WPF. On Linux, the application runs seamlessly via Wine or .NET desktop runtime, while native Avalonia GUI support is planned.
 
-1. Download `Agy-CLI-Account-Swarm-v0.9.4-beta-linux.tar.gz`.
+1. Download `Agy-CLI-Account-Swarm-v0.9.6-beta-linux.tar.gz`.
 2. Extract the archive:
    ```bash
    tar -xzf Agy-CLI-Account-Swarm-v0.9.4-beta-linux.tar.gz
@@ -211,11 +230,11 @@ Run the uninstaller script created during installation:
 
 ### 🍏 macOS Installation & Uninstallation
 
-1. Download `Agy-CLI-Account-Swarm-v0.9.4-beta-macos.tar.gz`.
+1. Download `Agy-CLI-Account-Swarm-v0.9.6-beta-macos.tar.gz`.
 2. Extract the archive:
    ```bash
-   tar -xzf Agy-CLI-Account-Swarm-v0.9.4-beta-macos.tar.gz
-   cd Agy-CLI-Account-Swarm-v0.9.4-beta-macos
+   tar -xzf Agy-CLI-Account-Swarm-v0.9.6-beta-macos.tar.gz
+   cd Agy-CLI-Account-Swarm-v0.9.6-beta-macos
    ```
 3. Run the installer:
    ```bash
@@ -244,7 +263,7 @@ Run the uninstaller script inside the application bundle:
 git clone https://github.com/RifkyA911/agy-cli-account-swarm.git
 cd agy-cli-account-swarm
 
-# Run unit tests (68 tests)
+# Run unit tests (71 tests)
 dotnet test
 
 # Build and run desktop app
@@ -254,12 +273,12 @@ dotnet run --project AgyAccountSwarm.csproj
 ### 2. Compile Release Packages & Inno Setup Installer
 Run the automated packaging script:
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\build-installer.ps1 -Version "0.9.4-beta"
+powershell -ExecutionPolicy Bypass -File scripts\build-installer.ps1 -Version "0.9.6-beta"
 ```
 This script will automatically:
 1. Publish release binaries to `publish/`.
-2. Compile `dist/Agy-CLI-Account-Swarm-Setup-v0.9.4-beta.exe` with embedded uninstaller using Inno Setup.
-3. Package portable `dist/Agy-CLI-Account-Swarm-v0.9.4-beta-win-x64.zip`.
+2. Compile `dist/Agy-CLI-Account-Swarm-Setup-v0.9.6-beta.exe` with embedded uninstaller using Inno Setup.
+3. Package portable `dist/Agy-CLI-Account-Swarm-v0.9.6-beta-win-x64.zip`.
 4. Generate `dist/SHA256SUMS.txt`.
 
 ---
@@ -267,13 +286,13 @@ This script will automatically:
 ## 🏷️ GitHub Releases & Versioning
 
 Releases follow [Semantic Versioning](https://semver.org/). Pre-1.0 releases are designated with `-beta`:
-- Current Beta: **`v0.9.4-beta`**
+- Current Beta: **`v0.9.6-beta`**
 
 ### Creating a New GitHub Release Tag:
 Pushing a version tag to GitHub triggers the automated GitHub Actions workflow (`.github/workflows/release.yml`), which tests, builds, and publishes all installer assets:
 ```bash
-git tag v0.9.4-beta
-git push origin v0.9.4-beta
+git tag v0.9.6-beta
+git push origin v0.9.6-beta
 ```
 
 ---

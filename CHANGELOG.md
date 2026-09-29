@@ -2,6 +2,36 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.6-beta] - 2026-09-29
+### Added
+- **Dynamic Swarm Process Lifecycle (Launch & Stop Swarm)**:
+  - Track active background terminal PIDs spawned by Swarm execution.
+  - Dynamically toggles topbar and dashboard action buttons between `Launch Swarm` (emerald green) and `Stop Swarm` (crimson red), allowing 1-click graceful termination of all active swarm worker processes.
+- **Dedicated Single-Account Quick Sync**:
+  - Added a compact sync button on every individual Account Card header allowing instant refresh of OAuth authentication status, quota metrics, and doctor health without triggering a full multi-account swarm sync.
+- **Interactive Conversation Search & Smooth Scrolling**:
+  - Added search input inside the session dropdown menu to easily filter and locate specific past chat sessions.
+  - Disabled discrete pixel jumping (`ScrollViewer.CanContentScroll="False"`) on dropdowns for smooth, natural scrolling.
+- **Online / Idle Swarm Status Dot Indicator**:
+  - Replaced the previous static Google `(G)` badge on avatar pictures with an active status dot: glowing emerald green when actively executing in swarm, and subtle slate gray when idle.
+- **Dedicated "About" View**:
+  - Added modern `/about` navigation page featuring the project hero banner, key architectural pillars (Process Virtualization, Authentic Telemetry, Stdio MCP Bridge, Zero Cross-Contamination), project scope reminder, and credit link to repository.
+
+### Fixed
+- **Filter Toolbar Positioning**:
+  - Moved the interactive Filter button and popup to the far-left position on the Accounts page toolbar for natural left-to-right visual hierarchy.
+- **Zero-Flicker Background Telemetry & Concurrency Serialization**:
+  - Serialized background usage checks (`agy -p "/usage"`) using `SemaphoreSlim(1,1)` to prevent CLI race conditions.
+  - Suppressed all terminal/shell popup flickers by closing `StandardInput` immediately, running with `CreateNoWindow = true`, `UseShellExecute = false`, and stripping `WT_SESSION` / setting `CI=1` and `TERM=dumb`.
+- **Subscription Tier Preservation (Basic vs Pro)**:
+  - Fixed an issue where "Basic" tier accounts were erroneously overwritten with "Pro" tier during detection.
+- **Collapsed Sidebar Badge Clipping**:
+  - Removed left border shifting from collapsed sidebar buttons and refined padding/margins (`Margin="0,-2,-3,0"`), ensuring multi-digit number badges are never clipped at the top-left edge.
+- **Dashboard Metric Card Bindings**:
+  - Polished and synced all 5 dashboard metric card localization keys (`TOTAL PROFILES`, `AUTHENTICATED`, `SWARM WORKERS`, `SAVED CONVERSATIONS`, `MCP TOOLS & SERVERS`) in both English and Indonesian.
+- **Clean Window Title & Version Badges**:
+  - Removed redundant `(MIT Open Source)` text from window chrome titles, version pills, and HTML telemetry exports.
+
 ## [v0.9.5-beta] - 2026-09-29
 ### Added
 - **Interactive Accounts Filter & Sorting Popup**:

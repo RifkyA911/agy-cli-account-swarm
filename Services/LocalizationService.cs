@@ -28,11 +28,12 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Nav_Docs"] = "Documentation",
         ["Nav_Logs"] = "Logs",
         ["Nav_Settings"] = "Settings",
+        ["Nav_About"] = "About",
 
         // Topbar
         ["App_Title"] = "Agy CLI Account Swarm",
         ["App_Subtitle"] = "Isolated multi-session manager, rate-limit monitor & quota tracker",
-        ["App_VersionBadge"] = "v0.9.3-beta (MIT)",
+        ["App_VersionBadge"] = "v0.9.6-beta",
         ["Btn_SyncSwarm"] = "Sync Swarm",
         ["Btn_LaunchSwarm"] = "Launch Swarm",
         ["Tag_SyncedJustNow"] = "Synced just now",
@@ -45,16 +46,20 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Label_CliReady"] = "CLI Ready",
         ["Label_CliMissing"] = "CLI Missing",
 
-        // Dashboard
-        ["Card_TotalAccounts"] = "TOTAL ACCOUNTS",
-        ["Card_TotalAccounts_Sub"] = "Managed profiles",
+        // Dashboard 5 Metric Cards
+        ["Card_TotalAccounts"] = "TOTAL PROFILES",
+        ["Card_TotalAccounts_Sub"] = "Sandboxed accounts",
         ["Card_Authenticated"] = "AUTHENTICATED",
-        ["Card_Authenticated_Sub"] = "Active Google tokens",
-        ["Card_SwarmTargets"] = "SWARM TARGETS",
-        ["Card_SwarmTargets_Sub"] = "Queued for parallel launch",
-        ["Card_TotalPrompts"] = "SAVED SESSIONS",
-        ["Card_TotalPrompts_Sub"] = "Indexed conversations",
-        ["Card_EstTokens"] = "MCP TOOLS ACTIVE",
+        ["Card_Authenticated_Sub"] = "Active Google credentials",
+        ["Card_SwarmTargets"] = "SWARM WORKERS",
+        ["Card_SwarmTargets_Sub"] = "Selected for execution",
+        ["Card_ActiveSessions"] = "SAVED CONVERSATIONS",
+        ["Card_ActiveSessions_Sub"] = "Historical chat sessions",
+        ["Card_McpTools"] = "MCP TOOLS & SERVERS",
+        ["Card_McpTools_Sub"] = "Protocol integrations",
+        ["Card_TotalPrompts"] = "SAVED CONVERSATIONS",
+        ["Card_TotalPrompts_Sub"] = "Historical chat sessions",
+        ["Card_EstTokens"] = "MCP TOOLS & SERVERS",
         ["Card_EstTokens_Sub"] = "Protocol integrations",
 
         // Chart
@@ -143,11 +148,12 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Nav_Docs"] = "Dokumentasi",
         ["Nav_Logs"] = "Catatan Log",
         ["Nav_Settings"] = "Pengaturan",
+        ["Nav_About"] = "Tentang",
 
         // Topbar
         ["App_Title"] = "Agy CLI Account Swarm",
         ["App_Subtitle"] = "Manajer multi-sesi terisolasi, pemantau rate-limit & pelacak kuota",
-        ["App_VersionBadge"] = "v0.9.3-beta (MIT)",
+        ["App_VersionBadge"] = "v0.9.6-beta",
         ["Btn_SyncSwarm"] = "Sinkron Swarm",
         ["Btn_LaunchSwarm"] = "Jalankan Swarm",
         ["Tag_SyncedJustNow"] = "Baru saja disinkronkan",
@@ -160,16 +166,20 @@ public partial class LocalizationService : ObservableObject, ILocalizationServic
         ["Label_CliReady"] = "CLI Siap",
         ["Label_CliMissing"] = "CLI Hilang",
 
-        // Dashboard
-        ["Card_TotalAccounts"] = "TOTAL AKUN",
-        ["Card_TotalAccounts_Sub"] = "Profil terkelola",
+        // Dashboard 5 Metric Cards
+        ["Card_TotalAccounts"] = "TOTAL PROFIL",
+        ["Card_TotalAccounts_Sub"] = "Akun terisolasi",
         ["Card_Authenticated"] = "TERAUTENTIKASI",
-        ["Card_Authenticated_Sub"] = "Token Google aktif",
-        ["Card_SwarmTargets"] = "TARGET SWARM",
-        ["Card_SwarmTargets_Sub"] = "Antrean eksekusi paralel",
-        ["Card_TotalPrompts"] = "SESI TERSIMPAN",
-        ["Card_TotalPrompts_Sub"] = "Percakapan terindeks",
-        ["Card_EstTokens"] = "ALAT MCP AKTIF",
+        ["Card_Authenticated_Sub"] = "Kredensial Google aktif",
+        ["Card_SwarmTargets"] = "PEKERJA SWARM",
+        ["Card_SwarmTargets_Sub"] = "Dipilih untuk eksekusi",
+        ["Card_ActiveSessions"] = "SESI PERCAKAPAN",
+        ["Card_ActiveSessions_Sub"] = "Riwayat chat tersimpan",
+        ["Card_McpTools"] = "ALAT & SERVER MCP",
+        ["Card_McpTools_Sub"] = "Integrasi protokol",
+        ["Card_TotalPrompts"] = "SESI PERCAKAPAN",
+        ["Card_TotalPrompts_Sub"] = "Riwayat chat tersimpan",
+        ["Card_EstTokens"] = "ALAT & SERVER MCP",
         ["Card_EstTokens_Sub"] = "Integrasi protokol",
 
         // Chart

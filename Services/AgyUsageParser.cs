@@ -144,6 +144,8 @@ public static class AgyUsageParser
         return result;
     }
 
+    private static readonly System.Threading.SemaphoreSlim _cliLock = new(1, 1);
+
     public static async Task<AgyUsageResult?> FetchUsageAsync(string effectiveProfileDir, bool isIsolated, string? agyExecutablePath)
     {
         if (string.IsNullOrWhiteSpace(agyExecutablePath) || !File.Exists(agyExecutablePath))
@@ -151,6 +153,7 @@ public static class AgyUsageParser
             return null;
         }
 
+        await _cliLock.WaitAsync();
         try
         {
             var psi = new ProcessStartInfo
@@ -169,6 +172,9 @@ public static class AgyUsageParser
             psi.Environment["HOME"] = effectiveProfileDir;
             psi.Environment["ANTIGRAVITY_APP_DATA_DIR"] = Path.Combine(effectiveProfileDir, ".gemini", "antigravity-cli");
             psi.Environment["JETSKI_APP_DATA_DIR"] = Path.Combine(effectiveProfileDir, ".gemini", "antigravity-cli");
+            psi.Environment["WT_SESSION"] = "";
+            psi.Environment["CI"] = "1";
+            psi.Environment["TERM"] = "dumb";
 
             if (isIsolated)
             {
@@ -178,6 +184,7 @@ public static class AgyUsageParser
 
             using var process = new Process { StartInfo = psi };
             process.Start();
+            process.StandardInput.Close();
 
             var readTask = process.StandardOutput.ReadToEndAsync();
             var timeoutTask = Task.Delay(10000); // 10 second safety timeout
@@ -205,6 +212,10 @@ public static class AgyUsageParser
         catch (Exception ex)
         {
             Logger.Warn($"[AgyUsageParser] Error executing 'agy -p /usage': {ex.Message}");
+        }
+        finally
+        {
+            _cliLock.Release();
         }
 
         return null;
