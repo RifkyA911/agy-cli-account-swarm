@@ -173,17 +173,13 @@ public class AuthDetectorService : IAuthDetectorService
                 }
             }
 
-            // Priority 3: Check browser profile picture ONLY if no token picture and verified to match email
+            // Priority 3: Check browser profile picture
             if (string.IsNullOrEmpty(detectedAvatar))
             {
                 var browserProfilePic = Path.Combine(geminiDir, "antigravity-browser-profile", "Default", "Google Profile Picture.png");
                 if (File.Exists(browserProfilePic))
                 {
-                    if (IsBrowserProfileMatchingEmail(geminiDir, status.AccountEmail))
-                    {
-                        detectedAvatar = browserProfilePic;
-                    }
-                    else if (profile.IsMainDefaultProfile() && string.IsNullOrEmpty(status.AccountEmail))
+                    if (profile.IsMainDefaultProfile() || IsBrowserProfileMatchingEmail(geminiDir, status.AccountEmail))
                     {
                         detectedAvatar = browserProfilePic;
                     }
@@ -192,7 +188,7 @@ public class AuthDetectorService : IAuthDetectorService
                 {
                     var globalGemini = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini");
                     var globalPic = Path.Combine(globalGemini, "antigravity-browser-profile", "Default", "Google Profile Picture.png");
-                    if (File.Exists(globalPic) && (IsBrowserProfileMatchingEmail(globalGemini, status.AccountEmail) || string.IsNullOrEmpty(status.AccountEmail)))
+                    if (File.Exists(globalPic))
                     {
                         detectedAvatar = globalPic;
                     }
@@ -613,6 +609,11 @@ public class AuthDetectorService : IAuthDetectorService
             {
                 Id = "__recent__",
                 DisplayText = "🔄 Continue Recent Session (/continue)"
+            },
+            new ConversationSessionItem
+            {
+                Id = "__cli_only__",
+                DisplayText = "💻 Sandbox Terminal Shell (CLI Only - agy -p ready)"
             }
         };
 

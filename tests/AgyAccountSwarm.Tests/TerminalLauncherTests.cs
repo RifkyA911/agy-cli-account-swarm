@@ -346,9 +346,33 @@ public class TerminalLauncherTests
         var sessions = service.GetAvailableSessions(profile);
 
         Assert.NotNull(sessions);
-        Assert.True(sessions.Count >= 2);
+        Assert.True(sessions.Count >= 3);
         Assert.True(sessions[0].IsNewChat);
         Assert.True(sessions[1].IsContinueRecent);
+        Assert.True(sessions[2].IsCliOnly);
+        Assert.Equal("__cli_only__", sessions[2].Id);
+    }
+
+    [Fact]
+    public void SanitizeSessionArgs_CliOnly_ReturnsCliOnlyFlag()
+    {
+        Assert.Equal("--cli-only", TerminalLauncherService.SanitizeSessionArgs("--cli-only"));
+        Assert.Equal("--cli-only", TerminalLauncherService.SanitizeSessionArgs("__cli_only__"));
+        Assert.Equal("--continue", TerminalLauncherService.SanitizeSessionArgs("--continue"));
+        Assert.Equal("--conversation conv-1234", TerminalLauncherService.SanitizeSessionArgs("--conversation conv-1234"));
+    }
+
+    [Fact]
+    public void IsMainDefaultProfile_ClonesAndCopies_ReturnFalse()
+    {
+        var defaultProfile = new AccountProfile { Name = "Default (Main Account)" };
+        Assert.True(defaultProfile.IsMainDefaultProfile());
+
+        var copiedProfile = new AccountProfile { Name = "Default (Main Account) (Copy)" };
+        Assert.False(copiedProfile.IsMainDefaultProfile());
+
+        var copyOfProfile = new AccountProfile { Name = "Copy of Default (Main Account)" };
+        Assert.False(copyOfProfile.IsMainDefaultProfile());
     }
 
     [Fact]

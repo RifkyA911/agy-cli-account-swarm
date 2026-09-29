@@ -336,12 +336,7 @@ public partial class ProfileItemViewModel : ObservableObject
         ? "1 active session"
         : $"{AvailableSessions.Count} sessions detected";
 
-    public bool IsDefaultProfile =>
-        Profile.IsMainDefaultProfile() ||
-        string.Equals(Profile.Id, "main", StringComparison.OrdinalIgnoreCase) ||
-        Name.StartsWith("Default", StringComparison.OrdinalIgnoreCase) ||
-        Name.Contains("(Main Account)", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(Name, "Primary (Default)", StringComparison.OrdinalIgnoreCase);
+    public bool IsDefaultProfile => Profile.IsMainDefaultProfile();
 
     public bool CanDelete => !IsDefaultProfile;
 
@@ -725,6 +720,10 @@ public partial class ProfileItemViewModel : ObservableObject
                 if (SelectedSession.IsContinueRecent)
                 {
                     sessionArgs = "--continue";
+                }
+                else if (SelectedSession.IsCliOnly)
+                {
+                    sessionArgs = "--cli-only";
                 }
                 else if (SelectedSession.IsSpecificConversation)
                 {

@@ -94,6 +94,12 @@ public class TerminalLauncherService : ITerminalLauncherService
         }
 
         sb.AppendLine($"cd /d \"{safeWorkDir}\"");
+        sb.AppendLine("if \"%1\"==\"--cli-only\" (");
+        sb.AppendLine($"    echo [AGY Sandbox Shell - Profile: {safeTitle}]");
+        sb.AppendLine("    echo Environment variables isolated. Ready for 'agy' or 'agy -p \"your prompt\"'.");
+        sb.AppendLine("    echo.");
+        sb.AppendLine("    goto :eof");
+        sb.AppendLine(")");
         sb.AppendLine($"\"{safeAgyBinary}\"{extraArgs} %*");
 
         File.WriteAllText(scriptPath, sb.ToString(), new System.Text.UTF8Encoding(false));
@@ -115,7 +121,7 @@ public class TerminalLauncherService : ITerminalLauncherService
         return $"--title \"{cleanTitle}\" -d \"{cleanWorkDir}\" cmd.exe /k call \"{cleanScript}\"";
     }
 
-    public static string BuildPowerShellCommand(string title, string effectiveDir, string workingDir, string agyBinary, string? extraArgs, bool isIsolated = false)
+    public static string BuildPowerShellCommand(string title, string effectiveDir, string workingDir, string agyBinary, string? extraArgs, bool isIsolated = false, bool isCliOnly = false)
     {
         var cleanTitle = title.Replace("'", "''").Replace("\"", "").Replace("\r", "").Replace("\n", "");
         var cleanEffectiveDir = effectiveDir.Replace("'", "''").Replace("\"", "");
@@ -127,6 +133,10 @@ public class TerminalLauncherService : ITerminalLauncherService
             ? "$env:SSH_CONNECTION = '1'; $env:SSH_CLIENT = '1'; "
             : "";
 
+        var launchCmd = isCliOnly
+            ? $"Write-Host '[AGY Sandbox Shell - Profile: {cleanTitle}]' -ForegroundColor Cyan; Write-Host 'Environment variables isolated. Ready for agy or agy -p <prompt>.' -ForegroundColor Gray;"
+            : $"& '{cleanAgy}'{cleanExtra}";
+
         return $"$host.UI.RawUI.WindowTitle = '{cleanTitle}'; " +
                $"$env:USERPROFILE = '{cleanEffectiveDir}'; " +
                $"$env:HOME = '{cleanEffectiveDir}'; " +
@@ -134,7 +144,7 @@ public class TerminalLauncherService : ITerminalLauncherService
                $"$env:JETSKI_APP_DATA_DIR = '{cleanEffectiveDir}\\.gemini\\antigravity-cli'; " +
                isolationSnippet +
                $"Set-Location '{cleanWorkingDir}'; " +
-               $"& '{cleanAgy}'{cleanExtra}";
+               launchCmd;
     }
 
     public static string SanitizeBatchString(string input)
@@ -161,6 +171,10 @@ public class TerminalLauncherService : ITerminalLauncherService
         {
             return "--continue";
         }
+        if (trimmed.Equals("--cli-only", StringComparison.OrdinalIgnoreCase) || trimmed.Equals("__cli_only__", StringComparison.OrdinalIgnoreCase))
+        {
+            return "--cli-only";
+        }
         if (trimmed.StartsWith("--conversation ", StringComparison.OrdinalIgnoreCase))
         {
             var idPart = trimmed.Substring("--conversation ".Length).Trim();
@@ -186,8 +200,9 @@ public class TerminalLauncherService : ITerminalLauncherService
             var agyBinary = FindAgyExecutablePath() ?? "agy";
             var extraArgs = SanitizeCommandLineArgs(profile.ExtraArguments);
             var safeSession = SanitizeSessionArgs(sessionArgs);
+            bool isCliOnly = safeSession == "--cli-only";
 
-            if (!string.IsNullOrWhiteSpace(safeSession))
+            if (!string.IsNullOrWhiteSpace(safeSession) && !isCliOnly)
             {
                 extraArgs = string.IsNullOrWhiteSpace(extraArgs) ? safeSession : $"{extraArgs} {safeSession}";
             }
@@ -211,7 +226,7 @@ public class TerminalLauncherService : ITerminalLauncherService
             }
             else if (terminal == TerminalType.PowerShell)
             {
-                var psScript = BuildPowerShellCommand(title, effectiveDir, workingDir, agyBinary, extraArgs, !profile.IsMainDefaultProfile());
+                var psScript = BuildPowerShellCommand(title, effectiveDir, workingDir, agyBinary, extraArgs, !profile.IsMainDefaultProfile(), isCliOnly);
                 var encodedCommand = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(psScript));
 
                 psi = new ProcessStartInfo

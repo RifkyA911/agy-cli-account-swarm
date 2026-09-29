@@ -13,7 +13,8 @@ public class ConversationSessionItem
 
     public bool IsNewChat => string.IsNullOrEmpty(Id);
     public bool IsContinueRecent => Id == "__recent__";
-    public bool IsSpecificConversation => !IsNewChat && !IsContinueRecent;
+    public bool IsCliOnly => Id == "__cli_only__";
+    public bool IsSpecificConversation => !IsNewChat && !IsContinueRecent && !IsCliOnly;
 
     public override string ToString() => DisplayText;
 }

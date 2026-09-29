@@ -8,6 +8,10 @@
         Height="760" Width="1240"
         MinHeight="640" MinWidth="1050"
         WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
         Background="{DynamicResource BrushBg}"
         Foreground="{DynamicResource BrushTextPrimary}"
         FontFamily="{StaticResource FontMain}">
@@ -102,19 +106,9 @@
                     <!-- Navigation Menu Items -->
                     <StackPanel Grid.Row="1">
                         <!-- /dashboard -->
-                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderBrush" Value="Transparent" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Dashboard">
-                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
+                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Dashboard}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Dashboard}">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Dashboard"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -157,19 +151,9 @@
                         </Border>
 
                         <!-- /accounts -->
-                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderBrush" Value="Transparent" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Accounts">
-                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
+                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Accounts}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Accounts}">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Accounts"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -225,19 +209,9 @@
                         </Border>
 
                         <!-- /analytic -->
-                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderBrush" Value="Transparent" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Analytics">
-                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
+                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Analytics}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Analytics}">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Analytics"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -280,19 +254,9 @@
                         </Border>
 
                         <!-- /mcp -->
-                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderBrush" Value="Transparent" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Mcp">
-                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
+                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Mcp}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Mcp}">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Mcp"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -348,19 +312,9 @@
                         </Border>
 
                         <!-- /docs -->
-                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderBrush" Value="Transparent" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Docs">
-                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
+                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Docs}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Docs}">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Docs"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -403,19 +357,9 @@
                         </Border>
 
                         <!-- /logs -->
-                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderBrush" Value="Transparent" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Logs">
-                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
+                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Logs}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Logs}">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Logs"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -458,19 +402,9 @@
                         </Border>
 
                         <!-- /settings -->
-                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderBrush" Value="Transparent" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Settings">
-                                            <Setter Property="Background" Value="{DynamicResource BrushNavActiveBg}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource BrushNavActiveBorder}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
+                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Settings}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Settings}">
                             <Button Command="{Binding NavigateCommand}" CommandParameter="Settings"
                                     Style="{StaticResource SidebarButton}"
                                     Padding="8,10"
@@ -1137,9 +1071,9 @@
                                                 <!-- Row 1: Avatar, Name, Tier, Status, Model & Quota Badges -->
                                                 <WrapPanel VerticalAlignment="Center">
                                                     <!-- Circular Cropped Avatar directly to left of Account Name -->
-                                                    <Grid Width="34" Height="34" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                    <Grid Width="40" Height="40" Margin="0,0,10,0" VerticalAlignment="Center">
                                                         <!-- Online Profile Picture inside Ellipse -->
-                                                        <Ellipse Width="34" Height="34"
+                                                        <Ellipse Width="40" Height="40"
                                                                  Stroke="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
                                                                  StrokeThickness="2"
                                                                  RenderOptions.BitmapScalingMode="HighQuality"
@@ -1151,18 +1085,18 @@
                                                         </Ellipse>
 
                                                         <!-- Fallback Google Circular Initial Badge -->
-                                                        <Border Width="34" Height="34" CornerRadius="17"
+                                                        <Border Width="40" Height="40" CornerRadius="20"
                                                                 Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
                                                                 Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}">
-                                                            <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="15" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="17" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                         </Border>
 
                                                         <!-- Mini Google 'G' Accent Dot -->
-                                                        <Border Width="12" Height="12" CornerRadius="6"
-                                                                Background="#FFFFFF" BorderBrush="#4285F4" BorderThickness="1"
+                                                        <Border Width="13" Height="13" CornerRadius="6.5"
+                                                                Background="#FFFFFF" BorderBrush="#4285F4" BorderThickness="1.2"
                                                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
                                                                 Margin="0,0,-1,-1">
-                                                            <TextBlock Text="G" FontSize="7.5" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                            <TextBlock Text="G" FontSize="8" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
                                                         </Border>
                                                     </Grid>
 
@@ -1334,94 +1268,101 @@
                                             Margin="0,0,0,16"
                                             Padding="18,16">
                                         <StackPanel>
-                                            <!-- Row 1: Profile Header + Top-Right Swarm Checkbox -->
-                                            <Grid Margin="0,0,0,8">
+                                            <!-- Row 1: Profile Header + Top-Right Swarm Checkbox (3-Column Clean Layout) -->
+                                            <Grid Margin="0,0,0,10">
                                                 <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
                                                     <ColumnDefinition Width="*" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
 
-                                                <!-- Left: Avatar, Name, Tier, Status, Model, Quota Health -->
-                                                <WrapPanel Grid.Column="0" VerticalAlignment="Center">
-                                                    <!-- Circular Google Avatar placed immediately to the left of the Account Name -->
-                                                    <Grid Width="38" Height="38" Margin="0,0,12,0" VerticalAlignment="Center">
-                                                        <!-- Online Google Profile Picture (if available) clipped inside Ellipse -->
-                                                        <Ellipse Width="38" Height="38"
-                                                                 Stroke="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
-                                                                 StrokeThickness="2"
-                                                                 RenderOptions.BitmapScalingMode="HighQuality"
-                                                                 RenderOptions.ClearTypeHint="Enabled"
-                                                                 Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}">
-                                                            <Ellipse.Fill>
-                                                                <ImageBrush ImageSource="{Binding AvatarImageSource}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality" />
-                                                            </Ellipse.Fill>
-                                                        </Ellipse>
+                                                <!-- Col 0: Dedicated Circular Avatar (48x48) -->
+                                                <Grid Grid.Column="0" Width="48" Height="48" Margin="0,0,14,0" VerticalAlignment="Top">
+                                                    <!-- Online Google Profile Picture (if available) clipped inside Ellipse -->
+                                                    <Ellipse Width="48" Height="48"
+                                                             Stroke="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                             StrokeThickness="2"
+                                                             RenderOptions.BitmapScalingMode="HighQuality"
+                                                             RenderOptions.ClearTypeHint="Enabled"
+                                                             Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}">
+                                                        <Ellipse.Fill>
+                                                            <ImageBrush ImageSource="{Binding AvatarImageSource}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality" />
+                                                        </Ellipse.Fill>
+                                                    </Ellipse>
 
-                                                        <!-- Fallback Google Circular Initial Badge -->
-                                                        <Border Width="38" Height="38" CornerRadius="19"
-                                                                Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
-                                                                Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}">
-                                                            <TextBlock Text="{Binding AvatarInitial}"
-                                                                       FontWeight="Bold" FontSize="16"
-                                                                       Foreground="#FFFFFF"
-                                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    <!-- Fallback Google Circular Initial Badge -->
+                                                    <Border Width="48" Height="48" CornerRadius="24"
+                                                            Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                            Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}">
+                                                        <TextBlock Text="{Binding AvatarInitial}"
+                                                                   FontWeight="Bold" FontSize="19"
+                                                                   Foreground="#FFFFFF"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+
+                                                    <!-- Mini Google 'G' Accent Dot in bottom right -->
+                                                    <Border Width="15" Height="15" CornerRadius="7.5"
+                                                            Background="#FFFFFF"
+                                                            BorderBrush="#4285F4" BorderThickness="1.5"
+                                                            HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                            Margin="0,0,-1,-1">
+                                                        <TextBlock Text="G" FontSize="9" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Col 1: Identity & Badges in Structured Multi-Row Layout -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                    <!-- Row 1a: Name, Primary Default, Tier & Quota Health -->
+                                                    <WrapPanel VerticalAlignment="Center" Margin="0,0,0,5">
+                                                        <!-- Profile Name -->
+                                                        <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,2" />
+
+                                                        <!-- System Primary Profile Badge -->
+                                                        <Border CornerRadius="6" Padding="8,3" Margin="0,0,8,2" VerticalAlignment="Center"
+                                                                Background="#1510B981" BorderBrush="#3510B981" BorderThickness="1"
+                                                                Visibility="{Binding IsDefaultProfile, Converter={StaticResource BoolToVisConverter}}">
+                                                            <TextBlock Text="Primary Default" FontSize="10.5" FontWeight="Bold" Foreground="#10B981" />
                                                         </Border>
 
-                                                        <!-- Mini Google 'G' Accent Dot in bottom right -->
-                                                        <Border Width="13" Height="13" CornerRadius="6.5"
-                                                                Background="#FFFFFF"
-                                                                BorderBrush="#4285F4" BorderThickness="1.2"
-                                                                HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                                                Margin="0,0,-1,-1">
-                                                            <TextBlock Text="G" FontSize="8" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                        <!-- Tier Badge -->
+                                                        <Border CornerRadius="6" Padding="10,3" Margin="0,0,8,2" VerticalAlignment="Center"
+                                                                Background="{Binding TierBadgeBackground, Converter={StaticResource HexToBrushConverter}}">
+                                                            <TextBlock Text="{Binding TierBadgeText}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
                                                         </Border>
-                                                    </Grid>
 
-                                                    <!-- Profile Name -->
-                                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                                        <!-- Quota Health Badge -->
+                                                        <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,2" VerticalAlignment="Center"
+                                                                Background="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}">
+                                                            <TextBlock Text="{Binding QuotaStatusText}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        </Border>
+                                                    </WrapPanel>
 
-                                                    <!-- System Primary Profile Badge -->
-                                                    <Border CornerRadius="6" Padding="8,3" Margin="0,0,8,0" VerticalAlignment="Center"
-                                                            Background="#1510B981" BorderBrush="#3510B981" BorderThickness="1"
-                                                            Visibility="{Binding IsDefaultProfile, Converter={StaticResource BoolToVisConverter}}">
-                                                        <TextBlock Text="Primary Default" FontSize="10.5" FontWeight="Bold" Foreground="#10B981" />
-                                                    </Border>
+                                                    <!-- Row 1b: Account Status Email & Model Badge -->
+                                                    <WrapPanel VerticalAlignment="Center">
+                                                        <!-- Status Badge (Logged in email or Needs Login) -->
+                                                        <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,2" VerticalAlignment="Center"
+                                                                Background="{DynamicResource BrushSurface}"
+                                                                BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <Ellipse Width="8" Height="8" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding StatusBadgeText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
 
-                                                    <!-- Tier Badge -->
-                                                    <Border CornerRadius="6" Padding="10,3" Margin="0,0,8,0" VerticalAlignment="Center"
-                                                            Background="{Binding TierBadgeBackground, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding TierBadgeText}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
-                                                    </Border>
+                                                        <!-- Model Badge -->
+                                                        <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,2" VerticalAlignment="Center"
+                                                                Background="{DynamicResource BrushModelBadgeBg}"
+                                                                BorderBrush="{DynamicResource BrushModelBadgeBorder}" BorderThickness="1">
+                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                <TextBlock Text="🧠 " FontSize="10" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding CurrentModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </WrapPanel>
+                                                </StackPanel>
 
-                                                    <!-- Status Badge (Logged in email or Needs Login) -->
-                                                    <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,0" VerticalAlignment="Center"
-                                                            Background="{DynamicResource BrushSurface}"
-                                                            BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
-                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Ellipse Width="8" Height="8" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding StatusBadgeText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
-                                                        </StackPanel>
-                                                    </Border>
-
-                                                    <!-- Model Badge -->
-                                                    <Border CornerRadius="6" Padding="9,3" Margin="0,0,8,0" VerticalAlignment="Center"
-                                                            Background="{DynamicResource BrushModelBadgeBg}"
-                                                            BorderBrush="{DynamicResource BrushModelBadgeBorder}" BorderThickness="1">
-                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="🧠 " FontSize="10" VerticalAlignment="Center" />
-                                                            <TextBlock Text="{Binding CurrentModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
-                                                        </StackPanel>
-                                                    </Border>
-
-                                                    <!-- Quota Health Badge -->
-                                                    <Border CornerRadius="6" Padding="9,3" VerticalAlignment="Center"
-                                                            Background="{Binding QuotaStatusColor, Converter={StaticResource HexToBrushConverter}}">
-                                                        <TextBlock Text="{Binding QuotaStatusText}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF" />
-                                                    </Border>
-                                                </WrapPanel>
-
-                                                <!-- Right: Top-Right Swarm Checkbox Pill -->
-                                                <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="9,4" VerticalAlignment="Center" HorizontalAlignment="Right" ToolTip="Include profile in Swarm Launch (⚡ Launch Swarm)">
+                                                <!-- Col 2: Top-Right Swarm Checkbox Pill -->
+                                                <Border Grid.Column="2" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="9,4" VerticalAlignment="Top" HorizontalAlignment="Right" ToolTip="Include profile in Swarm Launch (⚡ Launch Swarm)">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <CheckBox IsChecked="{Binding IsSelectedForSwarm}"
                                                                   Style="{StaticResource ModernCheckBox}"

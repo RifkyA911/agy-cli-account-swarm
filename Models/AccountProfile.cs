@@ -58,9 +58,16 @@ public class AccountProfile
 
     public bool IsMainDefaultProfile()
     {
+        // Duplicates or copies must NEVER be treated as the main primary profile
+        if (Name.Contains("(Copy", StringComparison.OrdinalIgnoreCase) ||
+            Name.EndsWith("(Copy)", StringComparison.OrdinalIgnoreCase) ||
+            Name.StartsWith("Copy of", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
         if (string.Equals(Id, "main", StringComparison.OrdinalIgnoreCase) ||
-            Name.StartsWith("Default", StringComparison.OrdinalIgnoreCase) ||
-            Name.Contains("(Main Account)", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Name, "Default (Main Account)", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(Name, "Primary (Default)", StringComparison.OrdinalIgnoreCase))
         {
             return true;

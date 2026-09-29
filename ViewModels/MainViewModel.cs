@@ -800,6 +800,11 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    partial void OnCurrentThemeChanged(string value)
+    {
+        OnPropertyChanged(nameof(CurrentPage));
+    }
+
     partial void OnSelectedThemeOptionChanged(string value)
     {
         if (!string.IsNullOrEmpty(value) && value != CurrentTheme)
@@ -1032,8 +1037,13 @@ public partial class MainViewModel : ObservableObject
                 candidateName = $"{item.Name} (Copy {counter++})";
             }
 
+            var newId = Guid.NewGuid().ToString("N");
+            var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var safeFolder = System.Text.RegularExpressions.Regex.Replace(candidateName.ToLowerInvariant(), @"[^a-z0-9_-]", "-").Trim('-');
+
             var newProfile = new AccountProfile
             {
+                Id = newId,
                 Name = candidateName,
                 Description = string.IsNullOrWhiteSpace(item.Description)
                     ? $"Cloned chats & configuration from {item.Name}"
@@ -1044,6 +1054,7 @@ public partial class MainViewModel : ObservableObject
                 QuotaLimit = item.QuotaLimit,
                 ExtraArguments = item.ExtraArguments,
                 DefaultWorkspace = item.DefaultWorkspace,
+                CustomProfilePath = Path.Combine(userHome, ".gemini-profiles", string.IsNullOrEmpty(safeFolder) ? newId : safeFolder),
                 IsSelectedForSwarm = true
             };
 

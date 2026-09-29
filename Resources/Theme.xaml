@@ -46,7 +46,7 @@
     <SolidColorBrush x:Key="BrushNavInactiveText" Color="#9CA3AF" />
 
     <!-- Typography -->
-    <FontFamily x:Key="FontMain">Segoe UI Variable Display, Segoe UI, sans-serif</FontFamily>
+    <FontFamily x:Key="FontMain">Segoe UI Variable Text, Segoe UI, -apple-system, sans-serif</FontFamily>
     <FontFamily x:Key="FontMono">Cascadia Code, Consolas, Courier New</FontFamily>
 
     <!-- Sidebar Navigation Button Style -->

@@ -97,10 +97,7 @@ public partial class ProfileEditViewModel : ObservableObject
     {
         IsEditMode = true;
         ResultProfile = profileToEdit;
-        IsDefaultProfile = profileToEdit.IsMainDefaultProfile() ||
-                           string.Equals(profileToEdit.Id, "main", StringComparison.OrdinalIgnoreCase) ||
-                           profileToEdit.Name.StartsWith("Default", StringComparison.OrdinalIgnoreCase) ||
-                           profileToEdit.Name.Contains("(Main Account)", StringComparison.OrdinalIgnoreCase);
+        IsDefaultProfile = profileToEdit.IsMainDefaultProfile();
 
         _dialogTitle = IsDefaultProfile ? "Configure Primary Account Profile" : $"Edit Profile: {profileToEdit.Name}";
         _name = profileToEdit.Name;

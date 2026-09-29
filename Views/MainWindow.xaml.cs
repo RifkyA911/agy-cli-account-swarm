@@ -198,6 +198,23 @@ public partial class MainWindow : Window
     {
         if (sender is ScrollViewer scv)
         {
+            // If the mouse wheel event originated inside a ComboBox, ComboBoxItem, Popup, or child ScrollViewer, let that child control handle its own scrolling!
+            if (e.OriginalSource is DependencyObject source)
+            {
+                DependencyObject? parent = source;
+                while (parent != null && parent != scv)
+                {
+                    if (parent is System.Windows.Controls.Primitives.Popup ||
+                        parent is System.Windows.Controls.ComboBox ||
+                        parent is System.Windows.Controls.ComboBoxItem ||
+                        (parent is ScrollViewer childScv && childScv != scv))
+                    {
+                        return; // Let child control handle its own mouse wheel
+                    }
+                    parent = VisualTreeHelper.GetParent(parent);
+                }
+            }
+
             // Standard WPF ScrollViewer jumps violently across large cards (~144px+ per notch).
             // A dampened delta (50px per standard mouse wheel click of 120 units) provides smooth, controlled scrolling.
             double delta = e.Delta / 120.0;
