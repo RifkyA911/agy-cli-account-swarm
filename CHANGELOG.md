@@ -14,10 +14,24 @@ All notable changes to the **Agy CLI Account Swarm** project are documented here
   - Disabled discrete pixel jumping (`ScrollViewer.CanContentScroll="False"`) on dropdowns for smooth, natural scrolling.
 - **Online / Idle Swarm Status Dot Indicator**:
   - Replaced the previous static Google `(G)` badge on avatar pictures with an active status dot: glowing emerald green when actively executing in swarm, and subtle slate gray when idle.
-- **Dedicated "About" View**:
-  - Added modern `/about` navigation page featuring the project hero banner, key architectural pillars (Process Virtualization, Authentic Telemetry, Stdio MCP Bridge, Zero Cross-Contamination), project scope reminder, and credit link to repository.
+- **Swarm Propagation & Git Worktree Specification**:
+  - Authored comprehensive architectural roadmap in [docs/NEXT_FEATURES.md](docs/NEXT_FEATURES.md) and companion [docs/html/next_features.html](docs/html/next_features.html).
+  - Designed end-to-end inflow pipeline combining Git Worktree parallelization (shared `.git` object store with zero `.git/index.lock` collisions), master-to-worker config propagation, conversation forking, and dynamic quota failover relay (estafet kuota) in 100% compliance with Google Terms of Service.
+- **In-App Documentation TAB 6 (Next Features)**:
+  - Added interactive tab inside the desktop `/docs` view outlining Git Worktree architecture, configuration propagation, multi-model fan-out, and failover relay with 1-click browser inspection.
 
 ### Fixed
+- **Batch Script Parenthesis Parsing Crash & Accidental OAuth Prompts**:
+  - Replaced parenthesized block `if "%1"=="--cli-only" (...)` with linear label branching (`if /i "%~1"=="--cli-only" goto :cli_only`), preventing fatal `]] was unexpected at this time.` syntax crashes when titles contained parentheses (e.g. `Default (Main Account)`).
+  - Explicitly clear `SSH_CONNECTION` and `SSH_CLIENT` for the primary default profile in both batch and PowerShell launchers, guaranteeing that the default account always reads from Windows Credential Manager and never triggers unwanted OAuth reauthentication prompts.
+- **Documentation Header Tabs Collision**:
+  - Redesigned the `/docs` navigation bar with a responsive 2-row layout using `WrapPanel`, ensuring that tab buttons never collide with or overflow the page title on narrow viewports.
+- **Vector Banner Layout Overlap**:
+  - Restructured `docs/assets/banner.svg` hero badges from a cramped horizontal strip into a balanced 2x2 grid with ample horizontal clearance (+300px), eliminating badge collisions with the terminal window mockup.
+- **Realistic About Page Language**:
+  - Grounded claims in the `/about` view, replacing overconfident "100%" assertions with honest, realistic descriptions of local process sandboxing.
+- **Platform Scope Transparency**:
+  - Explicitly clarified in `README.md` that native Avalonia GUI is planned for future cross-platform releases, while the current codebase runs on Windows WPF (.NET 9). Headless CLI automation will live in `agy-swarm`.
 - **Filter Toolbar Positioning**:
   - Moved the interactive Filter button and popup to the far-left position on the Accounts page toolbar for natural left-to-right visual hierarchy.
 - **Zero-Flicker Background Telemetry & Concurrency Serialization**:

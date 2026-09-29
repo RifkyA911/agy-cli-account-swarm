@@ -2880,21 +2880,24 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <!-- Docs Header Tabs -->
-                    <Border Grid.Row="0" Background="{DynamicResource BrushSurfaceHover}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="24,12">
-                        <Grid>
-                            <StackPanel HorizontalAlignment="Left">
-                                <TextBlock Text="{Binding Strings[Docs_Title]}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
-                                <TextBlock Text="{Binding Strings[Docs_Subtitle]}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
-                            </StackPanel>
-                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Content="Architecture" Command="{Binding SelectDocTabCommand}" CommandParameter="Architecture" Style="{StaticResource ModernButton}" Margin="0,0,4,0" Padding="10,5" />
-                                <Button Content="Swarm Workflow" Command="{Binding SelectDocTabCommand}" CommandParameter="SwarmWorkflow" Style="{StaticResource ModernButton}" Margin="0,0,4,0" Padding="10,5" />
-                                <Button Content="Data &amp; Configs" Command="{Binding SelectDocTabCommand}" CommandParameter="DataStorage" Style="{StaticResource ModernButton}" Margin="0,0,4,0" Padding="10,5" />
-                                <Button Content="MCP Guide" Command="{Binding SelectDocTabCommand}" CommandParameter="McpGuide" Style="{StaticResource ModernButton}" Margin="0,0,4,0" Padding="10,5" />
-                                <Button Content="ToS &amp; Risks" Command="{Binding SelectDocTabCommand}" CommandParameter="ToSRisks" Style="{StaticResource ModernButton}" Padding="10,5" />
-                            </StackPanel>
-                        </Grid>
+                    <!-- Docs Header Tabs (Responsive Multi-Row Layout) -->
+                    <Border Grid.Row="0" Background="{DynamicResource BrushSurfaceHover}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="24,14,24,10">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,10">
+                                <StackPanel HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding Strings[Docs_Title]}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <TextBlock Text="{Binding Strings[Docs_Subtitle]}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                </StackPanel>
+                            </Grid>
+                            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Architecture" Command="{Binding SelectDocTabCommand}" CommandParameter="Architecture" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="Swarm Workflow" Command="{Binding SelectDocTabCommand}" CommandParameter="SwarmWorkflow" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="Data &amp; Configs" Command="{Binding SelectDocTabCommand}" CommandParameter="DataStorage" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="MCP Guide" Command="{Binding SelectDocTabCommand}" CommandParameter="McpGuide" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="ToS &amp; Risks" Command="{Binding SelectDocTabCommand}" CommandParameter="ToSRisks" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="🚀 Next Features &amp; Propagation" Command="{Binding SelectDocTabCommand}" CommandParameter="NextFeatures" Style="{StaticResource PrimaryButton}" Margin="0,0,8,6" Padding="12,6" />
+                            </WrapPanel>
+                        </StackPanel>
                     </Border>
 
                     <!-- Docs Content Area -->
@@ -3003,6 +3006,54 @@
                                         </Border>
 
                                         <Button Content="🌐 Open Complete Legal Policy &amp; Risk Guide in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="ToSRisks" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- TAB 6: Next Features & Propagation -->
+                            <StackPanel Visibility="{Binding SelectedDocTab, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=NextFeatures}">
+                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
+                                    <StackPanel>
+                                        <TextBlock Text="🚀 Swarm Propagation &amp; Git Worktree Architecture" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
+                                        <TextBlock Text="Roadmap and architectural design for multi-agent task distribution, parallel workspace branching via Git Worktree, and ToS-compliant quota relays across sandboxed Google Antigravity CLI sessions." FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="20" TextWrapping="Wrap" Margin="0,0,0,14" />
+
+                                        <!-- Git Worktree Card -->
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <TextBlock Text="🌳 1. Git Worktree Parallelization (Shared Object Store):" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6" />
+                                                <TextBlock Text="• Traditional setups that share a single directory fail on .git/index.lock collisions, while full cloning wastes gigabytes of disk storage." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Git Worktree ('git worktree add -b swarm/{worker} ../worktree') creates lightweight linked folders sharing 1 single .git database, giving each worker an independent branch and index." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Config & Rule Propagation Card -->
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <TextBlock Text="⚙️ 2. Master-to-Worker Configuration Propagator:" FontSize="12.5" FontWeight="Bold" Foreground="#8B5CF6" Margin="0,0,0,6" />
+                                                <TextBlock Text="• Global workspace rules (GEMINI.md), settings.json, and baseline MCP tool definitions (mcp_config.json) are propagated automatically into worker sandboxes (~/.gemini-profiles/{id}/)." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Profiles retain granular local override capabilities (e.g. customized model temperature or tool exclusions)." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Context Forking & Fan-Out Card -->
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,12">
+                                            <StackPanel>
+                                                <TextBlock Text="🔀 3. Context Forking &amp; Swarm Fan-Out / Fan-In:" FontSize="12.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,6" />
+                                                <TextBlock Text="• Fork an ongoing conversation transcript into a new session ID for secondary workers to explore divergent refactoring approaches without polluting parent chat history." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Broadcast single tasks to multiple models (Gemini Flash for speed, Gemini Pro for architecture, Claude for review), comparing branch diffs in the desktop GUI." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Dynamic Quota Failover Card -->
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="⚡ 4. Dynamic Quota Failover Relay (Estafet Kuota):" FontSize="12.5" FontWeight="Bold" Foreground="#F59E0B" Margin="0,0,0,6" />
+                                                <TextBlock Text="• When Worker A reaches its rolling 5-hour demand limit, the system gracefully finishes the turn, serializes session state, and transfers the worktree and conversation to Worker B with available quota." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Designed with strict adherence to Google ToS: separate authentic OAuth credentials, zero token cloning, and zero attempt to evade rate limits." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Button Content="🌐 Open Complete Swarm Propagation Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="NextFeatures" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -3395,13 +3446,13 @@
                                             <TextBlock Text="⚡ .NET 9 WPF Desktop" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                                         </Border>
                                         <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="8,4" Margin="0,0,8,6">
-                                            <TextBlock Text="🔒 Zero-Contamination Sandboxing" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                            <TextBlock Text="🔒 Environment Sandboxing" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                                         </Border>
                                         <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="8,4" Margin="0,0,8,6">
                                             <TextBlock Text="📊 Authentic CLI Telemetry" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                                         </Border>
                                         <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="8,4" Margin="0,0,8,6">
-                                            <TextBlock Text="💬 100% ToS-Compliant Chat Transfer" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                            <TextBlock Text="💬 Local Chat History Migration" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                                         </Border>
                                     </WrapPanel>
                                 </StackPanel>
@@ -3432,9 +3483,9 @@
                                         <Border Width="28" Height="28" CornerRadius="14" Background="#153B82F6" BorderBrush="#303B82F6" BorderThickness="1" Margin="0,0,10,0">
                                             <Path Data="{StaticResource HeroIconShieldCheck}" Stroke="#3B82F6" StrokeThickness="1.75" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Border>
-                                        <TextBlock Text="Cryptographic Sandboxing" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                        <TextBlock Text="Process &amp; Environment Sandboxing" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                     </StackPanel>
-                                    <TextBlock Text="Each profile is assigned an independent filesystem sandbox. Environment variables (USERPROFILE, HOME, ANTIGRAVITY_APP_DATA_DIR) are scoped per-child, guaranteeing zero OAuth token leaks or token clashes across accounts."
+                                    <TextBlock Text="Each profile is assigned an independent filesystem sandbox. Environment variables (USERPROFILE, HOME, ANTIGRAVITY_APP_DATA_DIR) are scoped per-child, minimizing credential conflict and preventing accidental token collisions across accounts."
                                                FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="17" TextWrapping="Wrap" />
                                 </StackPanel>
                             </Border>
@@ -3476,7 +3527,7 @@
                                         </Border>
                                         <TextBlock Text="Chat Migration &amp; Import" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                     </StackPanel>
-                                    <TextBlock Text="Seamlessly clone and import past conversations between sandboxed accounts on your local disk. 100% compliant with Google Terms of Service: no tokens or telemetry are shared upstream."
+                                    <TextBlock Text="Seamlessly clone and import past conversations between sandboxed accounts on your local disk. Designed to prioritize Google Terms of Service compliance: operates strictly on local disk, keeping tokens and telemetry isolated without upstream transfer."
                                                FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="17" TextWrapping="Wrap" />
                                 </StackPanel>
                             </Border>

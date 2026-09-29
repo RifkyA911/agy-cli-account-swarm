@@ -12,7 +12,7 @@
 [![UI: WPF](https://img.shields.io/badge/UI-WPF%20XAML-0078D4?style=flat&logo=windows)](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D7?style=flat&logo=windows)](https://microsoft.com/windows)
-[![Tests: 71 Passed](https://img.shields.io/badge/Tests-71%20Passed-brightgreen?logo=xunit)]()
+[![Tests: 72 Passed](https://img.shields.io/badge/Tests-72%20Passed-brightgreen?logo=xunit)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
 
@@ -203,50 +203,22 @@ You can cleanly uninstall **Agy CLI Account Swarm** at any time through any of t
 
 ---
 
-### 🐧 Linux Installation & Uninstallation
+### 🐧 Linux Platform Status (Windows WPF Runtime)
 
-> [!NOTE]
-> The GUI is built on .NET 9 WPF. On Linux, the application runs seamlessly via Wine or .NET desktop runtime, while native Avalonia GUI support is planned.
-
-1. Download `Agy-CLI-Account-Swarm-v0.9.6-beta-linux.tar.gz`.
-2. Extract the archive:
-   ```bash
-   tar -xzf Agy-CLI-Account-Swarm-v0.9.4-beta-linux.tar.gz
-   cd Agy-CLI-Account-Swarm-v0.9.4-beta-linux
-   ```
-3. Run the installer:
-   ```bash
-   ./install.sh
-   ```
-   *(Installs to `~/.local/share/agy-cli-account-swarm` and adds `agy-cli-account-swarm` to your PATH and desktop menu)*.
-
-#### How to Uninstall on Linux:
-Run the uninstaller script created during installation:
-```bash
-~/.local/share/agy-cli-account-swarm/uninstall.sh
-```
+> [!WARNING]
+> **Native Avalonia GUI is NOT implemented yet.**  
+> The current codebase is built on **WPF for Windows (.NET 9 Windows desktop runtime)**.  
+> On Linux, running the WPF desktop app currently requires **Wine 8.0+** or a Windows compatibility container.  
+> A native cross-platform GUI powered by **Avalonia UI** is planned on the architectural roadmap for a unified Linux, macOS, and Windows desktop build.  
+> For headless Linux terminal automation, use the upcoming standalone CLI project **`agy-swarm`**.
 
 ---
 
-### 🍏 macOS Installation & Uninstallation
+### 🍏 macOS Platform Status
 
-1. Download `Agy-CLI-Account-Swarm-v0.9.6-beta-macos.tar.gz`.
-2. Extract the archive:
-   ```bash
-   tar -xzf Agy-CLI-Account-Swarm-v0.9.6-beta-macos.tar.gz
-   cd Agy-CLI-Account-Swarm-v0.9.6-beta-macos
-   ```
-3. Run the installer:
-   ```bash
-   ./install.sh
-   ```
-   *(Creates `Agy CLI Account Swarm.app` in `~/Applications` and symlinks `agy-cli-account-swarm` to PATH)*.
-
-#### How to Uninstall on macOS:
-Run the uninstaller script inside the application bundle:
-```bash
-~/Applications/"Agy CLI Account Swarm.app"/Contents/Resources/uninstall.sh
-```
+> [!WARNING]
+> **macOS native desktop UI is NOT available yet.**  
+> Like Linux, the desktop application currently uses Windows WPF. Native macOS support will arrive alongside the cross-platform Avalonia UI rewrite.
 
 ---
 
@@ -313,6 +285,7 @@ This application orchestrates local Antigravity CLI sessions and parses telemetr
 
 ## 📖 Technical Reference & Documentation
 
+- [`docs/NEXT_FEATURES.md`](docs/NEXT_FEATURES.md): Swarm propagation architecture, Git Worktree parallelization, and inflow roadmap.
 - [`docs/TERMS_OF_SERVICE_AND_RISKS.md`](docs/TERMS_OF_SERVICE_AND_RISKS.md): Google ToS, policies, credential sandboxing, and risk advisory.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Deep-dive into process isolation and environment virtualization.
 - [`docs/SWARM_WORKFLOW.md`](docs/SWARM_WORKFLOW.md): Terminal multiplexing state machine and split-pane layout algorithms.

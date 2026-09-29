@@ -2197,6 +2197,7 @@ public partial class MainViewModel : ObservableObject
                 "mcpguide" => "mcp_guide.html",
                 "datastorage" => "database_config.html",
                 "tosrisks" => "terms_of_service_and_risks.html",
+                "nextfeatures" => "next_features.html",
                 _ => "architecture.html"
             };
 

@@ -92,15 +92,24 @@ public class TerminalLauncherService : ITerminalLauncherService
             sb.AppendLine("set \"SSH_CONNECTION=1\"");
             sb.AppendLine("set \"SSH_CLIENT=1\"");
         }
+        else
+        {
+            // Explicitly clear SSH markers so the default main profile ALWAYS uses
+            // the system Windows Credential Manager and never gets tricked into thinking it's an SSH session
+            sb.AppendLine("set \"SSH_CONNECTION=\"");
+            sb.AppendLine("set \"SSH_CLIENT=\"");
+        }
 
         sb.AppendLine($"cd /d \"{safeWorkDir}\"");
-        sb.AppendLine("if \"%1\"==\"--cli-only\" (");
-        sb.AppendLine($"    echo [AGY Sandbox Shell - Profile: {safeTitle}]");
-        sb.AppendLine("    echo Environment variables isolated. Ready for 'agy' or 'agy -p \"your prompt\"'.");
-        sb.AppendLine("    echo.");
-        sb.AppendLine("    goto :eof");
-        sb.AppendLine(")");
+        sb.AppendLine("if /i \"%~1\"==\"--cli-only\" goto :cli_only");
         sb.AppendLine($"\"{safeAgyBinary}\"{extraArgs} %*");
+        sb.AppendLine("goto :eof");
+        sb.AppendLine();
+        sb.AppendLine(":cli_only");
+        sb.AppendLine($"echo [AGY Sandbox Shell - Profile: {safeTitle}]");
+        sb.AppendLine("echo Environment variables isolated. Ready for 'agy' or 'agy -p \"your prompt\"'.");
+        sb.AppendLine("echo.");
+        sb.AppendLine("goto :eof");
 
         File.WriteAllText(scriptPath, sb.ToString(), new System.Text.UTF8Encoding(false));
         Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{scriptPath}' (Target: '{safeAgyBinary}', Isolated: {!profile.IsMainDefaultProfile()})");
@@ -131,7 +140,7 @@ public class TerminalLauncherService : ITerminalLauncherService
 
         var isolationSnippet = isIsolated
             ? "$env:SSH_CONNECTION = '1'; $env:SSH_CLIENT = '1'; "
-            : "";
+            : "$env:SSH_CONNECTION = $null; $env:SSH_CLIENT = $null; Remove-Item Env:SSH_CONNECTION -ErrorAction SilentlyContinue; Remove-Item Env:SSH_CLIENT -ErrorAction SilentlyContinue; ";
 
         var launchCmd = isCliOnly
             ? $"Write-Host '[AGY Sandbox Shell - Profile: {cleanTitle}]' -ForegroundColor Cyan; Write-Host 'Environment variables isolated. Ready for agy or agy -p <prompt>.' -ForegroundColor Gray;"
@@ -150,7 +159,7 @@ public class TerminalLauncherService : ITerminalLauncherService
     public static string SanitizeBatchString(string input)
     {
         if (string.IsNullOrWhiteSpace(input)) return string.Empty;
-        var banned = new[] { '&', '|', '<', '>', '^', '"', '%', '\r', '\n' };
+        var banned = new[] { '&', '|', '<', '>', '^', '"', '%', '(', ')', '\r', '\n' };
         var chars = input.Where(c => !banned.Contains(c)).ToArray();
         return new string(chars).Trim();
     }

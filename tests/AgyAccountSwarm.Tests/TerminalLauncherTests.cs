@@ -134,6 +134,19 @@ public class TerminalLauncherTests
         // Assert: Main profile should not disable system keyring fallback
         Assert.DoesNotContain("set \"SSH_CONNECTION=1\"", content);
         Assert.DoesNotContain("set \"SSH_CLIENT=1\"", content);
+        Assert.Contains("set \"SSH_CONNECTION=\"", content);
+        Assert.Contains("set \"SSH_CLIENT=\"", content);
+        Assert.Contains("goto :cli_only", content);
+        Assert.DoesNotContain("if \"%1\"==\"--cli-only\" (", content);
+    }
+
+    [Fact]
+    public void SanitizeBatchString_WithParentheses_StripsParentheses()
+    {
+        string input = "Default (Main Account)";
+        string output = TerminalLauncherService.SanitizeBatchString(input);
+        Assert.DoesNotContain("(", output);
+        Assert.DoesNotContain(")", output);
     }
 
     [Fact]
