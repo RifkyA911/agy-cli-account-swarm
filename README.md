@@ -12,7 +12,7 @@
 [![UI: WPF](https://img.shields.io/badge/UI-WPF%20XAML-0078D4?style=flat&logo=windows)](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D7?style=flat&logo=windows)](https://microsoft.com/windows)
-[![Tests: 68 Passed](https://img.shields.io/badge/Tests-68%20Passed-brightgreen?logo=xunit)]()
+[![Tests: 71 Passed](https://img.shields.io/badge/Tests-71%20Passed-brightgreen?logo=xunit)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
 
@@ -23,10 +23,11 @@
 > **Agy CLI Account Swarm** is specifically designed as a multi-account manager for the **Google Antigravity CLI (`agy`)** command-line interface. It is **NOT** the Antigravity IDE! It manages separate terminal CLI workers and sessions without modifying or interfering with your IDE setup.
 
 > [!WARNING]
-> ### 🖥️ GUI DESKTOP APPLICATION MODE ONLY (NO CLI-ONLY INTERFACE YET)
-> **Agy CLI Account Swarm** currently operates **strictly as a GUI Desktop Application** (built with WPF on .NET 9 for Windows).  
-> **It does NOT yet support a headless CLI-only interface (`belum support interface cli only`).**  
-> The desktop application serves as a visual control tower: you manage accounts, inspect live telemetry, select chat sessions, and launch separate terminal-based Antigravity CLI instances with a single click. (A headless CLI interface and Avalonia-based cross-platform GUI are planned on future milestones).
+> ### 🖥️ GUI DESKTOP APPLICATION ONLY (STANDALONE CLI COMING IN 'agy-swarm')
+> **Agy CLI Account Swarm** operates **strictly as a GUI Desktop Application** (built with WPF on .NET 9 for Windows).  
+> **This repository is GUI-only and intentionally does not include a command-line interface.**  
+> A standalone headless CLI orchestration interface will be published in a separate dedicated project named **`agy-swarm`**.  
+> The desktop application serves as a visual control tower: you manage accounts, inspect live telemetry, filter profiles, migrate conversations, and launch separate terminal-based Antigravity CLI instances with a single click.
 
 ---
 
@@ -51,6 +52,8 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 - **Per-Worker Profile Sandboxes**: Each profile operates in its own isolated folder (`~/.gemini-profiles/{id}/`) with independent OAuth tokens, conversation logs, and presence locks.
 - **Keyring Decoupling**: Prevents secondary accounts from inheriting the host Windows Credential Manager session.
 - **Clean Profile Duplication**: 1-click clone feature (`📋 Duplicate`) to duplicate profile settings, model configurations, and workspace paths into dedicated isolated sandboxes without polluting the primary profile.
+- **Interactive Accounts Filter & Sort**: Filter popup to instantly slice accounts by Subscription Tier (Basic, Plus, Pro, Ultra), Status / Health (Authenticated, Needs Login, Quota Exhausted, Warning), and sort by Name or Quota Consumption.
+- **Cross-Account Chat Migration (`Import Chat`)**: Migrate past conversation history, turn logs, and transcripts from one profile sandbox to another with 1-click, preserving developer context without violating Google authentication tokens.
 - **Workspace Anchoring**: Configurable project workspaces per profile with automated path and quote escaping for spaces.
 
 ### 📊 Authentic Dynamic Telemetry & Quota Sentinels
@@ -275,8 +278,23 @@ git push origin v0.9.4-beta
 
 ---
 
+## ⚖️ Terms of Service, Google Policies & Risk Advisory
+
+This application orchestrates local Antigravity CLI sessions and parses telemetry strictly from your local computer. For a full breakdown of policies and risk management:
+
+👉 Read the comprehensive policy document: [`docs/TERMS_OF_SERVICE_AND_RISKS.md`](docs/TERMS_OF_SERVICE_AND_RISKS.md)
+
+### Key Safety Principles:
+1. **100% Local File Operations**: Quota metrics, session history, and chat imports read or copy local files on your machine. No synthetic data is generated, and no OAuth tokens are ever copied or shared across profiles.
+2. **Respect Google Rate Limits**: Google enforces rolling 5-hour and weekly capacity limits across tiers. Use the live model quota monitors on each account card to distribute work fairly and prevent service throttling.
+3. **Independent Third-Party Software**: Agy CLI Account Swarm is not affiliated with or endorsed by Google LLC. Users remain responsible for complying with Google's Terms of Service and Generative AI Prohibited Use Policies.
+4. **GUI-Only Desktop Architecture**: This tool is strictly a graphical desktop orchestrator. A headless CLI runner will be provided in the future standalone project **`agy-swarm`**.
+
+---
+
 ## 📖 Technical Reference & Documentation
 
+- [`docs/TERMS_OF_SERVICE_AND_RISKS.md`](docs/TERMS_OF_SERVICE_AND_RISKS.md): Google ToS, policies, credential sandboxing, and risk advisory.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Deep-dive into process isolation and environment virtualization.
 - [`docs/SWARM_WORKFLOW.md`](docs/SWARM_WORKFLOW.md): Terminal multiplexing state machine and split-pane layout algorithms.
 - [`docs/MCP_GUIDE.md`](docs/MCP_GUIDE.md): Model Context Protocol configuration and dynamic tool discovery.

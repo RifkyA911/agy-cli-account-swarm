@@ -22,6 +22,7 @@
             <converters:PageToActiveTextConverter x:Key="PageToActiveTextConverter" />
             <converters:PageToFontWeightConverter x:Key="PageToFontWeightConverter" />
             <converters:BooleanToChevronConverter x:Key="BoolToChevronConverter" />
+            <converters:BoolToFilterAccentConverter x:Key="BoolToFilterAccentConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

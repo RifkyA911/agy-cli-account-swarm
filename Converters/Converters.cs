@@ -187,3 +187,18 @@ public class BooleanToChevronConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
 
+public class BoolToFilterAccentConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is true)
+        {
+            return (SolidColorBrush)new BrushConverter().ConvertFromString("#3B82F6")!;
+        }
+        if (WpfApp.Current?.Resources["BrushTextSecondary"] is WpfBrush brush) return brush;
+        return (SolidColorBrush)new BrushConverter().ConvertFromString("#9CA3AF")!;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+

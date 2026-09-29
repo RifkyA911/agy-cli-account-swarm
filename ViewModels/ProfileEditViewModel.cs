@@ -145,9 +145,14 @@ public partial class ProfileEditViewModel : ObservableObject
         }
     }
 
+    public string QuotaSummaryText => $"{QuotaLimit:N0} prompts/day";
+    public string TierSummaryText => string.IsNullOrWhiteSpace(Tier) ? "Pro (Dynamic)" : Tier;
+
     partial void OnTierChanged(string value)
     {
         QuotaLimit = GetDefaultQuotaForTier(value);
+        OnPropertyChanged(nameof(QuotaSummaryText));
+        OnPropertyChanged(nameof(TierSummaryText));
     }
 
     private static int GetDefaultQuotaForTier(string? tier) => AuthDetectorService.GetDailyQuotaForTier(tier);

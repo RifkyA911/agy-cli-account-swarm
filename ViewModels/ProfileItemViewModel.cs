@@ -68,6 +68,7 @@ public partial class ProfileItemViewModel : ObservableObject
     public event Action<ProfileItemViewModel>? OnEditRequested;
     public event Action<ProfileItemViewModel>? OnDeleteRequested;
     public event Action<ProfileItemViewModel>? OnDuplicateRequested;
+    public event Action<ProfileItemViewModel>? OnImportChatRequested;
     public event Action<string>? OnNotificationRequested;
 
     public ProfileItemViewModel(
@@ -246,6 +247,8 @@ public partial class ProfileItemViewModel : ObservableObject
         AuthStatusType.Error => "Auth Error",
         _ => "Not Initialized"
     };
+
+    public bool IsAuthenticated => AuthStatus.Status is AuthStatusType.Authenticated or AuthStatusType.QuotaExhausted;
 
     public string AvatarInitial
     {
@@ -792,6 +795,31 @@ public partial class ProfileItemViewModel : ObservableObject
     {
         _audioService.PlayClick();
         OnDeleteRequested?.Invoke(this);
+    }
+
+    [RelayCommand]
+    public void RequestImportChat()
+    {
+        _audioService.PlayClick();
+        OnImportChatRequested?.Invoke(this);
+    }
+
+    public void RefreshAvailableSessions()
+    {
+        try
+        {
+            var sessions = _authDetector.GetAvailableSessions(Profile);
+            AvailableSessions.Clear();
+            foreach (var s in sessions)
+            {
+                AvailableSessions.Add(s);
+            }
+            if (AvailableSessions.Count > 0)
+            {
+                SelectedSession = AvailableSessions[0];
+            }
+        }
+        catch { }
     }
 
     public void SyncBackToModel()

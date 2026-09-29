@@ -66,7 +66,8 @@ public class AgyModelService : IAgyModelService
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
                 };
 
                 using var process = new Process { StartInfo = psi };

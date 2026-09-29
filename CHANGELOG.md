@@ -2,6 +2,28 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.5-beta] - 2026-09-29
+### Added
+- **Interactive Accounts Filter & Sorting Popup**:
+  - Added filter popup in the Accounts page toolbar to filter accounts by Subscription Tier (`Basic`, `Plus`, `Pro`, `Ultra`) and Quota Status/Health (`Authenticated`, `Needs Login`, `Quota Exhausted`, `Warning / High Quota`).
+  - Added multi-criteria sorting: `Name (A-Z)`, `Name (Z-A)`, `Quota Used (High to Low)`, and `Quota Used (Low to High)`.
+  - Added active filter badge counter on the filter button and 1-click Reset button.
+- **Cross-Account Chat History Migration (`Import Chat`)**:
+  - Built `ConversationTransferService` and `ImportChatDialog` allowing users to migrate conversation sessions, prompt turns, and transcripts between account sandboxes with 1 click.
+  - 100% compliant local file transfer: copies local `history.jsonl`, `conversations/`, and `brain/` logs strictly on disk without copying or sharing Google OAuth credentials.
+- **Terms of Service, Google Policies & Risk Advisory Documentation**:
+  - Authored comprehensive [docs/TERMS_OF_SERVICE_AND_RISKS.md](docs/TERMS_OF_SERVICE_AND_RISKS.md) covering Google ToS compliance, credential sandboxing, rate limits (5-hour and weekly limits), and disclaimer of affiliation with Google LLC.
+- **Explicit GUI Desktop Only Scope & Upcoming 'agy-swarm' CLI Announcement**:
+  - Emphasized across `README.md`, documentation, and application dialogs that this project is strictly GUI-only, and that a standalone headless CLI interface will be created in a future dedicated project named **`agy-swarm`**.
+
+### Fixed
+- **Terminal / Shell Flicker Suppression**:
+  - Removed `AllocConsole()` from `App.xaml.cs` which previously spawned a momentary conhost console window on startup.
+  - Enforced `CreateNoWindow = true` and `ProcessWindowStyle.Hidden` across all background telemetry and model discovery processes (`agy -p "/usage"`, `agy models`), providing a completely smooth GUI experience without console popups.
+- **Dynamic Tier & Quota by System Session in Profile Editor**:
+  - Refactored `ProfileEditDialog.xaml` and `ProfileEditViewModel.cs`: Subscription Tier and Daily Quota are now strictly dynamic, read-only telemetry calculated from the active session rather than user-entered values.
+  - Expanded Description input field to 2 rows (56px) with automatic multiline text wrapping.
+
 ## [v0.9.4-beta] - 2026-09-28
 ### Added
 - **Crisp High-Definition Avatar Decoding & Scaling**:

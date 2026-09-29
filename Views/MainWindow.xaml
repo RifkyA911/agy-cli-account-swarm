@@ -1230,13 +1230,134 @@
                                      Style="{StaticResource ModernTextBox}"
                                      ToolTip="{Binding Strings[Accounts_SearchPlaceholder]}" />
 
-                            <!-- Center options -->
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
+                            <!-- Center options: Select All & Filters Popup -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
                                 <Button Content="{Binding Strings[Accounts_SelectAll]}"
                                         Command="{Binding ToggleSelectAllSwarmCommand}"
                                         Style="{StaticResource ModernButton}"
                                         Padding="10,5"
-                                        FontSize="11" />
+                                        FontSize="11"
+                                        Margin="0,0,8,0" />
+
+                                <!-- Filters Toggle Button -->
+                                <Button x:Name="AccountsFilterButton"
+                                        Command="{Binding ToggleAccountsFilterPopupCommand}"
+                                        Style="{StaticResource ModernButton}"
+                                        Padding="10,5"
+                                        FontSize="11">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconFunnel}"
+                                              Stroke="{Binding HasActiveAccountsFilters, Converter={StaticResource BoolToFilterAccentConverter}}"
+                                              StrokeThickness="1.75"
+                                              Width="12" Height="12"
+                                              Stretch="Uniform"
+                                              Margin="0,0,6,0"
+                                              VerticalAlignment="Center" />
+                                        <TextBlock Text="Filters" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        <!-- Active filter badge -->
+                                        <Border Background="#3B82F6"
+                                                CornerRadius="8"
+                                                Padding="5,1"
+                                                Margin="6,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Visibility="{Binding HasActiveAccountsFilters, Converter={StaticResource BoolToVisConverter}}">
+                                            <TextBlock Text="{Binding ActiveAccountsFilterCount}"
+                                                       FontSize="9.5"
+                                                       FontWeight="Bold"
+                                                       Foreground="#FFFFFF" />
+                                        </Border>
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Filters Popup -->
+                                <Popup PlacementTarget="{Binding ElementName=AccountsFilterButton}"
+                                       Placement="Bottom"
+                                       IsOpen="{Binding IsAccountsFilterPopupOpen}"
+                                       StaysOpen="False"
+                                       AllowsTransparency="True"
+                                       PopupAnimation="Slide">
+                                    <Border Background="{DynamicResource BrushCard}"
+                                            BorderBrush="{DynamicResource BrushCardBorder}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="16"
+                                            Margin="0,6,0,0"
+                                            Width="300">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#000000" BlurRadius="16" ShadowDepth="4" Opacity="0.35" />
+                                        </Border.Effect>
+                                        <StackPanel>
+                                            <!-- Title & Reset -->
+                                            <Grid Margin="0,0,0,12">
+                                                <TextBlock Text="Filter &amp; Sort Accounts"
+                                                           FontWeight="Bold"
+                                                           FontSize="13"
+                                                           Foreground="{DynamicResource BrushTextPrimary}"
+                                                           VerticalAlignment="Center" />
+                                                <Button Command="{Binding ResetAccountsFiltersCommand}"
+                                                        HorizontalAlignment="Right"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Padding="4,2"
+                                                        Cursor="Hand">
+                                                    <TextBlock Text="Reset"
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#3B82F6" />
+                                                </Button>
+                                            </Grid>
+
+                                            <!-- Filter: Subscription Tier -->
+                                            <TextBlock Text="Subscription Tier"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource BrushTextMuted}"
+                                                       Margin="0,0,0,4" />
+                                            <ComboBox ItemsSource="{Binding AccountsTierFilterOptions}"
+                                                      SelectedItem="{Binding AccountsTierFilter}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Height="30"
+                                                      FontSize="11"
+                                                      Margin="0,0,0,10" />
+
+                                            <!-- Filter: Account Health / Status -->
+                                            <TextBlock Text="Status / Quota Health"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource BrushTextMuted}"
+                                                       Margin="0,0,0,4" />
+                                            <ComboBox ItemsSource="{Binding AccountsHealthFilterOptions}"
+                                                      SelectedItem="{Binding AccountsHealthFilter}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Height="30"
+                                                      FontSize="11"
+                                                      Margin="0,0,0,10" />
+
+                                            <!-- Sort Order -->
+                                            <TextBlock Text="Sort By"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource BrushTextMuted}"
+                                                       Margin="0,0,0,4" />
+                                            <ComboBox ItemsSource="{Binding AccountsSortOptions}"
+                                                      SelectedItem="{Binding AccountsSortBy}"
+                                                      Style="{StaticResource ModernComboBox}"
+                                                      Height="30"
+                                                      FontSize="11"
+                                                      Margin="0,0,0,14" />
+
+                                            <!-- Done / Apply Button -->
+                                            <Button Command="{Binding CloseAccountsFilterPopupCommand}"
+                                                    Content="Close"
+                                                    Style="{StaticResource PrimaryButton}"
+                                                    Padding="0,6"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Center"
+                                                    FontSize="11"
+                                                    FontWeight="Bold" />
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
                             </StackPanel>
 
                             <!-- Right Actions -->
@@ -1796,10 +1917,16 @@
                                                                     <TextBlock Text="Copy CLI" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
                                                                 </StackPanel>
                                                             </Button>
-                                                            <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="12,7" ToolTip="Open isolated profile sandbox directory">
+                                                            <Button Command="{Binding OpenProfileFolderCommand}" Style="{StaticResource ModernButton}" Padding="12,7" Margin="0,0,8,0" ToolTip="Open isolated profile sandbox directory">
                                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                                     <Path Data="{StaticResource HeroIconFolder}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                                                     <TextBlock Text="Open Folder" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                            <Button Command="{Binding RequestImportChatCommand}" Style="{StaticResource ModernButton}" Padding="12,7" ToolTip="Import past chat conversations from another account into this profile">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Path Data="{StaticResource HeroIconArrowsRightLeft}" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="Import Chat" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center" />
                                                                 </StackPanel>
                                                             </Button>
                                                         </StackPanel>
@@ -2689,7 +2816,8 @@
                                 <Button Content="Architecture" Command="{Binding SelectDocTabCommand}" CommandParameter="Architecture" Style="{StaticResource ModernButton}" Margin="0,0,4,0" Padding="10,5" />
                                 <Button Content="Swarm Workflow" Command="{Binding SelectDocTabCommand}" CommandParameter="SwarmWorkflow" Style="{StaticResource ModernButton}" Margin="0,0,4,0" Padding="10,5" />
                                 <Button Content="Data &amp; Configs" Command="{Binding SelectDocTabCommand}" CommandParameter="DataStorage" Style="{StaticResource ModernButton}" Margin="0,0,4,0" Padding="10,5" />
-                                <Button Content="MCP Guide" Command="{Binding SelectDocTabCommand}" CommandParameter="McpGuide" Style="{StaticResource ModernButton}" Padding="10,5" />
+                                <Button Content="MCP Guide" Command="{Binding SelectDocTabCommand}" CommandParameter="McpGuide" Style="{StaticResource ModernButton}" Margin="0,0,4,0" Padding="10,5" />
+                                <Button Content="ToS &amp; Risks" Command="{Binding SelectDocTabCommand}" CommandParameter="ToSRisks" Style="{StaticResource ModernButton}" Padding="10,5" />
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -2768,6 +2896,38 @@
                                         <TextBlock Text="Antigravity AI utilizes the open Model Context Protocol to dynamically discover tools from external language servers, database connectors, and web services. MCP servers run via standard IO (stdio) and expose callable JSON schemas." FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="20" TextWrapping="Wrap" Margin="0,0,0,14" />
 
                                         <Button Content="🌐 Open Complete MCP Protocol Specification in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="McpGuide" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- TAB 5: ToS & Risks -->
+                            <StackPanel Visibility="{Binding SelectedDocTab, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=ToSRisks}">
+                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
+                                    <StackPanel>
+                                        <TextBlock Text="Terms of Service, Google Policies &amp; Risk Advisory" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,10" />
+                                        <TextBlock Text="Agy CLI Account Swarm operates strictly locally on your workstation to sandbox and manage official Google Antigravity CLI (agy) sessions. Review essential policy compliance requirements below:" FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="20" TextWrapping="Wrap" Margin="0,0,0,14" />
+
+                                        <!-- Safe Operations Card -->
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,14">
+                                            <StackPanel>
+                                                <TextBlock Text="🔒 100% Local File Sandboxing &amp; Zero Synthetic Data:" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,6" />
+                                                <TextBlock Text="• All telemetry is parsed directly from local JSONL logs and authentic agy /usage queries." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Account tokens are never uploaded to any remote server or third-party service." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Chat migration (Import Chat) copies local session files without sharing or merging Google credentials." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Fair Use & Scope Card -->
+                                        <Border Background="#10F59E0B" BorderBrush="#30F59E0B" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="⚡ Rate Limits &amp; Desktop GUI Scope Notice:" FontSize="12.5" FontWeight="Bold" Foreground="#F59E0B" Margin="0,0,0,6" />
+                                                <TextBlock Text="• Respect rolling 5-hour and weekly capacity limits across tiers to avoid anti-abuse throttling." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• This application is strictly GUI-only. A headless CLI will be released in the upcoming project 'agy-swarm'." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Independent open-source project — not affiliated with or endorsed by Google LLC." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Button Content="🌐 Open Complete Legal Policy &amp; Risk Guide in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="ToSRisks" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
                                     </StackPanel>
                                 </Border>
                             </StackPanel>

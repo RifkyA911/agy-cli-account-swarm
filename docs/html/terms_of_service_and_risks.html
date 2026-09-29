@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service & Risk Advisory - Agy CLI Account Swarm</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #38bdf8;
+      --purple: #8b5cf6;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --rose: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container { max-width: 1060px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    p.lead { color: var(--muted); font-size: 15px; }
+    h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 30px 0 14px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+    h3 { font-size: 16px; font-weight: 700; color: #fff; margin: 18px 0 8px 0; }
+    p { margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .alert {
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      font-size: 13.5px;
+    }
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fde68a;
+    }
+    .alert-info {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #bae6fd;
+    }
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fecaca;
+    }
+    ul { margin: 10px 0 16px 20px; font-size: 14px; color: #cbd5e1; }
+    li { margin-bottom: 6px; }
+    code { font-family: monospace; background: #1e293b; padding: 2px 6px; border-radius: 4px; color: var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">LEGAL, POLICIES &amp; RISK MANAGEMENT</div>
+      <h1>Terms of Service, Policies &amp; Risk Advisory</h1>
+      <p class="lead">Operational architecture, local sandboxing boundaries, and policy compliance for Google Antigravity CLI (agy) orchestration.</p>
+    </header>
+
+    <div class="alert alert-info">
+      <strong>⚠️ Disclaimer of Affiliation:</strong> Agy CLI Account Swarm is an independent third-party open-source project and is NOT sponsored, maintained, or endorsed by Google LLC or Alphabet Inc.
+    </div>
+
+    <div class="alert alert-warning">
+      <strong>🖥️ GUI Desktop Only Scope:</strong> This repository operates strictly as a graphical desktop application. A standalone headless CLI orchestration interface will be published in a separate dedicated project named <code>agy-swarm</code>.
+    </div>
+
+    <h2>1. 100% Local File Sandboxing Architecture</h2>
+    <div class="card">
+      <p>Agy CLI Account Swarm isolates accounts entirely through native operating system mechanisms:</p>
+      <ul>
+        <li><strong>Isolated Profiles:</strong> Stored in <code>~/.gemini-profiles/{id}/</code> with independent environment configurations.</li>
+        <li><strong>No Cloud Token Interception:</strong> Tokens (<code>oauth_credentials.json</code>) remain locally secured. The app never uploads credentials to any remote server.</li>
+        <li><strong>Zero Synthetic Data:</strong> Telemetry is parsed dynamically from local <code>history.jsonl</code> logs and authenticated <code>agy -p "/usage"</code> results with zero dummy data.</li>
+      </ul>
+    </div>
+
+    <h2>2. Chat History Migration Compliance</h2>
+    <div class="card">
+      <p>The <strong>Import Chat</strong> feature executes strictly on your local disk:</p>
+      <ul>
+        <li>It copies conversation turn transcripts from <code>history.jsonl</code>, session databases from <code>conversations/</code>, and artifacts from <code>brain/</code> between local sandboxes.</li>
+        <li><strong>OAuth tokens are never copied or merged.</strong> Each profile preserves its unique authenticated Google identity.</li>
+      </ul>
+    </div>
+
+    <h2>3. Rate Limits &amp; Fair Use Policy</h2>
+    <div class="card">
+      <p>Google Antigravity services enforce capacity limits:</p>
+      <ul>
+        <li><strong>Weekly Limit:</strong> Based on subscription tier (Basic: 100, Plus: 300, Pro: 1,000, Ultra: 2,500 prompts/day).</li>
+        <li><strong>5-Hour Rolling Limit:</strong> Protects aggregate capacity across global users.</li>
+        <li>Users must avoid abusive parallel automation that could trigger IP rate-limiting or anti-abuse throttling.</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

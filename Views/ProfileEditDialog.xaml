@@ -83,47 +83,65 @@
                              Style="{StaticResource ModernTextBox}"
                              Margin="0,6,0,14" />
 
-                    <!-- Description -->
+                    <!-- Description (2-Row Height with TextWrapping) -->
                     <TextBlock Text="Description / Notes" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
                     <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
                              Style="{StaticResource ModernTextBox}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             MinHeight="56"
+                             Height="56"
+                             VerticalScrollBarVisibility="Auto"
                              Margin="0,6,0,14" />
 
-                    <!-- Tier and Model Row -->
-                    <Grid Margin="0,0,0,14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="14" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Subscription Tier *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
-                            <ComboBox ItemsSource="{Binding TierOptions}"
-                                      SelectedItem="{Binding Tier}"
-                                      Style="{StaticResource ModernComboBox}"
-                                      Margin="0,6,0,0" />
-                        </StackPanel>
+                    <!-- Dynamic Quota & Tier Information (Detected Dynamically by System Session) -->
+                    <Border Background="{DynamicResource BrushSurface}"
+                            BorderBrush="{DynamicResource BrushCardBorder}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            Padding="14,12"
+                            Margin="0,0,0,14">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="Target / Preferred Model" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
-                            <ComboBox ItemsSource="{Binding ModelOptions}"
-                                      SelectedItem="{Binding PreferredModel, Mode=TwoWay}"
-                                      Style="{StaticResource ModernComboBox}"
-                                      Margin="0,6,0,0" />
-                        </StackPanel>
-                    </Grid>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Subscription Tier &amp; Daily Quota" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,1.5" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="⚡ Dynamic By Session" FontSize="10" FontWeight="Bold" Foreground="#10B981" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Detected automatically from active Google account tokens &amp; authentic CLI /usage telemetry."
+                                           FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,3,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
 
-                    <!-- Quota Limit (Auto per tier) -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,5" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Tier: " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                                        <TextBlock Text="{Binding TierSummaryText}" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,5">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="Quota: " FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                                        <TextBlock Text="{Binding QuotaSummaryText}" FontWeight="Bold" FontSize="11" Foreground="#38BDF8" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Target / Preferred Model Selection -->
                     <StackPanel Margin="0,0,0,14">
-                        <TextBlock Text="Daily Prompt Turns Quota" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
-                        <TextBox Text="{Binding QuotaLimit, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource ModernTextBox}"
-                                 Margin="0,6,0,0" />
-                        <TextBlock Text="Auto-calculated per tier (Basic: 100, Plus: 300, Pro: 1,000, Ultra: 2,500 prompts/day)"
-                                   FontSize="10.5"
-                                   Foreground="{DynamicResource BrushTextMuted}"
-                                   Margin="0,4,0,0" />
+                        <TextBlock Text="Target / Preferred Model" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                        <ComboBox ItemsSource="{Binding ModelOptions}"
+                                  SelectedItem="{Binding PreferredModel, Mode=TwoWay}"
+                                  Style="{StaticResource ModernComboBox}"
+                                  Margin="0,6,0,0" />
                     </StackPanel>
 
                     <!-- Color Accent Selection -->

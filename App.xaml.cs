@@ -19,20 +19,6 @@ public partial class App : System.Windows.Application
         // 1. Setup Global Exception Handlers
         SetupExceptionHandling();
 
-        // 1.1 Allocate hidden console so background CLI telemetry queries (agy -p /usage) never flash visible console/cmd windows
-        try
-        {
-            if (AllocConsole())
-            {
-                var handle = GetConsoleWindow();
-                if (handle != IntPtr.Zero)
-                {
-                    ShowWindow(handle, SW_HIDE);
-                }
-            }
-        }
-        catch { }
-
         Logger.Info("Agy CLI Account Swarm starting up...");
 
         try
@@ -139,15 +125,4 @@ public partial class App : System.Windows.Application
             e.SetObserved(); // Prevent task crash
         };
     }
-
-    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool AllocConsole();
-
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    private static extern IntPtr GetConsoleWindow();
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-    private const int SW_HIDE = 0;
 }

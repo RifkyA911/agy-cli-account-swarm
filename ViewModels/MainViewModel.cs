@@ -99,6 +99,7 @@ public partial class MainViewModel : ObservableObject
     private readonly ITelemetryService _telemetryService;
     private readonly IAgyModelService _modelService;
     private readonly IProfileDoctorService _profileDoctorService;
+    private readonly IConversationTransferService _conversationTransferService;
 
     public ILocalizationService Strings { get; }
 
@@ -124,6 +125,109 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string _searchQuery = string.Empty;
+
+    // Accounts Page Filtering and Sorting
+    [ObservableProperty]
+    private bool _isAccountsFilterPopupOpen;
+
+    [ObservableProperty]
+    private string _accountsTierFilter = "All Tiers";
+
+    [ObservableProperty]
+    private string _accountsHealthFilter = "All Status";
+
+    [ObservableProperty]
+    private string _accountsSortBy = "Default";
+
+    public ObservableCollection<string> AccountsTierFilterOptions { get; } =
+        ["All Tiers", "Basic", "Plus", "Pro", "Ultra"];
+
+    public ObservableCollection<string> AccountsHealthFilterOptions { get; } =
+        ["All Status", "Authenticated", "Needs Login", "Quota Exhausted", "Warning / High Quota"];
+
+    public ObservableCollection<string> AccountsSortOptions { get; } =
+        ["Default", "Name (A-Z)", "Name (Z-A)", "Quota Used (High to Low)", "Quota Used (Low to High)"];
+
+    public bool HasActiveAccountsFilters =>
+        !string.Equals(AccountsTierFilter, "All Tiers", StringComparison.OrdinalIgnoreCase) ||
+        !string.Equals(AccountsHealthFilter, "All Status", StringComparison.OrdinalIgnoreCase) ||
+        !string.Equals(AccountsSortBy, "Default", StringComparison.OrdinalIgnoreCase);
+
+    public int ActiveAccountsFilterCount =>
+        (!string.Equals(AccountsTierFilter, "All Tiers", StringComparison.OrdinalIgnoreCase) ? 1 : 0) +
+        (!string.Equals(AccountsHealthFilter, "All Status", StringComparison.OrdinalIgnoreCase) ? 1 : 0) +
+        (!string.Equals(AccountsSortBy, "Default", StringComparison.OrdinalIgnoreCase) ? 1 : 0);
+
+    [RelayCommand]
+    public void ToggleAccountsFilterPopup()
+    {
+        _audioService.PlayClick();
+        IsAccountsFilterPopupOpen = !IsAccountsFilterPopupOpen;
+    }
+
+    [RelayCommand]
+    public void CloseAccountsFilterPopup()
+    {
+        _audioService.PlayClick();
+        IsAccountsFilterPopupOpen = false;
+    }
+
+    [RelayCommand]
+    public void ResetAccountsFilters()
+    {
+        _audioService.PlayClick();
+        AccountsTierFilter = "All Tiers";
+        AccountsHealthFilter = "All Status";
+        AccountsSortBy = "Default";
+        FilteredProfiles.Refresh();
+        ApplyAccountsSorting();
+        OnPropertyChanged(nameof(HasActiveAccountsFilters));
+        OnPropertyChanged(nameof(ActiveAccountsFilterCount));
+    }
+
+    partial void OnAccountsTierFilterChanged(string value)
+    {
+        FilteredProfiles.Refresh();
+        OnPropertyChanged(nameof(HasActiveAccountsFilters));
+        OnPropertyChanged(nameof(ActiveAccountsFilterCount));
+    }
+
+    partial void OnAccountsHealthFilterChanged(string value)
+    {
+        FilteredProfiles.Refresh();
+        OnPropertyChanged(nameof(HasActiveAccountsFilters));
+        OnPropertyChanged(nameof(ActiveAccountsFilterCount));
+    }
+
+    partial void OnAccountsSortByChanged(string value)
+    {
+        ApplyAccountsSorting();
+        OnPropertyChanged(nameof(HasActiveAccountsFilters));
+        OnPropertyChanged(nameof(ActiveAccountsFilterCount));
+    }
+
+    private void ApplyAccountsSorting()
+    {
+        using (FilteredProfiles.DeferRefresh())
+        {
+            FilteredProfiles.SortDescriptions.Clear();
+            switch (AccountsSortBy)
+            {
+                case "Name (A-Z)":
+                    FilteredProfiles.SortDescriptions.Add(new System.ComponentModel.SortDescription(nameof(ProfileItemViewModel.Name), System.ComponentModel.ListSortDirection.Ascending));
+                    break;
+                case "Name (Z-A)":
+                    FilteredProfiles.SortDescriptions.Add(new System.ComponentModel.SortDescription(nameof(ProfileItemViewModel.Name), System.ComponentModel.ListSortDirection.Descending));
+                    break;
+                case "Quota Used (High to Low)":
+                    FilteredProfiles.SortDescriptions.Add(new System.ComponentModel.SortDescription(nameof(ProfileItemViewModel.UsagePercentage), System.ComponentModel.ListSortDirection.Descending));
+                    break;
+                case "Quota Used (Low to High)":
+                    FilteredProfiles.SortDescriptions.Add(new System.ComponentModel.SortDescription(nameof(ProfileItemViewModel.UsagePercentage), System.ComponentModel.ListSortDirection.Ascending));
+                    break;
+            }
+        }
+    }
 
     [ObservableProperty]
     private TerminalType _selectedTerminal = TerminalType.WindowsTerminal;
@@ -425,7 +529,8 @@ public partial class MainViewModel : ObservableObject
         IMcpService mcpService,
         ITelemetryService telemetryService,
         IAgyModelService? modelService = null,
-        IProfileDoctorService? profileDoctorService = null)
+        IProfileDoctorService? profileDoctorService = null,
+        IConversationTransferService? conversationTransferService = null)
     {
         _storageService = storageService;
         _launcherService = launcherService;
@@ -436,6 +541,7 @@ public partial class MainViewModel : ObservableObject
         _telemetryService = telemetryService;
         _modelService = modelService ?? new AgyModelService();
         _profileDoctorService = profileDoctorService ?? new ProfileDoctorService();
+        _conversationTransferService = conversationTransferService ?? new ConversationTransferService();
 
         _autoSyncTimer.Tick += OnAutoSyncTimerTick;
 
@@ -695,6 +801,7 @@ public partial class MainViewModel : ObservableObject
         vm.OnEditRequested += async item => await EditProfileAsync(item);
         vm.OnDuplicateRequested += async item => await DuplicateProfileAsync(item);
         vm.OnDeleteRequested += async item => await DeleteProfileAsync(item);
+        vm.OnImportChatRequested += item => ImportChat(item);
         vm.OnNotificationRequested += ShowNotification;
         vm.PropertyChanged += (s, e) =>
         {
@@ -708,17 +815,77 @@ public partial class MainViewModel : ObservableObject
         return vm;
     }
 
+    [RelayCommand]
+    public void ImportChat(ProfileItemViewModel item)
+    {
+        _audioService.PlayClick();
+        var otherProfiles = Profiles.Select(p => p.Profile).Where(p => !string.Equals(p.Id, item.Profile.Id, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (otherProfiles.Count == 0)
+        {
+            ShowNotification("No other accounts available to import chats from.");
+            return;
+        }
+
+        var vm = new ImportChatViewModel(item.Profile, Profiles.Select(p => p.Profile), _conversationTransferService, _audioService);
+        var dialog = new Views.ImportChatDialog(vm)
+        {
+            Owner = System.Windows.Application.Current?.MainWindow
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            item.RefreshAvailableSessions();
+            ShowNotification($"Chat history transferred to '{item.Name}'!");
+        }
+    }
+
     private bool FilterProfile(object obj)
     {
         if (obj is not ProfileItemViewModel item) return false;
-        if (string.IsNullOrWhiteSpace(SearchQuery)) return true;
 
-        var q = SearchQuery.Trim().ToLowerInvariant();
-        return item.Name.ToLowerInvariant().Contains(q) ||
-               item.Description.ToLowerInvariant().Contains(q) ||
-               item.CurrentModel.ToLowerInvariant().Contains(q) ||
-               item.TierBadgeText.ToLowerInvariant().Contains(q) ||
-               (item.AuthStatus.AccountEmail?.ToLowerInvariant().Contains(q) ?? false);
+        // 1. Text Search Query
+        if (!string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            var q = SearchQuery.Trim().ToLowerInvariant();
+            bool matchesSearch = item.Name.ToLowerInvariant().Contains(q) ||
+                                 item.Description.ToLowerInvariant().Contains(q) ||
+                                 item.CurrentModel.ToLowerInvariant().Contains(q) ||
+                                 item.TierBadgeText.ToLowerInvariant().Contains(q) ||
+                                 (item.AuthStatus.AccountEmail?.ToLowerInvariant().Contains(q) ?? false);
+            if (!matchesSearch) return false;
+        }
+
+        // 2. Tier Filter
+        if (!string.Equals(AccountsTierFilter, "All Tiers", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!string.Equals(item.Tier, AccountsTierFilter, StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(item.TierBadgeText, AccountsTierFilter, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        // 3. Health / Status Filter
+        if (!string.Equals(AccountsHealthFilter, "All Status", StringComparison.OrdinalIgnoreCase))
+        {
+            switch (AccountsHealthFilter)
+            {
+                case "Authenticated":
+                    if (!item.IsAuthenticated) return false;
+                    break;
+                case "Needs Login":
+                    if (item.IsAuthenticated) return false;
+                    break;
+                case "Quota Exhausted":
+                    if (!item.HasExhaustedQuota) return false;
+                    break;
+                case "Warning / High Quota":
+                    if (item.UsagePercentage < 80.0) return false;
+                    break;
+            }
+        }
+
+        return true;
     }
 
     partial void OnSearchQueryChanged(string value)
@@ -1915,6 +2082,7 @@ public partial class MainViewModel : ObservableObject
                 "swarmworkflow" => "swarm_workflow.html",
                 "mcpguide" => "mcp_guide.html",
                 "datastorage" => "database_config.html",
+                "tosrisks" => "terms_of_service_and_risks.html",
                 _ => "architecture.html"
             };
 
