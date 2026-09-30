@@ -29,8 +29,17 @@ public class AgyUsageResult
     public string? RawCliResponse { get; set; }
 }
 
+/// <summary>
+/// Defensive parser and background fetcher for Antigravity CLI authentic `/usage` command outputs.
+/// Extracts remaining fractions and UTC refresh timestamps for Gemini and third-party models with zero turn/token consumption.
+/// </summary>
 public static class AgyUsageParser
 {
+    /// <summary>
+    /// Parses a JSON output string produced by <c>agy -p "/usage" --output-format json</c>.
+    /// </summary>
+    /// <param name="json">Raw JSON response string.</param>
+    /// <returns>A populated <see cref="AgyUsageResult"/> with parsed model limits and refresh times.</returns>
     public static AgyUsageResult Parse(string json)
     {
         var result = new AgyUsageResult();
@@ -146,6 +155,14 @@ public static class AgyUsageParser
 
     private static readonly System.Threading.SemaphoreSlim _cliLock = new(1, 1);
 
+    /// <summary>
+    /// Executes <c>agy -p "/usage" --output-format json</c> in the specified sandbox directory
+    /// using a serialized mutex lock to prevent concurrent subprocess collisions.
+    /// </summary>
+    /// <param name="effectiveProfileDir">Target profile root directory.</param>
+    /// <param name="isIsolated">Whether this is a secondary isolated profile requiring keyring decoupling.</param>
+    /// <param name="agyExecutablePath">Absolute path to the agy executable binary.</param>
+    /// <returns>Parsed <see cref="AgyUsageResult"/>, or <c>null</c> if invocation failed.</returns>
     public static async Task<AgyUsageResult?> FetchUsageAsync(string effectiveProfileDir, bool isIsolated, string? agyExecutablePath)
     {
         if (string.IsNullOrWhiteSpace(agyExecutablePath) || !File.Exists(agyExecutablePath))

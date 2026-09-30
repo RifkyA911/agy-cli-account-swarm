@@ -2200,6 +2200,10 @@ public partial class MainViewModel : ObservableObject
                 "tosrisks" => "terms_of_service_and_risks.html",
                 "nextfeatures" => "next_features.html",
                 "crossplatform" => "cross_platform.html",
+                "profiledoctor" => "profile_doctor.html",
+                "clireference" => "cli_reference.html",
+                "chatmigration" => "chat_migration.html",
+                "troubleshooting" => "troubleshooting.html",
                 _ => "architecture.html"
             };
 

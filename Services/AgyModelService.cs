@@ -10,10 +10,33 @@ namespace AgyAccountSwarm.Services;
 
 public record AgyModelInfo(string Id, string DisplayName);
 
+/// <summary>
+/// Service responsible for discovering supported LLM models from the Antigravity CLI
+/// and matching/normalizing model identifiers for analytics and filtering.
+/// </summary>
 public interface IAgyModelService
 {
+    /// <summary>
+    /// Discovers supported LLMs by querying 'agy models' and inspecting profile configurations,
+    /// falling back to standard Gemini and third-party models if the CLI is offline.
+    /// </summary>
+    /// <param name="additionalProfilePaths">Optional profile sandbox paths to inspect for custom model definitions.</param>
+    /// <returns>A list of discovered <see cref="AgyModelInfo"/> records.</returns>
     Task<List<AgyModelInfo>> DiscoverModelsAsync(IEnumerable<string>? additionalProfilePaths = null);
+
+    /// <summary>
+    /// Evaluates whether a session model matches a filter target (handling prefixes and aliases).
+    /// </summary>
+    /// <param name="entryModel">The model recorded in session history.</param>
+    /// <param name="filterModel">The filter model identifier.</param>
+    /// <returns><c>true</c> if matched; otherwise, <c>false</c>.</returns>
     bool IsModelMatch(string? entryModel, string? filterModel);
+
+    /// <summary>
+    /// Normalizes model identifiers into standardized display names or canonical slugs.
+    /// </summary>
+    /// <param name="model">The raw model string.</param>
+    /// <returns>Normalized model string.</returns>
     string Normalize(string? model);
 }
 

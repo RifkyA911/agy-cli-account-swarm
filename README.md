@@ -287,13 +287,28 @@ This application orchestrates local Antigravity CLI sessions and parses telemetr
 
 ## 📖 Technical Reference & Documentation
 
-- [`docs/CROSS_PLATFORM_AVALONIA_ROADMAP.md`](docs/CROSS_PLATFORM_AVALONIA_ROADMAP.md): Cross-platform Linux GUI (Avalonia UI) and macOS feasibility evaluation.
+### 🏛️ Core Architecture & Security
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Deep-dive into process sandboxing, environment variable virtualization, and process tree architecture.
+- [`docs/SECURITY_ISOLATION.md`](docs/SECURITY_ISOLATION.md): Operating system keyring decoupling (`SSH_CONNECTION=1`), BOM-free token preservation, DPAPI protection, and secret redaction.
+- [`docs/CONFIG_REFERENCE.md`](docs/CONFIG_REFERENCE.md): Authoritative schema reference for `settings.json`, `profiles.json`, `quota_config.json`, and directory resolution rules.
+- [`docs/DATABASE_CONFIG.md`](docs/DATABASE_CONFIG.md): SQLite persistence schema, session summaries (`conversation_summaries.db`), and JSON models.
+
+### 🚀 Swarm Operations & Orchestration
+- [`docs/SWARM_WORKFLOW.md`](docs/SWARM_WORKFLOW.md): Terminal multiplexing state machine, split-pane layout algorithms, and swarm lifecycle management (Launch & Stop Swarm).
+- [`docs/CLI_REFERENCE.md`](docs/CLI_REFERENCE.md): Antigravity CLI flags (`agy`, `-p "/usage"`, `--dangerously-skip-permissions`), launcher script structure (`run-agy.cmd` / `run-agy.sh`), and environment contracts.
+- [`docs/CHAT_MIGRATION_GUIDE.md`](docs/CHAT_MIGRATION_GUIDE.md): Cross-account conversation transfer, trajectory cloning, and context resumption with 100% credential segregation.
+- [`docs/MCP_GUIDE.md`](docs/MCP_GUIDE.md): Model Context Protocol (MCP) per-worker isolation, global vs profile tool scopes, and stdio IPC bridge.
+- [`docs/SCRIPTS_AND_AUTOMATION.md`](docs/SCRIPTS_AND_AUTOMATION.md): Reference for maintenance, build, setup, and cleanup automation scripts (`scripts/`).
+
+### 🩺 Health, Telemetry & Diagnostics
+- [`docs/PROFILE_DOCTOR.md`](docs/PROFILE_DOCTOR.md): Automated 5-checkpoint diagnostic audit, lingering lock cleaner, workspace trust registration, and self-healing engine.
+- [`docs/TELEMETRY_PIPELINE.md`](docs/TELEMETRY_PIPELINE.md): Authentic real-time telemetry ingestion (`/usage`, `history.jsonl`, JWT claims), tier sentinels, and Excel/PDF export pipelines.
+- [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md): Comprehensive diagnostic matrix and solutions for binary paths, BOM errors, batch syntax, lingering locks, and High-DPI font sharpness.
+
+### ⚖️ Policies, Roadmaps & Releases
+- [`docs/TERMS_OF_SERVICE_AND_RISKS.md`](docs/TERMS_OF_SERVICE_AND_RISKS.md): Google Terms of Service, Generative AI Prohibited Use Policies, credential boundaries, and risk advisory.
 - [`docs/NEXT_FEATURES.md`](docs/NEXT_FEATURES.md): Swarm propagation architecture, Git Worktree parallelization, and inflow roadmap.
-- [`docs/TERMS_OF_SERVICE_AND_RISKS.md`](docs/TERMS_OF_SERVICE_AND_RISKS.md): Google ToS, policies, credential sandboxing, and risk advisory.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Deep-dive into process isolation and environment virtualization.
-- [`docs/SWARM_WORKFLOW.md`](docs/SWARM_WORKFLOW.md): Terminal multiplexing state machine and split-pane layout algorithms.
-- [`docs/MCP_GUIDE.md`](docs/MCP_GUIDE.md): Model Context Protocol configuration and dynamic tool discovery.
-- [`docs/DATABASE_CONFIG.md`](docs/DATABASE_CONFIG.md): SQLite persistence schema, session summaries, and JSON structure.
+- [`docs/CROSS_PLATFORM_AVALONIA_ROADMAP.md`](docs/CROSS_PLATFORM_AVALONIA_ROADMAP.md): Cross-platform Linux GUI (Avalonia UI 11+) migration roadmap and macOS feasibility evaluation.
 - [`CHANGELOG.md`](CHANGELOG.md): Complete chronological release history and feature changelog.
 
 ---

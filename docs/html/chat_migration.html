@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Migration &amp; Context Transfer - Agy Account Swarm</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #8b5cf6;
+      --blue: #38bdf8;
+      --accent: #f59e0b;
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container { max-width: 1060px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    p.lead { color: var(--muted); font-size: 15px; }
+    h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 30px 0 14px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+    p { margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th { background: rgba(255,255,255,0.03); color: #fff; font-weight: 600; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12.5px;
+      background: rgba(0,0,0,0.35);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">💬 Context Transfer Engine</span>
+      <h1>Cross-Account Chat Migration Guide</h1>
+      <p class="lead">Transfer conversation turns, agent reasoning trajectories, and task state between profiles with 100% credential segregation.</p>
+    </header>
+
+    <div class="card">
+      <h2>1. Security &amp; Credential Isolation Guarantees</h2>
+      <p>The Chat Migration pipeline (<code>ConversationTransferService</code>) was engineered specifically to transfer developer context without violating Google account boundaries:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Transferred?</th>
+            <th>Safety Standard</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>history.jsonl</code> (Prompt turns)</td>
+            <td>✅ Yes</td>
+            <td>Filtered strictly by target conversation ID and cleanly appended.</td>
+          </tr>
+          <tr>
+            <td><code>brain/{convId}/</code> (Transcripts &amp; Trajectories)</td>
+            <td>✅ Yes</td>
+            <td>Clones agent thought steps, tool outputs, and generated artifacts.</td>
+          </tr>
+          <tr>
+            <td><code>conversations/{convId}.db</code> (SQLite Session DB)</td>
+            <td>✅ Yes</td>
+            <td>Preserves turn numbers, tokens, and model timestamps.</td>
+          </tr>
+          <tr>
+            <td><code>antigravity-oauth-token</code> (Google OAuth Token)</td>
+            <td>❌ <strong>NEVER</strong></td>
+            <td><strong>Strictly locked &amp; ignored</strong>. The target account authenticates exclusively using its own Google credentials.</td>
+          </tr>
+          <tr>
+            <td><code>google_accounts.json</code> (Active Identity)</td>
+            <td>❌ <strong>NEVER</strong></td>
+            <td>Untouched. The target account maintains its own Google identity.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>2. Step-by-Step Migration Flow</h2>
+      <p>1. On the Account Card needing past context, click <strong>📥 Import Chat</strong>.</p>
+      <p>2. Select the <strong>Source Account</strong> and choose the desired conversation from the searchable list.</p>
+      <p>3. Confirm the <strong>Target Account</strong> destination and click <strong>🚀 Transfer Conversation</strong>.</p>
+      <p>4. In the target account, click <strong>Launch agy</strong> with <code>--conversation &lt;id&gt;</code> to immediately pick up the discussion exactly where you left off.</p>
+    </div>
+  </div>
+</body>
+</html>

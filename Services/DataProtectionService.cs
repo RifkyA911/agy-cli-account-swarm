@@ -4,10 +4,30 @@ using System.Text;
 
 namespace AgyAccountSwarm.Services;
 
+/// <summary>
+/// Service providing cryptographic data protection (DPAPI) and secret sanitization for sensitive strings.
+/// </summary>
 public interface IDataProtectionService
 {
+    /// <summary>
+    /// Encrypts plaintext using Windows DPAPI scoped to the current user.
+    /// </summary>
+    /// <param name="plainText">The sensitive plaintext string to protect.</param>
+    /// <returns>Base64 ciphertext prefixed with <c>dpapi::</c>.</returns>
     string Protect(string plainText);
+
+    /// <summary>
+    /// Decrypts a DPAPI-protected string, or returns the original string if not encrypted.
+    /// </summary>
+    /// <param name="encryptedOrPlainText">The string to decrypt.</param>
+    /// <returns>Decrypted plaintext string.</returns>
     string Unprotect(string encryptedOrPlainText);
+
+    /// <summary>
+    /// Checks whether the string begins with the DPAPI encrypted prefix.
+    /// </summary>
+    /// <param name="text">The string to inspect.</param>
+    /// <returns><c>true</c> if DPAPI protected; otherwise, <c>false</c>.</returns>
     bool IsProtected(string text);
 }
 
