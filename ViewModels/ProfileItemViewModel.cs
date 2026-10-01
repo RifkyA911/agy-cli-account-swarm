@@ -730,12 +730,12 @@ public partial class ProfileItemViewModel : ObservableObject
         IsInspectorOpen = false;
     }
 
-    public async Task RefreshAuthStatusAsync()
+    public async Task RefreshAuthStatusAsync(bool allowCliSpawn = true)
     {
         IsBusy = true;
         try
         {
-            AuthStatus = await _authDetector.DetectAuthStatusAsync(Profile);
+            AuthStatus = await _authDetector.DetectAuthStatusAsync(Profile, allowCliSpawn: allowCliSpawn);
             Profile.AuthStatus = AuthStatus;
 
             // Refresh available conversation sessions
