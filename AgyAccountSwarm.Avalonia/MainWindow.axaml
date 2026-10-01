@@ -1,0 +1,923 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AgyAccountSwarm.Avalonia.ViewModels"
+        xmlns:models="using:AgyAccountSwarm.Models"
+        x:Class="AgyAccountSwarm.Avalonia.MainWindow"
+        x:DataType="vm:AvaloniaMainViewModel"
+        Title="Agy CLI Account Swarm (Avalonia)"
+        Width="1320" Height="860"
+        MinWidth="1060" MinHeight="680"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BrushBg}">
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- ============================================================== -->
+        <!-- CUSTOM TITLE BAR                                               -->
+        <!-- ============================================================== -->
+        <Border Grid.Row="0"
+                x:Name="CustomTitleBar"
+                Background="{StaticResource BrushSidebar}"
+                BorderBrush="{StaticResource BrushCardBorder}"
+                BorderThickness="0,0,0,1"
+                Height="40"
+                PointerPressed="OnTitleBarPointerPressed">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- App Identity -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="10">
+                    <TextBlock Text="⚡" FontSize="16" VerticalAlignment="Center" />
+                    <TextBlock Text="AGY CLI ACCOUNT SWARM" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center" LetterSpacing="1" />
+                    <Border Background="{StaticResource BrushSurface}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                        <TextBlock Text="v0.9.7-beta • Avalonia Cross-Platform" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource BrushAccent}" />
+                    </Border>
+                </StackPanel>
+
+                <!-- Center Drag Spacer -->
+                <Panel Grid.Column="1" Background="Transparent" />
+
+                <!-- Window Control Chrome -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Stretch">
+                    <Button Content="🗕" Click="OnMinimizeClick" Width="44" Height="40" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" CornerRadius="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    <Button x:Name="BtnMaximize" Content="🗖" Click="OnMaximizeRestoreClick" Width="44" Height="40" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" CornerRadius="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    <Button Content="✕" Click="OnCloseClick" Width="48" Height="40" Background="Transparent" Foreground="{StaticResource BrushTextSecondary}" BorderThickness="0" CornerRadius="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============================================================== -->
+        <!-- MAIN WORKSPACE                                                 -->
+        <!-- ============================================================== -->
+        <Grid Grid.Row="1" ColumnDefinitions="240,*">
+            <!-- ============================================================== -->
+            <!-- SIDEBAR NAVIGATION                                         -->
+            <!-- ============================================================== -->
+            <Border Grid.Column="0" Background="{StaticResource BrushSidebar}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,1,0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- Brand Section -->
+                    <Border Grid.Row="0" Padding="18,20,18,16" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,0,1">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Control Tower" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" LetterSpacing="1.2" />
+                            <TextBlock Text="Antigravity Multi-Agent" FontSize="14" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                            <TextBlock Text="Isolated sandboxes &amp; live quotas" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Nav Items -->
+                    <ScrollViewer Grid.Row="1" Margin="0,10,0,10">
+                        <StackPanel Spacing="4" Margin="10,0">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Accounts" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Accounts}" BorderThickness="0" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="👥" FontSize="15" />
+                                    <TextBlock Text="Accounts" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Accounts}" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Swarm" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Swarm}" BorderThickness="0" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="🚀" FontSize="15" />
+                                    <TextBlock Text="Swarm Fleet" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Swarm}" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Dispatcher" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Dispatcher}" BorderThickness="0" CornerRadius="6">
+                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="⚡" FontSize="15" />
+                                        <TextBlock Text="Fleet Dispatcher" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Dispatcher}" />
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="4" Padding="5,1">
+                                        <TextBlock Text="EXP" FontSize="9" FontWeight="Bold" Foreground="#F59E0B" />
+                                    </Border>
+                                </Grid>
+                            </Button>
+
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Analytics" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Analytics}" BorderThickness="0" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="📈" FontSize="15" />
+                                    <TextBlock Text="Analytics" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Analytics}" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Mcp" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Mcp}" BorderThickness="0" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="🧩" FontSize="15" />
+                                    <TextBlock Text="MCP Tools" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Mcp}" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Docs" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Docs}" BorderThickness="0" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="📖" FontSize="15" />
+                                    <TextBlock Text="Documentation" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Docs}" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Logs" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Logs}" BorderThickness="0" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="📋" FontSize="15" />
+                                    <TextBlock Text="Logs &amp; Audit" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Logs}" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Settings" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Settings}" BorderThickness="0" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="⚙️" FontSize="15" />
+                                    <TextBlock Text="Settings" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Settings}" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="About" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Padding="14,10"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=About}" BorderThickness="0" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="ℹ️" FontSize="15" />
+                                    <TextBlock Text="About" FontWeight="SemiBold" FontSize="13" Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=About}" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Sidebar Footer: Swarm Status Card -->
+                    <Border Grid.Row="2" Background="{StaticResource BrushSurface}" Margin="12,0,12,14" Padding="12" CornerRadius="8" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                        <StackPanel Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Ellipse Width="9" Height="9" Fill="{Binding IsSwarmRunning, Converter={StaticResource QuotaBrushConverter}, ConverterParameter=10}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding SwarmStatusText}" FontWeight="Bold" FontSize="12" Foreground="{StaticResource BrushTextPrimary}" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding ActiveWorkersCount, StringFormat='{}{0} terminal worker(s) active'}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ============================================================== -->
+            <!-- MAIN CONTENT AREA                                          -->
+            <!-- ============================================================== -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+                <!-- Top Header Bar -->
+                <Border Grid.Row="0" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="24,14">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <!-- Page Titles -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentPage}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                            <TextBlock Text="Orchestrate multi-account Antigravity CLI workers with authentic telemetry" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0" />
+                        </StackPanel>
+
+                        <!-- Auto-sync Countdown -->
+                        <Border Grid.Column="1" Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="10,6" Margin="0,0,12,0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="🔄 Auto-sync in" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" />
+                                <TextBlock Text="{Binding AutoSyncCountdown}" FontWeight="Bold" FontSize="11.5" Foreground="{StaticResource BrushAccent}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Global Action Buttons -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Button Content="🔄 Quick Sync" Command="{Binding QuickSyncCommand}" Padding="14,8" />
+                            <Button Content="{Binding SwarmActionButtonText}"
+                                    Command="{Binding LaunchSwarmCommand}"
+                                    Background="{Binding IsSwarmRunning, Converter={StaticResource QuotaBrushConverter}}"
+                                    Foreground="#FFFFFF"
+                                    FontWeight="Bold"
+                                    Padding="16,8" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Toast Notification Banner -->
+                <Border Grid.Row="1"
+                        IsVisible="{Binding IsNotificationVisible}"
+                        Background="{StaticResource BrushSurface}"
+                        BorderBrush="{StaticResource BrushAccent}"
+                        BorderThickness="0,0,0,1"
+                        Padding="18,10">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="ℹ️" FontSize="14" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding NotificationMessage}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ====================================================== -->
+                <!-- PAGE 1: ACCOUNTS VIEW                                  -->
+                <!-- ====================================================== -->
+                <Grid Grid.Row="2"
+                      IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Accounts}"
+                      RowDefinitions="Auto,*">
+
+                    <!-- Accounts Filter Toolbar -->
+                    <Border Grid.Row="0" Background="{StaticResource BrushSurfaceHover}" Padding="24,12" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <!-- Tier Filter Pills -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Filter:" VerticalAlignment="Center" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,0,4,0" />
+                                <ComboBox SelectedItem="{Binding SelectedTierFilter}" Width="140">
+                                    <ComboBoxItem Content="All" />
+                                    <ComboBoxItem Content="Basic" />
+                                    <ComboBoxItem Content="Plus" />
+                                    <ComboBoxItem Content="Pro" />
+                                    <ComboBoxItem Content="Ultra" />
+                                    <ComboBoxItem Content="Warning" />
+                                </ComboBox>
+                                <TextBox Text="{Binding SearchText, Mode=TwoWay}" PlaceholderText="Search accounts or emails..." Width="220" />
+                            </StackPanel>
+
+                            <!-- Add Account Button -->
+                            <Button Grid.Column="2" Content="➕ Add Account" Click="OnAddAccountClick" Background="{StaticResource BrushEmerald}" Foreground="#FFFFFF" FontWeight="Bold" Padding="14,7" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Accounts List -->
+                    <ScrollViewer Grid.Row="1" Padding="24">
+                        <ItemsControl ItemsSource="{Binding FilteredProfiles}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="models:AccountProfile">
+                                    <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,0,16">
+                                        <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                                            <!-- Row 1: Profile Header (Avatar, Name, Tier, Status) -->
+                                            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,14">
+                                                <!-- Avatar Circle (48px) -->
+                                                <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" Margin="0,0,16,0">
+                                                    <TextBlock Text="{Binding Name[0]}" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+
+                                                <!-- Name & Details -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                                        <Border IsVisible="{Binding IsDefaultPrimary}" Background="{StaticResource BrushAccent}" CornerRadius="4" Padding="6,2">
+                                                            <TextBlock Text="Primary (Default)" FontSize="10.5" FontWeight="Bold" Foreground="#0B0F19" />
+                                                        </Border>
+                                                        <Border Background="{Binding Tier, Converter={StaticResource TierBrushConverter}}" CornerRadius="4" Padding="6,2">
+                                                            <TextBlock Text="{Binding Tier}" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                        </Border>
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding AuthStatus.AccountEmail, FallbackValue='Pending OAuth Login'}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                                                </StackPanel>
+
+                                                <!-- Single Account Quick Sync & Actions -->
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                                    <Button Content="🔄 Sync"
+                                                            Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).QuickSyncAccountCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="10,6" FontSize="11" />
+                                                    <Button Content="🧹 Clear Locks"
+                                                            Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).ClearLocksCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="10,6" FontSize="11" />
+                                                    <Button Content="✏️ Edit"
+                                                            Click="OnEditAccountClick"
+                                                            Padding="10,6" FontSize="11" />
+                                                    <Button Content="📋 Duplicate"
+                                                            Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).DuplicateProfileCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="10,6" FontSize="11" />
+                                                    <Button Content="🗑️ Delete"
+                                                            Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).DeleteProfileCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="10,6" FontSize="11" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Row 2: Badges (Model, Workspace, Permissions) -->
+                                            <WrapPanel Grid.Row="1" Margin="0,0,0,14" Orientation="Horizontal">
+                                                <Border Background="{StaticResource BrushSurface}" CornerRadius="4" Padding="8,4" Margin="0,0,8,6">
+                                                    <TextBlock Text="{Binding PreferredModel, StringFormat='Model: {0}'}" FontSize="11.5" Foreground="{StaticResource BrushAccent}" />
+                                                </Border>
+                                                <Border Background="{StaticResource BrushSurface}" CornerRadius="4" Padding="8,4" Margin="0,0,8,6">
+                                                    <TextBlock Text="{Binding DefaultWorkspace, FallbackValue='Workspace: System Root'}" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" />
+                                                </Border>
+                                                <Border IsVisible="{Binding DangerouslySkipPermissions}" Background="rgba(239, 68, 68, 0.15)" CornerRadius="4" Padding="8,4" Margin="0,0,8,6">
+                                                    <TextBlock Text="--dangerously-skip-permissions" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushCrimson}" />
+                                                </Border>
+                                            </WrapPanel>
+
+                                            <!-- Row 3: Dual Authentic Quota Usage Bars -->
+                                            <Border Grid.Row="2" Background="{StaticResource BrushSurface}" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                                                <StackPanel Spacing="10">
+                                                    <!-- Gemini Models Group -->
+                                                    <StackPanel Spacing="4">
+                                                        <Grid ColumnDefinitions="*,Auto">
+                                                            <TextBlock Grid.Column="0" Text="Gemini Models (Flash, Pro)" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding AuthStatus.GeminiWeeklyRemainingPercent, StringFormat='{}{0:F0}% Weekly Quota Remaining'}" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource BrushEmerald}" />
+                                                        </Grid>
+                                                        <ProgressBar Value="{Binding AuthStatus.GeminiWeeklyRemainingPercent}" Maximum="100" Height="6" CornerRadius="3" Foreground="{StaticResource BrushEmerald}" />
+                                                    </StackPanel>
+
+                                                    <!-- Claude & GPT Models Group -->
+                                                    <StackPanel Spacing="4">
+                                                        <Grid ColumnDefinitions="*,Auto">
+                                                            <TextBlock Grid.Column="0" Text="Claude &amp; GPT Models (Opus, Sonnet)" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding AuthStatus.ClaudeGptWeeklyRemainingPercent, StringFormat='{}{0:F0}% Weekly Quota Remaining'}" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource BrushViolet}" />
+                                                        </Grid>
+                                                        <ProgressBar Value="{Binding AuthStatus.ClaudeGptWeeklyRemainingPercent}" Maximum="100" Height="6" CornerRadius="3" Foreground="{StaticResource BrushViolet}" />
+                                                    </StackPanel>
+
+                                                    <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+                                                        <TextBlock Grid.Column="0" Text="Reset timer: 00:00 UTC daily" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                                                        <TextBlock Grid.Column="1" Text="{Binding QuotaLimit, StringFormat='Daily Budget: {0} prompts'}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Row 4: Primary Terminal Launch Actions -->
+                                            <Grid Grid.Row="3" ColumnDefinitions="*,Auto">
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                                                    <Button Content="📂 Workspace"
+                                                            Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).OpenWorkspaceFolderCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="10,6" FontSize="11.5" />
+                                                    <Button Content="📁 Sandbox Dir"
+                                                            Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).OpenProfileFolderCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="10,6" FontSize="11.5" />
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                                    <Button Content="💻 Sandbox Shell (CLI-Only)"
+                                                            Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).LaunchProfileCliOnlyCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Padding="14,8" FontSize="12" />
+                                                    <Button Content="🚀 Launch agy"
+                                                            Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).LaunchProfileCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="{StaticResource BrushEmerald}"
+                                                            Foreground="#FFFFFF"
+                                                            FontWeight="Bold"
+                                                            Padding="18,8" FontSize="12.5" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- ====================================================== -->
+                <!-- PAGE 2: SWARM FLEET VIEW                               -->
+                <!-- ====================================================== -->
+                <ScrollViewer Grid.Row="2"
+                              IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Swarm}"
+                              Padding="28">
+                    <StackPanel Spacing="20" MaxWidth="920" HorizontalAlignment="Center">
+                        <!-- Swarm Header Card -->
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="24">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="🚀 Swarm Multi-Session Multiplexer" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                <TextBlock Text="Execute automated workflows simultaneously across multiple sandboxed accounts. Compare different models in parallel with isolated environment variables."
+                                           FontSize="13" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Execution Mode Settings -->
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Window Layout Mode" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                <StackPanel Orientation="Horizontal" Spacing="16">
+                                    <RadioButton GroupName="SwarmLayout" Content="Split Panes (wt.exe ; split-pane)" IsChecked="True" />
+                                    <RadioButton GroupName="SwarmLayout" Content="Separate Tabs" />
+                                    <RadioButton GroupName="SwarmLayout" Content="Separate Windows" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Account Worker Fleet Selection Card -->
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <StackPanel Spacing="14">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="👥 Swarm Worker Fleet Selection" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                        <TextBlock Text="Select which accounts participate in simultaneous multi-session terminal execution" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                        <Button Content="☑️ Select All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="{x:True}" Padding="10,5" FontSize="11" />
+                                        <Button Content="⬜ Deselect All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="{x:False}" Padding="10,5" FontSize="11" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding Profiles}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:AccountProfile">
+                                            <Border Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="12,10" Margin="0,0,0,8" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelectedForSwarm, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                                    <Border Grid.Column="1" Width="32" Height="32" CornerRadius="16" Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name[0]}" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                                                            <Border IsVisible="{Binding IsDefaultPrimary}" Background="{StaticResource BrushAccent}" CornerRadius="3" Padding="4,1">
+                                                                <TextBlock Text="Default" FontSize="9.5" FontWeight="Bold" Foreground="#0B0F19" />
+                                                            </Border>
+                                                            <Border Background="{Binding Tier, Converter={StaticResource TierBrushConverter}}" CornerRadius="3" Padding="4,1">
+                                                                <TextBlock Text="{Binding Tier}" FontSize="9.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding AuthStatus.AccountEmail, FallbackValue='Pending OAuth'}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                                                    </StackPanel>
+                                                    <Border Grid.Column="3" Background="{StaticResource BrushBg}" CornerRadius="4" Padding="8,4" VerticalAlignment="Center" Margin="12,0">
+                                                        <TextBlock Text="{Binding PreferredModel}" FontSize="11" Foreground="{StaticResource BrushAccent}" />
+                                                    </Border>
+                                                    <TextBlock Grid.Column="4" Text="{Binding AuthStatus.GeminiWeeklyRemainingPercent, StringFormat='{}{0:F0}% Quota'}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushEmerald}" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Big Swarm Launch Action -->
+                        <Button Command="{Binding LaunchSwarmCommand}"
+                                Background="{StaticResource BrushEmerald}"
+                                Foreground="#FFFFFF"
+                                FontSize="16"
+                                FontWeight="Bold"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                Padding="20,16"
+                                CornerRadius="8">
+                            <TextBlock Text="🚀 Launch Swarm for All Selected Accounts" />
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ====================================================== -->
+                <!-- PAGE: FLEET DISPATCHER (EXPERIMENTAL)                  -->
+                <!-- ====================================================== -->
+                <ScrollViewer Grid.Row="2"
+                              IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Dispatcher}"
+                              Padding="28">
+                    <StackPanel Spacing="20" MaxWidth="960" HorizontalAlignment="Center">
+                        <!-- Dispatcher Header Card -->
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="24">
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="⚡ Fleet Prompt Dispatcher" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <Border Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                        <TextBlock Text="🧪 EXPERIMENTAL" FontSize="10" FontWeight="Bold" Foreground="#F59E0B" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Synthesize a single objective prompt, assign tailored domain roles (Backend, API, QA, Docs), and execute simultaneously across isolated Git Worktrees with zero file collisions."
+                                           FontSize="13" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Hardware Sentinel & Pre-flight Health Guard -->
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <StackPanel Spacing="14">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="🛡️ Pre-flight Resource &amp; Safety Sentinels" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                        <TextBlock Text="Hardware availability, storage limits, and Git Worktree capability checks" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="🔍 Check Resources" Command="{Binding CheckPreflightCommand}" Padding="12,6" FontSize="12" />
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*,*,*">
+                                    <Border Grid.Column="0" Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="14,10" Margin="0,0,8,0">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="Disk Free Space" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                                            <TextBlock Text="{Binding PreflightResult.AvailableDiskGb, StringFormat='{}{0:F1} GB Free'}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushEmerald}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1" Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="14,10" Margin="0,0,8,0">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="System Memory" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                                            <TextBlock Text="{Binding PreflightResult.AvailableMemoryGb, StringFormat='{}{0:F1} GB Available'}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="14,10">
+                                        <StackPanel Spacing="3">
+                                            <TextBlock Text="Git Repository Status" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                                            <TextBlock Text="{Binding PreflightResult.CurrentBranch, FallbackValue='Git Detected'}" FontSize="15" FontWeight="Bold" Foreground="#A855F7" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Warning Sentinel Alert -->
+                                <Border IsVisible="{Binding PreflightResult.WarningMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                        Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="6" Padding="14,10">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="⚠️" FontSize="14" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding PreflightResult.WarningMessage}" FontSize="12" Foreground="#FDE68A" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Error Sentinel Alert -->
+                                <Border IsVisible="{Binding PreflightResult.ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                        Background="#450A0A" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="6" Padding="14,10">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="❌" FontSize="14" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding PreflightResult.ErrorMessage}" FontSize="12" Foreground="#FCA5A5" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Dispatch Configuration & Workspace Definition -->
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="🎯 Dispatch Configuration &amp; Task Definition" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+
+                                <!-- Target Workspace -->
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Target Repository Directory:" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
+                                    <TextBox Text="{Binding FleetWorkspacePath}" PlaceholderText="Enter or paste absolute Git repository path (e.g. D:\Works\Project\MyApp)..." Padding="10,8" />
+                                    <CheckBox IsChecked="{Binding UseGitWorktrees}" Content="Isolate workers in linked Git Worktrees (.worktrees/worker-*) to avoid .git/index.lock contention" FontSize="12" Margin="0,4,0,0" />
+                                </StackPanel>
+
+                                <!-- Task Objective Prompt -->
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Task Objective Prompt (Single Input -> Tailored Multi-Worker Execution):" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
+                                    <TextBox Text="{Binding FleetTaskObjective}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" Padding="10,8"
+                                             PlaceholderText="Describe the objective to accomplish (e.g. 'Implement a clean payment gateway webhook with signature validation, mock testing, and OpenAPI documentation')..." />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Target Fleet Workers Selection -->
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <StackPanel Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="👥 Participating Fleet Workers" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                        <TextBlock Text="Workers selected below will receive tailored sub-task prompts in isolated environments" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                        <Button Content="☑️ Select All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="{x:True}" Padding="8,4" FontSize="11" />
+                                        <Button Content="⬜ Deselect All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="{x:False}" Padding="8,4" FontSize="11" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding Profiles}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:AccountProfile">
+                                            <Border Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="10,8" Margin="0,0,0,6" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelectedForSwarm, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                                    <Border Grid.Column="1" Width="28" Height="28" CornerRadius="14" Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name[0]}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource BrushTextPrimary}" />
+                                                        <TextBlock Text="{Binding Description, FallbackValue='General Worker'}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                                                    </StackPanel>
+                                                    <Border Grid.Column="3" Background="{StaticResource BrushBg}" CornerRadius="4" Padding="6,3" VerticalAlignment="Center" Margin="10,0">
+                                                        <TextBlock Text="{Binding PreferredModel}" FontSize="10.5" Foreground="{StaticResource BrushAccent}" />
+                                                    </Border>
+                                                    <TextBlock Grid.Column="4" Text="{Binding AuthStatus.GeminiWeeklyRemainingPercent, StringFormat='{}{0:F0}% Quota'}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushEmerald}" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Execution Control Bar -->
+                        <Grid ColumnDefinitions="*,Auto,Auto">
+                            <Button Grid.Column="0" Command="{Binding DispatchFleetCommand}"
+                                    Background="{StaticResource BrushEmerald}" Foreground="#FFFFFF"
+                                    FontSize="15" FontWeight="Bold" Padding="20,14" CornerRadius="8"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,10,0">
+                                <TextBlock Text="⚡ Dispatch &amp; Launch Swarm Fleet" />
+                            </Button>
+                            <Button Grid.Column="1" Command="{Binding AbortFleetCommand}"
+                                    Background="#DC2626" Foreground="#FFFFFF"
+                                    FontSize="14" FontWeight="SemiBold" Padding="16,14" CornerRadius="8" Margin="0,0,10,0">
+                                <TextBlock Text="⏹ Abort Fleet" />
+                            </Button>
+                            <Button Grid.Column="2" Command="{Binding PruneWorktreesCommand}"
+                                    Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1"
+                                    FontSize="14" Padding="16,14" CornerRadius="8">
+                                <TextBlock Text="🌿 Prune Worktrees" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Dispatched Tasks & Reconciliation Panel -->
+                        <Border IsVisible="{Binding DispatchedTasks.Count, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <StackPanel Spacing="14">
+                                <TextBlock Text="📋 Active Swarm Dispatch Tasks" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                <ItemsControl ItemsSource="{Binding DispatchedTasks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="models:DispatchedWorkerTask">
+                                            <Border Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="12,10" Margin="0,0,0,8" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                                    <Border Grid.Column="0" Background="#1E293B" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                        <TextBlock Text="{Binding AssignedRole}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding ProfileName}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                                                        <TextBlock Text="{Binding BranchName, StringFormat='Branch: {0}'}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Status}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushEmerald}" VerticalAlignment="Center" Margin="12,0" />
+                                                    <Button Grid.Column="3" Content="Merge" Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).MergeSwarmBranchCommand}" CommandParameter="{Binding BranchName}" Padding="8,4" FontSize="11" VerticalAlignment="Center" />
+
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ====================================================== -->
+                <!-- PAGE 3: ANALYTICS VIEW                                 -->
+                <!-- ====================================================== -->
+                <ScrollViewer Grid.Row="2"
+                              IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Analytics}"
+                              Padding="28">
+                    <StackPanel Spacing="20" MaxWidth="960" HorizontalAlignment="Center">
+                        <!-- KPI Row -->
+                        <Grid ColumnDefinitions="*,*,*,*">
+                            <Border Grid.Column="0" Background="{StaticResource BrushCard}" CornerRadius="8" Padding="18" Margin="0,0,8,0" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Total Accounts" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" />
+                                    <TextBlock Text="{Binding Profiles.Count}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Background="{StaticResource BrushCard}" CornerRadius="8" Padding="18" Margin="4,0,4,0" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Active Workers" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" />
+                                    <TextBlock Text="{Binding ActiveWorkersCount}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource BrushEmerald}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" Background="{StaticResource BrushCard}" CornerRadius="8" Padding="18" Margin="4,0,4,0" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Weekly Gemini Limit" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" />
+                                    <TextBlock Text="Authentic CLI" FontSize="20" FontWeight="Bold" Foreground="{StaticResource BrushViolet}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="3" Background="{StaticResource BrushCard}" CornerRadius="8" Padding="18" Margin="8,0,0,0" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Reset Window" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" />
+                                    <TextBlock Text="00:00 UTC" FontSize="20" FontWeight="Bold" Foreground="{StaticResource BrushAmber}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Report Export -->
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="📑 Executive Telemetry Reports" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="Export authentic logs, telemetry metrics, and agent turn history to Excel spreadsheet" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,4,0,0" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="📊 Export to Excel (.xlsx)" Command="{Binding ExportLogsExcelCommand}" Padding="16,8" Background="{StaticResource BrushEmerald}" Foreground="#FFFFFF" FontWeight="Bold" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ====================================================== -->
+                <!-- PAGE 4: MCP TOOLS VIEW                                 -->
+                <!-- ====================================================== -->
+                <ScrollViewer Grid.Row="2"
+                              IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Mcp}"
+                              Padding="28">
+                    <StackPanel Spacing="16" MaxWidth="920" HorizontalAlignment="Center">
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="🧩 Model Context Protocol (MCP) Tools" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                <TextBlock Text="Per-worker stdio tool discovery. Profiles inherit global presets from ~/.gemini/config/mcp_config.json with per-sandbox overrides."
+                                           FontSize="12.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <ItemsControl ItemsSource="{Binding McpServers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="models:McpServerConfig">
+                                    <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,0,12">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0" Spacing="4">
+                                                <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                                <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                                                <Border Background="{StaticResource BrushSurface}" CornerRadius="4" Padding="8,4" HorizontalAlignment="Left" Margin="0,4,0,0">
+                                                    <TextBlock Text="{Binding Command}" FontSize="11" FontFamily="Consolas, Monaco, monospace" Foreground="{StaticResource BrushAccent}" />
+                                                </Border>
+                                            </StackPanel>
+                                            <Border Grid.Column="1" Background="{StaticResource BrushSurface}" CornerRadius="4" Padding="10,6" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Tools.Count, StringFormat='{}{0} tools discovered'}" FontSize="11.5" Foreground="{StaticResource BrushEmerald}" FontWeight="Bold" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ====================================================== -->
+                <!-- PAGE 5: DOCUMENTATION VIEW                             -->
+                <!-- ====================================================== -->
+                <ScrollViewer Grid.Row="2"
+                              IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Docs}"
+                              Padding="28">
+                    <StackPanel Spacing="16" MaxWidth="920" HorizontalAlignment="Center">
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="22">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="📖 Architecture &amp; Technical Reference" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                <TextBlock Text="Comprehensive technical specifications for multi-account sandboxing, keyring decoupling, Profile Doctor diagnostics, and CLI orchestration."
+                                           FontSize="13" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Doc Specs Grid -->
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                            <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,8,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🏛️ System Architecture" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="Process sandboxing, environment variable virtualization, and process tree architecture." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="Architecture" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="0" Grid.Column="1" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="8,0,0,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🩺 Profile Doctor" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="5-checkpoint automated health audit, process lock cleaner, and workspace trust engine." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="ProfileDoctor" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,8,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="⚡ CLI Reference" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="Antigravity CLI command mapping, 0-turn /usage extraction, and launcher scripts." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="CliReference" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="1" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="8,0,0,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="💬 Chat Migration Guide" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="Cross-account conversation transfer with 100% credential segregation." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="ChatMigration" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="2" Grid.Column="0" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,8,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🚀 Swarm Workflows" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="Terminal multiplexing state machine, split-pane layout algorithms, and process lifecycle." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="SwarmWorkflow" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="2" Grid.Column="1" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="8,0,0,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🩺 Troubleshooting" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="10 common CLI initialization issues, BOM crash fixes, and lock resolutions." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="Troubleshooting" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="3" Grid.Column="0" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,8,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="🐧 Cross-Platform Roadmap" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="Linux Wayland/X11 and macOS Metal feasibility and Avalonia UI migration roadmap." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="CrossPlatform" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="3" Grid.Column="1" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="8,0,0,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="⚖️ Terms of Service &amp; Risks" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBlock Text="Google Terms of Service, Generative AI policies, and developer safety principles." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="ToSRisks" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="4" Grid.Column="0" Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18" Margin="0,0,8,12">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="⚡ Fleet Prompt Dispatcher [EXP]" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushAccent}" />
+                                    <TextBlock Text="Git worktree orchestration, multi-worker prompt dispersion, and out-of-resources handling." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                    <Button Content="🌐 Open Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="FleetDispatcher" Padding="12,6" FontSize="11" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ====================================================== -->
+                <!-- PAGE 6: LOGS VIEW                                      -->
+                <!-- ====================================================== -->
+                <Grid Grid.Row="2"
+                      IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Logs}"
+                      RowDefinitions="Auto,*">
+                    <Border Grid.Row="0" Background="{StaticResource BrushSurfaceHover}" Padding="24,12" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="Real-Time Application &amp; Terminal Execution Logs" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
+                                <Button Content="🔄 Refresh" Command="{Binding RefreshLogsCommand}" Padding="12,6" />
+                                <Button Content="📊 Export to Excel" Command="{Binding ExportLogsExcelCommand}" Padding="12,6" Background="{StaticResource BrushEmerald}" Foreground="#FFFFFF" FontWeight="Bold" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Row="1" Padding="20">
+                        <ItemsControl ItemsSource="{Binding LogLines}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" FontFamily="Consolas, Monaco, monospace" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" Margin="0,2" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+
+                <!-- ====================================================== -->
+                <!-- PAGE 7: SETTINGS VIEW                                  -->
+                <!-- ====================================================== -->
+                <ScrollViewer Grid.Row="2"
+                              IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Settings}"
+                              Padding="28">
+                    <StackPanel Spacing="18" MaxWidth="720" HorizontalAlignment="Center">
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="22">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="⚙️ Preferences &amp; Platform Configuration" FontSize="16" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+
+                                <!-- Custom CLI Path -->
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Custom Antigravity CLI Executable Path" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <TextBox Text="{Binding Settings.CustomAgyExecutablePath, Mode=TwoWay}" PlaceholderText="Default: auto-detected from system PATH" />
+                                </StackPanel>
+
+                                <!-- Auto-sync Interval -->
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Background Telemetry Sync Interval" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <ComboBox SelectedItem="{Binding Settings.AutoSyncInterval, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                                        <ComboBoxItem Content="1 Minute" />
+                                        <ComboBoxItem Content="5 Minutes" />
+                                        <ComboBoxItem Content="15 Minutes" />
+                                        <ComboBoxItem Content="30 Minutes" />
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Toggles -->
+                                <CheckBox IsChecked="{Binding Settings.SoundEnabled, Mode=TwoWay}" Content="Enable Sound &amp; Audio Feedback Chimes" />
+                                <CheckBox IsChecked="{Binding Settings.CloseToTray, Mode=TwoWay}" Content="Minimize to System Tray on Close" />
+
+                                <Button Content="💾 Save Settings" Command="{Binding SaveSettingsCommand}" Background="{StaticResource BrushEmerald}" Foreground="#FFFFFF" FontWeight="Bold" Padding="18,10" HorizontalAlignment="Right" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ====================================================== -->
+                <!-- PAGE 8: ABOUT VIEW                                     -->
+                <!-- ====================================================== -->
+                <ScrollViewer Grid.Row="2"
+                              IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=About}"
+                              Padding="28">
+                    <StackPanel Spacing="20" MaxWidth="760" HorizontalAlignment="Center">
+                        <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="28">
+                            <StackPanel Spacing="14">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock Text="⚡" FontSize="28" />
+                                    <StackPanel>
+                                        <TextBlock Text="Agy CLI Account Swarm" FontSize="20" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                        <TextBlock Text="Version 0.9.7-beta • Avalonia Cross-Platform Edition" FontSize="13" Foreground="{StaticResource BrushAccent}" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <TextBlock Text="A high-performance desktop orchestrator &amp; sandbox session manager for Google Antigravity CLI (agy). Run multiple agent sessions concurrently with strictly isolated accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing."
+                                           FontSize="13.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" LineHeight="22" />
+
+                                <Border Background="{StaticResource BrushSurface}" CornerRadius="8" Padding="14" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Architectural Highlights:" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                                        <TextBlock Text="• Cross-Platform: Engineered with Avalonia UI for Windows, Linux, and macOS." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                                        <TextBlock Text="• Zero Synthetic Data: Telemetry parsed strictly from authentic local CLI commands and disk logs." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                                        <TextBlock Text="• Keyring Decoupling: File-based OAuth token isolation via virtualized network indicators." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                                        <TextBlock Text="• Built-in Profile Doctor: 5-checkpoint automated health audit &amp; stuck lock cleaner." FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <TextBlock Text="Licensed under the MIT License • Copyright (c) 2026 RifkyA911" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

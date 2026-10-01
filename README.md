@@ -7,12 +7,12 @@
 > **A high-performance desktop orchestrator & sandbox session manager for Google Antigravity CLI (`agy`).**  
 > Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing.
 
-[![Version](https://img.shields.io/badge/Version-0.9.7--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.9.8--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
-[![UI: WPF](https://img.shields.io/badge/UI-WPF%20XAML-0078D4?style=flat&logo=windows)](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/)
+[![UI: WPF & Avalonia](https://img.shields.io/badge/UI-WPF%20%26%20Avalonia%20Cross--Platform-0078D4?style=flat&logo=avaloniaui)](https://avaloniaui.net/)
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
-[![Platform: Windows](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D7?style=flat&logo=windows)](https://microsoft.com/windows)
-[![Tests: 76 Passed](https://img.shields.io/badge/Tests-76%20Passed-brightgreen?logo=xunit)]()
+[![Platform: Windows | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D7?style=flat&logo=linux)](https://github.com/RifkyA911/agy-cli-account-swarm)
+[![Tests: 90 Passed](https://img.shields.io/badge/Tests-90%20Passed-brightgreen?logo=xunit)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
 
@@ -24,7 +24,7 @@
 
 > [!WARNING]
 > ### 🖥️ GUI DESKTOP APPLICATION ONLY (STANDALONE CLI COMING IN 'agy-swarm')
-> **Agy CLI Account Swarm** operates **strictly as a GUI Desktop Application** (built with WPF on .NET 9 for Windows).  
+> **Agy CLI Account Swarm** operates **strictly as a GUI Desktop Application** (built with WPF for Windows and Avalonia UI for cross-platform Linux/macOS on .NET 9).  
 > **This repository is GUI-only and intentionally does not include a command-line interface.**  
 > A standalone headless CLI orchestration interface will be published in a separate dedicated project named **`agy-swarm`**.  
 > The desktop application serves as a visual control tower: you manage accounts, inspect live telemetry, filter profiles, migrate conversations, and launch separate terminal-based Antigravity CLI instances with a single click.
@@ -47,6 +47,19 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 ---
 
 ## ✨ Key Features & Capabilities
+
+### ⚡ Fleet Prompt Dispatcher & Git Worktree Orchestration [EXPERIMENTAL]
+- **Unified Objective, Multi-Worker Execution**: Enter a single high-level objective and distribute it across multiple authenticated `agy` CLI accounts simultaneously.
+- **Zero-Dependency Native Architecture**: 100% C# / .NET 9 using the official `agy` CLI and Git CLI. No LangChain, LangGraph, or Python dependencies required.
+- **Git Worktree Isolation**: Each account operates in an isolated Git worktree branch (`swarm/{worker}_{timestamp}`) referencing the shared repository, eliminating `.git/index.lock` collisions.
+- **Pre-Flight Sentinel & Out-of-Resources Guard**: Automatically audits disk headroom (>= 2.0 GB required, warnings at < 5.0 GB) and memory availability before dispatching.
+- **Graceful Fallback Mode**: If targeted outside a Git repository, automatically falls back to isolated per-worker sandboxes without failing.
+- **3 Dispatch Paradigms**:
+  - `RoleTailored`: Distributes specialized instructions per domain (Architect, Backend, Frontend, QA/Reviewer, Security Auditor).
+  - `Consensus`: Runs divergent implementations (Approach A vs. Approach B vs. Critic) for competitive technical synthesis.
+  - `Broadcast`: Sends identical prompts across all selected workers.
+- **Clean Process Abort & Prune**: 1-click process tree kill terminating all active CLI instances, plus automated branch merging and worktree pruning.
+
 
 ### 🛡️ Sandboxing & Multi-Account Isolation
 - **Per-Worker Profile Sandboxes**: Each profile operates in its own isolated folder (`~/.gemini-profiles/{id}/`) with independent OAuth tokens, conversation logs, and presence locks.
@@ -205,22 +218,26 @@ You can cleanly uninstall **Agy CLI Account Swarm** at any time through any of t
 
 ---
 
-### 🐧 Linux Platform Status (Windows WPF Runtime)
+### 🐧 Linux & 🍏 macOS Platform Status (Native Avalonia UI)
 
-> [!WARNING]
-> **Native Avalonia GUI is NOT implemented yet.**  
-> The current codebase is built on **WPF for Windows (.NET 9 Windows desktop runtime)**.  
-> On Linux, running the WPF desktop app currently requires **Wine 8.0+** or a Windows compatibility container.  
-> A native cross-platform GUI powered by **Avalonia UI** is planned on the architectural roadmap for a unified Linux, macOS, and Windows desktop build.  
-> For headless Linux terminal automation, use the upcoming standalone CLI project **`agy-swarm`**.
-
----
-
-### 🍏 macOS Platform Status
-
-> [!WARNING]
-> **macOS native desktop UI is NOT available yet.**  
-> Like Linux, the desktop application currently uses Windows WPF. Native macOS support will arrive alongside the cross-platform Avalonia UI rewrite.
+> [!NOTE]
+> **Native Cross-Platform GUI is now available via Avalonia UI (`net9.0`)!**  
+> Alongside the Windows WPF desktop edition (`AgyAccountSwarm`), the repository now includes `AgyAccountSwarm.Avalonia` targeting **.NET 9**.
+>
+> - **Linux Support**: Native rendering via Wayland / X11. Automated POSIX terminal dispatching (`ptyxis`, `gnome-terminal`, `konsole`, `xfce4-terminal`, `alacritty`, `kitty`, `xterm`, or `$TERMINAL`), POSIX sandbox launcher (`run-agy.sh` with `chmod +x`), and file manager integration via `xdg-open`.
+> - **macOS Support**: Native rendering via Metal / Cocoa. Automated terminal dispatching via AppleScript (`osascript` to Terminal.app), Homebrew binary resolution (`/opt/homebrew/bin/agy`), and file manager integration via `open`.
+> - **How to Run on Linux / macOS**:
+>   ```bash
+>   dotnet run --project AgyAccountSwarm.Avalonia/AgyAccountSwarm.Avalonia.csproj
+>   ```
+> - **Standalone Release Publish**:
+>   ```bash
+>   # Linux x64
+>   dotnet publish AgyAccountSwarm.Avalonia/AgyAccountSwarm.Avalonia.csproj -c Release -r linux-x64 --self-contained -o publish/linux
+>
+>   # macOS Apple Silicon
+>   dotnet publish AgyAccountSwarm.Avalonia/AgyAccountSwarm.Avalonia.csproj -c Release -r osx-arm64 --self-contained -o publish/macos
+>   ```
 
 ---
 

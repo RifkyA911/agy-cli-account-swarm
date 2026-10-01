@@ -517,6 +517,35 @@ public partial class MainViewModel : ObservableObject
     private List<RealHistoryEntry> _cachedRealHistory = [];
     private readonly DispatcherTimer _autoSyncTimer = new();
 
+    private readonly IGitWorktreeService _gitWorktreeService;
+    private readonly IFleetDispatcherService _fleetDispatcherService;
+
+    // Fleet Dispatcher (Experimental) Properties
+    [ObservableProperty]
+    private string _fleetTaskObjective = string.Empty;
+
+    [ObservableProperty]
+    private string _fleetWorkspacePath = string.Empty;
+
+    [ObservableProperty]
+    private DispatchMode _selectedDispatchMode = DispatchMode.RoleTailored;
+
+    [ObservableProperty]
+    private bool _useGitWorktrees = true;
+
+    [ObservableProperty]
+    private ResourceCheckResult _preflightResult = new();
+
+    [ObservableProperty]
+    private bool _isFleetDispatching = false;
+
+    [ObservableProperty]
+    private string _fleetStatusText = "Fleet Dispatcher Ready";
+
+    public ObservableCollection<DispatchedWorkerTask> DispatchedTasks { get; } = [];
+    public ObservableCollection<GitWorktreeInfo> ActiveWorktrees { get; } = [];
+    public ObservableCollection<string> SwarmBranches { get; } = [];
+
     public event Func<AccountProfile?, Task<AccountProfile?>>? ShowEditDialogRequested;
     public event Func<string, string, Task<bool>>? ConfirmDeleteRequested;
 
@@ -530,7 +559,9 @@ public partial class MainViewModel : ObservableObject
         ITelemetryService telemetryService,
         IAgyModelService? modelService = null,
         IProfileDoctorService? profileDoctorService = null,
-        IConversationTransferService? conversationTransferService = null)
+        IConversationTransferService? conversationTransferService = null,
+        IGitWorktreeService? gitWorktreeService = null,
+        IFleetDispatcherService? fleetDispatcherService = null)
     {
         _storageService = storageService;
         _launcherService = launcherService;
@@ -542,6 +573,8 @@ public partial class MainViewModel : ObservableObject
         _modelService = modelService ?? new AgyModelService();
         _profileDoctorService = profileDoctorService ?? new ProfileDoctorService();
         _conversationTransferService = conversationTransferService ?? new ConversationTransferService();
+        _gitWorktreeService = gitWorktreeService ?? new GitWorktreeService();
+        _fleetDispatcherService = fleetDispatcherService ?? new FleetDispatcherService(_gitWorktreeService, _launcherService);
 
         _autoSyncTimer.Tick += OnAutoSyncTimerTick;
 
@@ -1589,12 +1622,7 @@ public partial class MainViewModel : ObservableObject
     {
         _audioService.PlayClick();
         var path = _storageService.GetAppDataPath();
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = "explorer.exe",
-            Arguments = $"\"{path}\"",
-            UseShellExecute = true
-        });
+        TerminalLauncherService.OpenFolderInFileManager(path);
     }
 
     public void ShowNotification(string message)
@@ -2204,6 +2232,7 @@ public partial class MainViewModel : ObservableObject
                 "clireference" => "cli_reference.html",
                 "chatmigration" => "chat_migration.html",
                 "troubleshooting" => "troubleshooting.html",
+                "fleetdispatcher" => "fleet_dispatcher.html",
                 _ => "architecture.html"
             };
 
@@ -2409,5 +2438,161 @@ public partial class MainViewModel : ObservableObject
             AutoSyncAudioEnabled = AutoSyncAudioEnabled
         };
         await _storageService.SaveSettingsAsync(settings);
+    }
+
+    [RelayCommand]
+    public async Task CheckPreflightAsync()
+    {
+        _audioService.PlayClick();
+        PreflightResult = await _fleetDispatcherService.CheckPreflightResourcesAsync(FleetWorkspacePath);
+        if (!PreflightResult.IsSafe)
+        {
+            ShowNotification(PreflightResult.ErrorMessage ?? "Preflight check failed.");
+        }
+        else if (!string.IsNullOrEmpty(PreflightResult.WarningMessage))
+        {
+            ShowNotification(PreflightResult.WarningMessage);
+        }
+        else
+        {
+            ShowNotification($"Preflight OK: {PreflightResult.AvailableDiskGb} GB Free | Branch: {PreflightResult.CurrentBranch ?? "None"}");
+        }
+        await RefreshWorktreesAsync();
+    }
+
+    [RelayCommand]
+    public async Task DispatchFleetAsync()
+    {
+        if (string.IsNullOrWhiteSpace(FleetTaskObjective))
+        {
+            ShowNotification("Please enter a task objective to dispatch.");
+            return;
+        }
+
+        var selected = Profiles.Where(p => p.IsSelectedForSwarm).Select(p => p.Profile).ToList();
+        if (selected.Count == 0)
+        {
+            ShowNotification("No accounts selected for Swarm Dispatch.");
+            return;
+        }
+
+        PreflightResult = await _fleetDispatcherService.CheckPreflightResourcesAsync(FleetWorkspacePath);
+        if (!PreflightResult.IsSafe)
+        {
+            ShowNotification($"Dispatch blocked: {PreflightResult.ErrorMessage}");
+            return;
+        }
+
+        IsFleetDispatching = true;
+        _audioService.PlayLaunch();
+        FleetStatusText = $"Dispatching to {selected.Count} workers...";
+        ShowNotification($"Synthesizing and dispatching to {selected.Count} workers...");
+
+        var config = new FleetDispatchConfig
+        {
+            TaskObjective = FleetTaskObjective,
+            TargetWorkspace = FleetWorkspacePath,
+            Mode = SelectedDispatchMode,
+            UseGitWorktrees = UseGitWorktrees,
+            SelectedWorkerNames = selected.Select(w => w.Name).ToList()
+        };
+
+        try
+        {
+            var tasks = await _fleetDispatcherService.DispatchFleetAsync(config, selected, SelectedTerminal);
+            DispatchedTasks.Clear();
+            foreach (var t in tasks)
+            {
+                DispatchedTasks.Add(t);
+            }
+
+            FleetStatusText = $"Fleet Active ({tasks.Count} Dispatched)";
+            ShowNotification($"Successfully dispatched objective to {tasks.Count} workers.");
+            await RefreshWorktreesAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("[FleetDispatcher] Dispatch error", ex);
+            FleetStatusText = $"Dispatch Failed: {ex.Message}";
+            ShowNotification($"Fleet dispatch failed: {ex.Message}");
+        }
+        finally
+        {
+            IsFleetDispatching = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task AbortFleetAsync()
+    {
+        _audioService.PlayDelete();
+        int killed = await _fleetDispatcherService.AbortFleetAsync(DispatchedTasks);
+        FleetStatusText = "Fleet Aborted";
+        ShowNotification($"Stopped {killed} dispatched worker process(es).");
+    }
+
+    [RelayCommand]
+    public async Task RefreshWorktreesAsync()
+    {
+        var targetDir = string.IsNullOrWhiteSpace(FleetWorkspacePath)
+            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            : FleetWorkspacePath;
+
+        try
+        {
+            var worktrees = await _gitWorktreeService.ListWorktreesAsync(targetDir);
+            ActiveWorktrees.Clear();
+            foreach (var wt in worktrees)
+            {
+                ActiveWorktrees.Add(wt);
+            }
+
+            var branches = await _gitWorktreeService.ListSwarmBranchesAsync(targetDir);
+            SwarmBranches.Clear();
+            foreach (var b in branches)
+            {
+                SwarmBranches.Add(b);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug($"[FleetDispatcher] Refresh worktrees failed: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task PruneWorktreesAsync()
+    {
+        _audioService.PlayClick();
+        var targetDir = string.IsNullOrWhiteSpace(FleetWorkspacePath)
+            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            : FleetWorkspacePath;
+
+        int pruned = await _gitWorktreeService.PruneStaleWorktreesAsync(targetDir);
+        ShowNotification(pruned > 0 ? $"Pruned {pruned} stale worktree(s)." : "No stale worktrees to prune.");
+        await RefreshWorktreesAsync();
+    }
+
+    [RelayCommand]
+    public async Task MergeSwarmBranchAsync(string? branch)
+    {
+        if (string.IsNullOrWhiteSpace(branch)) return;
+        _audioService.PlayClick();
+
+        var targetDir = string.IsNullOrWhiteSpace(FleetWorkspacePath)
+            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            : FleetWorkspacePath;
+
+        var (success, output) = await _gitWorktreeService.MergeBranchAsync(targetDir, branch);
+        if (success)
+        {
+            _audioService.PlaySuccess();
+            ShowNotification($"Merged '{branch}' into current branch successfully.");
+        }
+        else
+        {
+            ShowNotification($"Merge warning/conflict: {output}");
+        }
+        await RefreshWorktreesAsync();
     }
 }

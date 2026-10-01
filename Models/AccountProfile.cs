@@ -61,6 +61,9 @@ public class AccountProfile
     [JsonIgnore]
     public ProfileAuthStatus AuthStatus { get; set; } = new();
 
+    [JsonIgnore]
+    public bool IsDefaultPrimary => IsMainDefaultProfile();
+
     public bool IsMainDefaultProfile()
     {
         // Duplicates or copies must NEVER be treated as the main primary profile
@@ -111,10 +114,20 @@ public class AccountProfile
                 var sysDir = Environment.GetFolderPath(Environment.SpecialFolder.System);
                 var root = System.IO.Path.GetPathRoot(fullPath);
 
-                // Prevent pointing to root drive or Windows system directories
-                if (!string.Equals(fullPath, root, StringComparison.OrdinalIgnoreCase) &&
-                    !fullPath.StartsWith(winDir, StringComparison.OrdinalIgnoreCase) &&
-                    !fullPath.StartsWith(sysDir, StringComparison.OrdinalIgnoreCase))
+                // Prevent pointing to root drive or system directories
+                bool isDangerous = string.Equals(fullPath, root, StringComparison.OrdinalIgnoreCase);
+                if (!string.IsNullOrEmpty(winDir) && fullPath.StartsWith(winDir, StringComparison.OrdinalIgnoreCase)) isDangerous = true;
+                if (!string.IsNullOrEmpty(sysDir) && fullPath.StartsWith(sysDir, StringComparison.OrdinalIgnoreCase)) isDangerous = true;
+
+                if (!OperatingSystem.IsWindows())
+                {
+                    if (fullPath == "/" || fullPath.StartsWith("/etc") || fullPath.StartsWith("/bin") || fullPath.StartsWith("/sbin") || fullPath.StartsWith("/usr"))
+                    {
+                        isDangerous = true;
+                    }
+                }
+
+                if (!isDangerous)
                 {
                     return fullPath;
                 }

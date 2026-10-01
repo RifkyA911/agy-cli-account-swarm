@@ -25,12 +25,39 @@ public class TerminalLauncherService : ITerminalLauncherService
 
     public static string? ResolveAgyExecutablePath()
     {
-        // 1. Common install location for Antigravity CLI on Windows
-        var userLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var standardPath = Path.Combine(userLocal, "agy", "bin", "agy.exe");
-        if (File.Exists(standardPath))
+        var binName = OperatingSystem.IsWindows() ? "agy.exe" : "agy";
+
+        // 1. Common install locations
+        if (OperatingSystem.IsWindows())
         {
-            return standardPath;
+            var userLocal = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var standardPath = Path.Combine(userLocal, "agy", "bin", binName);
+            if (File.Exists(standardPath))
+            {
+                return standardPath;
+            }
+        }
+        else
+        {
+            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var unixCandidates = new[]
+            {
+                Path.Combine(home, ".local", "bin", binName),
+                Path.Combine(home, ".gemini", "bin", binName),
+                Path.Combine(home, "bin", binName),
+                Path.Combine("/usr", "local", "bin", binName),
+                Path.Combine("/usr", "bin", binName),
+                Path.Combine("/bin", binName),
+                Path.Combine("/opt", "homebrew", "bin", binName),
+                Path.Combine("/usr", "local", "Homebrew", "bin", binName)
+            };
+            foreach (var candidate in unixCandidates)
+            {
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
         }
 
         // 2. Check in PATH environment variable
@@ -38,7 +65,7 @@ public class TerminalLauncherService : ITerminalLauncherService
         var paths = pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
         foreach (var p in paths)
         {
-            var candidate = Path.Combine(p.Trim(), "agy.exe");
+            var candidate = Path.Combine(p.Trim(), binName);
             if (File.Exists(candidate))
             {
                 return candidate;
@@ -48,9 +75,10 @@ public class TerminalLauncherService : ITerminalLauncherService
         return null;
     }
 
-
     public bool IsWindowsTerminalAvailable()
     {
+        if (!OperatingSystem.IsWindows()) return false;
+
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var wtAlias = Path.Combine(localAppData, "Microsoft", "WindowsApps", "wt.exe");
         if (File.Exists(wtAlias)) return true;
@@ -119,9 +147,9 @@ public class TerminalLauncherService : ITerminalLauncherService
         File.WriteAllText(scriptPath, sb.ToString(), new System.Text.UTF8Encoding(false));
 
         // Cross-Platform POSIX launcher for Linux / macOS / WSL
+        var shPath = Path.Combine(effectiveDir, "run-agy.sh");
         try
         {
-            var shPath = Path.Combine(effectiveDir, "run-agy.sh");
             var shSb = new System.Text.StringBuilder();
             shSb.AppendLine("#!/usr/bin/env bash");
             shSb.AppendLine($"# AGY Sandbox Shell - Profile: {profile.Name}");
@@ -145,17 +173,33 @@ public class TerminalLauncherService : ITerminalLauncherService
             shSb.AppendLine("    echo \"Environment variables isolated. Ready for agy or agy -p <prompt>.\"");
             shSb.AppendLine("    exec \"${SHELL:-bash}\"");
             shSb.AppendLine("else");
-            shSb.AppendLine($"    exec agy{extraArgs} \"$@\"");
+            shSb.AppendLine($"    exec \"{safeAgyBinary.Replace('\\', '/')}\"{extraArgs} \"$@\"");
             shSb.AppendLine("fi");
             File.WriteAllText(shPath, shSb.ToString(), new System.Text.UTF8Encoding(false));
+
+            if (!OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    File.SetUnixFileMode(shPath,
+                        UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                        UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+                        UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+                }
+                catch (Exception pex)
+                {
+                    Logger.Debug($"[TerminalLauncher] SetUnixFileMode skipped: {pex.Message}");
+                }
+            }
         }
         catch (Exception ex)
         {
             Logger.Warn($"[TerminalLauncher] Could not write run-agy.sh: {ex.Message}");
         }
 
-        Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{scriptPath}' (Target: '{safeAgyBinary}', Isolated: {!profile.IsMainDefaultProfile()})");
-        return scriptPath;
+        var returnedScript = OperatingSystem.IsWindows() ? scriptPath : shPath;
+        Logger.Info($"[TerminalLauncher] Ensured launcher script for '{profile.Name}' at '{returnedScript}' (Target: '{safeAgyBinary}', Isolated: {!profile.IsMainDefaultProfile()})");
+        return returnedScript;
     }
 
     public static string BuildCmdArguments(string scriptPath)
@@ -266,6 +310,15 @@ public class TerminalLauncherService : ITerminalLauncherService
             var scriptPath = EnsureLauncherScript(profile);
             var scriptCallSuffix = string.IsNullOrWhiteSpace(safeSession) ? "" : " " + safeSession;
 
+            // Cross-Platform POSIX launcher for Linux / macOS
+            if (!OperatingSystem.IsWindows())
+            {
+                profile.LastLaunchedAt = DateTime.UtcNow;
+                var posixProc = LaunchPosixTerminal(title, workingDir, scriptPath, safeSession);
+                Logger.Info($"[TerminalLauncher] Launched POSIX profile '{profile.Name}' (PID: {posixProc?.Id.ToString() ?? "detached"}) with args '{safeSession ?? "none"}' in '{workingDir}'");
+                return posixProc;
+            }
+
             ProcessStartInfo psi;
 
             // Check if Windows Terminal is requested and available
@@ -319,8 +372,8 @@ public class TerminalLauncherService : ITerminalLauncherService
 
         Logger.Info($"[TerminalLauncher] Orchestrating Swarm launch for {profileList.Count} accounts (Mode: {swarmMode}, Terminal: {terminal})");
 
-        // If Windows Terminal is available and user chose SplitPanes or SeparateTabs
-        if (terminal == TerminalType.WindowsTerminal && IsWindowsTerminalAvailable() && swarmMode != SwarmLaunchMode.SeparateWindows && profileList.Count > 1)
+        // If Windows Terminal is available and user chose SplitPanes or SeparateTabs on Windows
+        if (OperatingSystem.IsWindows() && terminal == TerminalType.WindowsTerminal && IsWindowsTerminalAvailable() && swarmMode != SwarmLaunchMode.SeparateWindows && profileList.Count > 1)
         {
             var wtArgs = new List<string>();
 
@@ -392,6 +445,15 @@ public class TerminalLauncherService : ITerminalLauncherService
         }
         bool isIsolated = !profile.IsMainDefaultProfile();
 
+        if (!OperatingSystem.IsWindows())
+        {
+            var cleanSafeWorkDir = workDir.Replace('\\', '/');
+            var cleanSafeEffDir = effectiveDir.Replace('\\', '/');
+            return (isIsolated ? "export SSH_CONNECTION=1 SSH_CLIENT=1 && " : "") +
+                   $"export USERPROFILE=\"{cleanSafeEffDir}\" HOME=\"{cleanSafeEffDir}\" ANTIGRAVITY_APP_DATA_DIR=\"{cleanSafeEffDir}/.gemini/antigravity-cli\" JETSKI_APP_DATA_DIR=\"{cleanSafeEffDir}/.gemini/antigravity-cli\" && " +
+                   $"cd \"{cleanSafeWorkDir}\" && agy{extraArgs}";
+        }
+
         string snippet = terminal switch
         {
             TerminalType.PowerShell =>
@@ -413,13 +475,8 @@ public class TerminalLauncherService : ITerminalLauncherService
         {
             Directory.CreateDirectory(dir);
         }
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = "explorer.exe",
-            Arguments = $"\"{dir}\"",
-            UseShellExecute = true
-        });
-        Logger.Info($"[TerminalLauncher] Opened profile directory in Explorer: '{dir}'");
+        OpenFolderInFileManager(dir);
+        Logger.Info($"[TerminalLauncher] Opened profile directory in File Manager: '{dir}'");
     }
 
     public void OpenWorkspaceFolder(AccountProfile profile)
@@ -429,13 +486,246 @@ public class TerminalLauncherService : ITerminalLauncherService
         {
             Directory.CreateDirectory(dir);
         }
-        Process.Start(new ProcessStartInfo
+        OpenFolderInFileManager(dir);
+        Logger.Info($"[TerminalLauncher] Opened workspace directory in File Manager: '{dir}'");
+    }
+
+    public static void OpenFolderInFileManager(string dir)
+    {
+        try
         {
-            FileName = "explorer.exe",
-            Arguments = $"\"{dir}\"",
-            UseShellExecute = true
-        });
-        Logger.Info($"[TerminalLauncher] Opened workspace directory in Explorer: '{dir}'");
+            if (OperatingSystem.IsWindows())
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"\"{dir}\"",
+                    UseShellExecute = true
+                });
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "open",
+                    Arguments = $"\"{dir}\"",
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "xdg-open",
+                    Arguments = $"\"{dir}\"",
+                    UseShellExecute = true
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[TerminalLauncher] Failed to open folder '{dir}': {ex.Message}");
+        }
+    }
+
+    public static void OpenFileOrUrl(string pathOrUrl)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                Process.Start(new ProcessStartInfo(pathOrUrl) { UseShellExecute = true });
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                Process.Start(new ProcessStartInfo("open", $"\"{pathOrUrl}\"") { UseShellExecute = true });
+            }
+            else
+            {
+                Process.Start(new ProcessStartInfo("xdg-open", $"\"{pathOrUrl}\"") { UseShellExecute = true });
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[TerminalLauncher] Failed to open file/url '{pathOrUrl}': {ex.Message}");
+        }
+    }
+
+    public static Process? LaunchPosixTerminal(string title, string workingDir, string scriptPath, string? scriptArgs)
+    {
+        var cleanTitle = title.Replace("\"", "").Replace("'", "");
+        var cleanWorkDir = workingDir.Replace('\\', '/');
+        var cleanScript = scriptPath.Replace('\\', '/');
+        var argSuffix = string.IsNullOrWhiteSpace(scriptArgs) ? "" : $" {scriptArgs}";
+        var runCommand = $"\"{cleanScript}\"{argSuffix}";
+
+        if (OperatingSystem.IsMacOS())
+        {
+            try
+            {
+                var appleScript = $"tell application \"Terminal\" to do script \"cd \\\"{cleanWorkDir}\\\" && {runCommand.Replace("\"", "\\\"")}\"";
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "osascript",
+                    Arguments = $"-e \"{appleScript}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                return Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"[TerminalLauncher] macOS Terminal.app launch failed: {ex.Message}");
+            }
+        }
+
+        // Linux terminal candidate matrix
+        var customTerminal = Environment.GetEnvironmentVariable("TERMINAL");
+        var candidates = new List<(string Exe, Func<ProcessStartInfo> Builder)>();
+
+        if (!string.IsNullOrWhiteSpace(customTerminal))
+        {
+            candidates.Add((customTerminal, () => new ProcessStartInfo
+            {
+                FileName = customTerminal,
+                Arguments = $"-e bash -c \"cd '{cleanWorkDir}' && '{cleanScript}'{argSuffix}; exec bash\"",
+                WorkingDirectory = cleanWorkDir,
+                UseShellExecute = false
+            }));
+        }
+
+        // Debian/Ubuntu alternatives system
+        candidates.Add(("x-terminal-emulator", () => new ProcessStartInfo
+        {
+            FileName = "x-terminal-emulator",
+            Arguments = $"-e bash -c \"cd '{cleanWorkDir}' && '{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        // Ptyxis (GNOME 45+ / Fedora 40+ modern default)
+        candidates.Add(("ptyxis", () => new ProcessStartInfo
+        {
+            FileName = "ptyxis",
+            Arguments = $"--working-directory=\"{cleanWorkDir}\" --title=\"{cleanTitle}\" -- bash -c \"'{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        // GNOME Terminal
+        candidates.Add(("gnome-terminal", () => new ProcessStartInfo
+        {
+            FileName = "gnome-terminal",
+            Arguments = $"--working-directory=\"{cleanWorkDir}\" --title=\"{cleanTitle}\" -- bash -c \"'{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        // KDE Konsole
+        candidates.Add(("konsole", () => new ProcessStartInfo
+        {
+            FileName = "konsole",
+            Arguments = $"--workdir \"{cleanWorkDir}\" -p tabtitle=\"{cleanTitle}\" -e bash -c \"'{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        // XFCE Terminal
+        candidates.Add(("xfce4-terminal", () => new ProcessStartInfo
+        {
+            FileName = "xfce4-terminal",
+            Arguments = $"--working-directory=\"{cleanWorkDir}\" --title=\"{cleanTitle}\" -e \"bash -c '{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        // Alacritty
+        candidates.Add(("alacritty", () => new ProcessStartInfo
+        {
+            FileName = "alacritty",
+            Arguments = $"--working-directory \"{cleanWorkDir}\" --title \"{cleanTitle}\" -e bash -c \"'{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        // Kitty
+        candidates.Add(("kitty", () => new ProcessStartInfo
+        {
+            FileName = "kitty",
+            Arguments = $"--directory \"{cleanWorkDir}\" --title \"{cleanTitle}\" bash -c \"'{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        // WezTerm
+        candidates.Add(("wezterm", () => new ProcessStartInfo
+        {
+            FileName = "wezterm",
+            Arguments = $"start --cwd \"{cleanWorkDir}\" bash -c \"'{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        // XTerm
+        candidates.Add(("xterm", () => new ProcessStartInfo
+        {
+            FileName = "xterm",
+            Arguments = $"-title \"{cleanTitle}\" -e bash -c \"cd '{cleanWorkDir}' && '{cleanScript}'{argSuffix}; exec bash\"",
+            WorkingDirectory = cleanWorkDir,
+            UseShellExecute = false
+        }));
+
+        foreach (var (exe, builder) in candidates)
+        {
+            if (IsExecutableInPath(exe))
+            {
+                try
+                {
+                    var psi = builder();
+                    var proc = Process.Start(psi);
+                    if (proc != null)
+                    {
+                        Logger.Info($"[TerminalLauncher] Successfully dispatched terminal via '{exe}'");
+                        return proc;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"[TerminalLauncher] Candidate '{exe}' failed: {ex.Message}");
+                }
+            }
+        }
+
+        // Generic fallback: execute via bash
+        try
+        {
+            var fallbackPsi = new ProcessStartInfo
+            {
+                FileName = "bash",
+                Arguments = $"-c \"cd '{cleanWorkDir}' && '{cleanScript}'{argSuffix}\"",
+                WorkingDirectory = cleanWorkDir,
+                UseShellExecute = true
+            };
+            return Process.Start(fallbackPsi);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("[TerminalLauncher] All terminal launch attempts failed", ex);
+            return null;
+        }
+    }
+
+    public static bool IsExecutableInPath(string exeName)
+    {
+        if (File.Exists(exeName)) return true;
+        var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+        var paths = pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var p in paths)
+        {
+            var candidate = Path.Combine(p.Trim(), exeName);
+            if (File.Exists(candidate)) return true;
+        }
+        return false;
     }
 
     public static string GetValidWorkingDirectory(AccountProfile profile)

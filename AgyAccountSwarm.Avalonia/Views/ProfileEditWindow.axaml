@@ -1,0 +1,108 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AgyAccountSwarm.Avalonia.Views.ProfileEditWindow"
+        Title="Account Profile Configuration"
+        Width="580" Height="680"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BrushCard}">
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="⚙️ Profile Configuration" FontSize="18" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+            <TextBlock Text="Configure sandbox paths, subscription tiers, and autonomous execution flags" FontSize="12" Foreground="{StaticResource BrushTextSecondary}" Margin="0,4,0,0" />
+        </StackPanel>
+
+        <!-- Form Fields -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="14">
+                <!-- Name -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Profile Display Name *" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBox x:Name="TxtName" PlaceholderText="e.g. Worker Alpha, Client Workspace" />
+                </StackPanel>
+
+                <!-- Description -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Description (Optional)" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBox x:Name="TxtDescription" PlaceholderText="Brief notes or role assignment" />
+                </StackPanel>
+
+                <!-- Subscription Tier -->
+                <Grid ColumnDefinitions="*,*">
+                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
+                        <TextBlock Text="Google Subscription Tier" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                        <ComboBox x:Name="CmbTier" HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="Basic (100 daily prompts)" />
+                            <ComboBoxItem Content="Plus (300 daily prompts)" />
+                            <ComboBoxItem Content="Pro (1,000 daily prompts)" />
+                            <ComboBoxItem Content="Ultra (2,500 daily prompts)" />
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Preferred Model -->
+                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
+                        <TextBlock Text="Preferred AI Model" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                        <ComboBox x:Name="CmbModel" HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="gemini-2.5-flash" />
+                            <ComboBoxItem Content="gemini-2.5-pro" />
+                            <ComboBoxItem Content="gemini-3.8-flash-high" />
+                            <ComboBoxItem Content="claude-3.7-sonnet" />
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Default Workspace -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Default Project Workspace" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBox x:Name="TxtWorkspace" PlaceholderText="e.g. D:\Works\Projects\App" />
+                </StackPanel>
+
+                <!-- Custom Profile Sandbox Path -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Custom Isolated Profile Directory (Optional)" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                    <TextBox x:Name="TxtCustomPath" PlaceholderText="Default: ~/.gemini-profiles/{Name}" />
+                </StackPanel>
+
+                <!-- Dangerously Skip Permissions -->
+                <Border Background="{StaticResource BrushSurface}" CornerRadius="8" Padding="14" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="--dangerously-skip-permissions" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                            <TextBlock Text="Bypasses interactive CLI confirmation prompts for tool use, file edits, and terminal execution during automated swarm runs."
+                                       FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <CheckBox x:Name="ChkSkipPermissions" Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0" />
+                    </Grid>
+                </Border>
+
+                <!-- Color Tag & Swarm Participation -->
+                <Grid ColumnDefinitions="*,*">
+                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
+                        <TextBlock Text="Accent Color Tag" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
+                        <ComboBox x:Name="CmbColor" HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="#3B82F6 (Blue)" />
+                            <ComboBoxItem Content="#10B981 (Emerald)" />
+                            <ComboBoxItem Content="#A855F7 (Purple)" />
+                            <ComboBoxItem Content="#F59E0B (Amber)" />
+                            <ComboBoxItem Content="#EC4899 (Pink)" />
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,18,0,0">
+                        <CheckBox x:Name="ChkIncludeInSwarm" Content="Include in Swarm Launch" IsChecked="True" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Actions Footer -->
+        <Border Grid.Row="2" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button Content="Cancel" Click="OnCancelClick" Padding="16,8" />
+                <Button Content="💾 Save Profile" Click="OnSaveClick" Background="{StaticResource BrushEmerald}" Foreground="#FFFFFF" FontWeight="Bold" Padding="18,8" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

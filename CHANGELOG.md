@@ -2,6 +2,34 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.8-beta] - 2026-10-01
+### Added
+- **Fleet Prompt Dispatcher &amp; Git Worktree Orchestration [EXPERIMENTAL]**:
+  - Orchestrate multiple authentic `agy` CLI accounts simultaneously from a single high-level prompt objective without LangChain or LangGraph dependencies.
+  - **Native Git Worktree Isolation**: Automatically provisions dedicated worktree directories per worker on unique timestamped branches (`swarm/{worker}_{timestamp}`), completely eliminating `.git/index.lock` collisions while sharing Git commit object history.
+  - **Pre-Flight Sentinel &amp; Robustness Matrix**:
+    - *Fallback Handling*: Gracefully detects non-Git workspaces and falls back to isolated per-worker sandbox workspaces.
+    - *Out-of-Resources (OOR) Guard*: Evaluates disk headroom and GC memory limits before launch. Blocks dispatch when free disk < 2.0 GB; issues active warnings if < 5.0 GB.
+    - *Staggered Process Launch*: Enforces a 600ms stagger between worker terminal spawns to prevent thread contention and token spikes.
+    - *Process Tree Abort*: Cleanly terminates entire process trees (`proc.Kill(entireProcessTree: true)`) to prevent orphaned background instances.
+  - **Flexible Prompt Synthesizer**: Supports 3 distinct operational modes:
+    - `RoleTailored`: Synthesizes persona-specific roles (Architect, Implementer, QA/Reviewer, Security Auditor).
+    - `Consensus`: Dispatches divergent implementations (Approach A, Approach B, Independent Reviewer) for competitive consensus.
+    - `Broadcast`: Dispatches identical task instructions across all selected workers.
+  - Interactive UI controls across both WPF and Avalonia with live branch tracking, worktree pruning (`git worktree prune -v`), and 1-click branch merging.
+  - Authored comprehensive documentation in [docs/FLEET_DISPATCHER_SPEC.md](docs/FLEET_DISPATCHER_SPEC.md) and interactive in-app guide [docs/html/fleet_dispatcher.html](docs/html/fleet_dispatcher.html).
+- **Full Avalonia UI 12 Cross-Platform Architecture (`AgyAccountSwarm.Avalonia`)**:
+  - Implemented the cross-platform UI frontend targeting Linux (Wayland / X11) and macOS via Avalonia UI and .NET 9.
+  - Complete custom window chrome with draggable titlebar, maximize/restore toggle with double-click support, and minimize/close controls.
+  - Multi-row responsive layout with sidebar navigation, active page highlighting (`ActiveNavBgConverter`, `ActiveNavFgConverter`), and real-time swarm status pulse indicator.
+  - Accounts management view with tier filter combo, search bar with `PlaceholderText`, card-based profile list, primary default badge, single-account on-demand sync button (`🔄 Sync`), and dual authentic quota bars (Gemini Models weekly limit &amp; Claude/GPT Models weekly limit).
+  - Swarm Fleet multiplexer view with window layout selector (split-pane, separate tabs, separate windows), worker fleet selection card with checkboxes (`IsSelectedForSwarm`), select all / deselect all controls, and dynamic 1-click Swarm launch/stop lifecycle.
+  - Real-time application logs viewer with automated refresh and Excel export (`.xlsx`).
+  - Documentation view linking to all 9 HTML architecture specifications.
+  - Full model and profile edit dialog (`ProfileEditWindow`) with `--dangerously-skip-permissions` toggle, model dropdown, subscription tier selection, and sandbox directory configuration.
+  - Audio feedback service hardened with `OperatingSystem.IsWindows()` platform guards to prevent runtime crashes on Linux and macOS environments.
+
+
 ## [v0.9.7-beta] - 2026-09-29
 ### Added
 - **Integrated In-Popup Conversation Search**:

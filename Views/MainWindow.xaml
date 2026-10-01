@@ -202,6 +202,56 @@
                             </Button>
                         </Border>
 
+                        <!-- /fleet-dispatcher (Experimental) -->
+                        <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
+                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Dispatcher}"
+                                BorderBrush="{Binding CurrentPage, Converter={StaticResource PageToActiveBorderConverter}, ConverterParameter=Dispatcher}">
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Dispatcher"
+                                    Style="{StaticResource SidebarButton}"
+                                    Padding="8,10"
+                                    ToolTip="Fleet Prompt Dispatcher &amp; Git Worktrees [Experimental]">
+                                <Grid HorizontalAlignment="Stretch">
+                                    <!-- Expanded View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource InverseBoolToVisConverter}}" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBarConverter}, ConverterParameter=Dispatcher}"
+                                                Margin="0,0,8,0" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconBolt}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dispatcher}"
+                                                  StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                                  Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="Fleet Dispatcher"
+                                                       Foreground="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dispatcher}"
+                                                       FontSize="12.5" FontWeight="SemiBold"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1"
+                                                CornerRadius="7" Padding="5,1.5" VerticalAlignment="Center">
+                                            <TextBlock Text="EXP" FontSize="8.5" FontWeight="Bold" Foreground="#F59E0B" />
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- Collapsed View -->
+                                    <Grid Visibility="{Binding IsSidebarCollapsed, Converter={StaticResource BoolToVisConverter}}" Height="28" Width="44" HorizontalAlignment="Center" ClipToBounds="False">
+                                        <Path Data="{StaticResource HeroIconBolt}"
+                                              Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dispatcher}"
+                                              StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                              Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Border Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1"
+                                                CornerRadius="7" Padding="3,1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-3,0" ClipToBounds="False">
+                                            <TextBlock Text="⚡" FontSize="8" FontWeight="Bold" Foreground="#F59E0B" />
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+                            </Button>
+                        </Border>
+
                         <!-- /analytic -->
                         <Border BorderThickness="1" CornerRadius="8" Margin="0,0,0,4"
                                 Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=Analytics}"
@@ -2152,6 +2202,218 @@
                 </Grid>
 
                 <!-- ============================================================== -->
+                <!-- VIEW: FLEET DISPATCHER (/dispatcher) [EXPERIMENTAL]             -->
+                <!-- ============================================================== -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,24,60"
+                              PreviewMouseWheel="GlobalScrollViewer_PreviewMouseWheel"
+                              Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dispatcher}">
+                    <StackPanel MaxWidth="1000" HorizontalAlignment="Center">
+                        <!-- Dispatcher Header Card -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="24" Margin="0,0,0,16">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="⚡ Fleet Prompt Dispatcher" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    <Border Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                        <TextBlock Text="🧪 EXPERIMENTAL" FontSize="9.5" FontWeight="Bold" Foreground="#F59E0B" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Synthesize a single objective prompt, assign tailored domain roles (Backend, API, QA, Docs), and execute simultaneously across isolated Git Worktrees with zero file collisions."
+                                           FontSize="12.5" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Hardware Sentinel & Pre-flight Health Guard -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="🛡️ Pre-flight Resource &amp; Safety Sentinels" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Hardware availability, storage limits, and Git Worktree capability checks" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="🔍 Check Resources" Command="{Binding CheckPreflightCommand}" Style="{StaticResource SecondaryButton}" Padding="12,6" FontSize="11.5" />
+                                </Grid>
+
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14,10" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="Disk Free Space" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                            <TextBlock Text="{Binding PreflightResult.AvailableDiskGb, StringFormat='{}{0:F1} GB Free'}" FontSize="15" FontWeight="Bold" Foreground="#10B981" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14,10" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="System Memory" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                            <TextBlock Text="{Binding PreflightResult.AvailableMemoryGb, StringFormat='{}{0:F1} GB Available'}" FontSize="15" FontWeight="Bold" Foreground="#38BDF8" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14,10">
+                                        <StackPanel>
+                                            <TextBlock Text="Git Repository Status" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                            <TextBlock Text="{Binding PreflightResult.CurrentBranch, FallbackValue='Git Active'}" FontSize="15" FontWeight="Bold" Foreground="#A855F7" Margin="0,3,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Warning Alert -->
+                                <Border Visibility="{Binding PreflightResult.WarningMessage, Converter={StaticResource StringToVisConverter}}"
+                                        Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,6,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⚠️" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <TextBlock Text="{Binding PreflightResult.WarningMessage}" FontSize="11.5" Foreground="#FDE68A" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Error Alert -->
+                                <Border Visibility="{Binding PreflightResult.ErrorMessage, Converter={StaticResource StringToVisConverter}}"
+                                        Background="#450A0A" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,6,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="❌" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <TextBlock Text="{Binding PreflightResult.ErrorMessage}" FontSize="11.5" Foreground="#FCA5A5" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Task Definition & Workspace -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="🎯 Dispatch Configuration &amp; Task Definition" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,14" />
+
+                                <!-- Target Workspace -->
+                                <TextBlock Text="Target Repository Directory:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,6" />
+                                <TextBox Text="{Binding FleetWorkspacePath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Padding="10,8" Margin="0,0,0,6" />
+                                <CheckBox IsChecked="{Binding UseGitWorktrees}" Content="Isolate workers in linked Git Worktrees (.worktrees/worker-*) to avoid .git/index.lock contention" FontSize="11.5" Margin="0,0,0,14" />
+
+                                <!-- Task Objective Prompt -->
+                                <TextBlock Text="Task Objective Prompt (Single Input -> Tailored Multi-Worker Execution):" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,6" />
+                                <TextBox Text="{Binding FleetTaskObjective, UpdateSourceTrigger=PropertyChanged}"
+                                         AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" Style="{StaticResource ModernTextBox}" Padding="10,8" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Participating Fleet Workers Selection -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="👥 Participating Fleet Workers" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Workers selected below will receive tailored sub-task prompts in isolated environments" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button Content="☑️ Select All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="True" Style="{StaticResource SecondaryButton}" Padding="8,4" FontSize="11" Margin="0,0,6,0" />
+                                        <Button Content="⬜ Deselect All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="False" Style="{StaticResource SecondaryButton}" Padding="8,4" FontSize="11" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding Profiles}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="10,8" Margin="0,0,0,6" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelectedForSwarm, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                                    <Border Grid.Column="1" Width="28" Height="28" CornerRadius="14" Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name[0]}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                        <TextBlock Text="{Binding Description, FallbackValue='General Worker'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                    </StackPanel>
+                                                    <Border Grid.Column="3" Background="{DynamicResource BrushBg}" CornerRadius="4" Padding="6,3" VerticalAlignment="Center" Margin="10,0">
+                                                        <TextBlock Text="{Binding PreferredModel}" FontSize="10.5" Foreground="{DynamicResource BrushAccent}" />
+                                                    </Border>
+                                                    <TextBlock Grid.Column="4" Text="{Binding AuthStatus.GeminiWeeklyRemainingPercent, StringFormat='{}{0:F0}% Quota'}" FontSize="11" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Action Control Bar -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Command="{Binding DispatchFleetCommand}"
+                                    Style="{StaticResource PrimaryButton}" Background="#059669"
+                                    FontSize="14" FontWeight="Bold" Padding="20,12" Margin="0,0,10,0">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Path Data="{StaticResource HeroIconBolt}" Fill="#FFFFFF" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="⚡ Dispatch &amp; Launch Swarm Fleet" />
+                                </StackPanel>
+                            </Button>
+                            <Button Grid.Column="1" Command="{Binding AbortFleetCommand}"
+                                    Style="{StaticResource DangerButton}" Padding="16,12" FontSize="13" Margin="0,0,10,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource HeroIconStop}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="⏹ Abort Fleet" />
+                                </StackPanel>
+                            </Button>
+                            <Button Grid.Column="2" Command="{Binding PruneWorktreesCommand}"
+                                    Style="{StaticResource SecondaryButton}" Padding="16,12" FontSize="13">
+                                <TextBlock Text="🌿 Prune Worktrees" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Dispatched Tasks Panel -->
+                        <Border Visibility="{Binding DispatchedTasks.Count, Converter={StaticResource NumberToVisConverter}}"
+                                Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="📋 Active Swarm Dispatch Tasks" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,12" />
+                                <ItemsControl ItemsSource="{Binding DispatchedTasks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="12,10" Margin="0,0,0,8" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Grid.Column="0" Background="#1E293B" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                        <TextBlock Text="{Binding AssignedRole}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                                    </Border>
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding ProfileName}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                        <TextBlock Text="{Binding BranchName, StringFormat='Branch: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" Text="{Binding Status}" FontSize="11" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" Margin="12,0" />
+                                                    <Button Grid.Column="3" Content="Merge" Command="{Binding DataContext.MergeSwarmBranchCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding BranchName}" Style="{StaticResource SecondaryButton}" Padding="8,4" FontSize="11" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ============================================================== -->
                 <!-- VIEW 3: ANALYTICS (/analytic)                                  -->
                 <!-- ============================================================== -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,24,24,60"
@@ -3003,9 +3265,10 @@
                                 <Button Content="Data &amp; Configs" Command="{Binding SelectDocTabCommand}" CommandParameter="DataStorage" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
                                 <Button Content="MCP Guide" Command="{Binding SelectDocTabCommand}" CommandParameter="McpGuide" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
                                 <Button Content="ToS &amp; Risks" Command="{Binding SelectDocTabCommand}" CommandParameter="ToSRisks" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
-                                <Button Content="🚀 Next Features" Command="{Binding SelectDocTabCommand}" CommandParameter="NextFeatures" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
-                                <Button Content="🐧 Cross-Platform (Linux/macOS)" Command="{Binding SelectDocTabCommand}" CommandParameter="CrossPlatform" Style="{StaticResource PrimaryButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="🐧 Cross-Platform (Linux/macOS)" Command="{Binding SelectDocTabCommand}" CommandParameter="CrossPlatform" Style="{StaticResource ModernButton}" Margin="0,0,8,6" Padding="12,6" />
+                                <Button Content="⚡ Fleet Dispatcher [EXP]" Command="{Binding SelectDocTabCommand}" CommandParameter="FleetDispatcher" Style="{StaticResource PrimaryButton}" Margin="0,0,8,6" Padding="12,6" />
                             </WrapPanel>
+
                         </StackPanel>
                     </Border>
 
@@ -3204,8 +3467,31 @@
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
+
+                            <!-- TAB 8: Fleet Prompt Dispatcher [EXP] -->
+                            <StackPanel Visibility="{Binding SelectedDocTab, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=FleetDispatcher}">
+                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
+                                    <StackPanel>
+                                        <TextBlock Text="⚡ Fleet Prompt Dispatcher &amp; Git Worktree Orchestration [EXPERIMENTAL]" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" Margin="0,0,0,10" />
+                                        <TextBlock Text="Orchestrate multiple authentic agy CLI accounts from a single prompt input. Utilizes isolated Git Worktrees to prevent index locks, with comprehensive guards against resource exhaustion (OOR), missing repos, and token conflicts." FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" LineHeight="20" TextWrapping="Wrap" Margin="0,0,0,14" />
+
+                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="14" Margin="0,0,0,16">
+                                            <StackPanel>
+                                                <TextBlock Text="Key Capabilities &amp; Robustness Mechanisms:" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,8" />
+                                                <TextBlock Text="• Git Worktree Isolation: Each worker executes in an isolated worktree branch (e.g. swarm/worker-1_20261001_215500) sharing the .git database." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Fallback Handling: Gracefully switches to per-worker isolated sandbox directories when outside a Git repository." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• OOR &amp; Disk Guard: Pre-flight checks guarantee >= 2.0 GB free disk space and >= 500 MB RAM before dispatching." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                                <TextBlock Text="• Role-Tailored Dispatch: Injects persona-specific prompts (Architect, Implementer, QA/Reviewer, Security Auditor) without extra external libraries." FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <Button Content="🌐 Open Interactive Fleet Dispatcher Spec in Browser" Command="{Binding OpenDocInBrowserCommand}" CommandParameter="FleetDispatcher" Style="{StaticResource PrimaryButton}" Padding="14,8" HorizontalAlignment="Left" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
+
                 </Grid>
 
                 <!-- ============================================================== -->

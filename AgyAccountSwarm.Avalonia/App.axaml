@@ -1,0 +1,37 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="using:AgyAccountSwarm.Avalonia.Converters"
+             x:Class="AgyAccountSwarm.Avalonia.App"
+             RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <conv:EqualityToBooleanConverter x:Key="EqualityConverter" />
+        <conv:TierToBrushConverter x:Key="TierBrushConverter" />
+        <conv:QuotaToBrushConverter x:Key="QuotaBrushConverter" />
+        <conv:HexToBrushConverter x:Key="HexBrushConverter" />
+        <conv:ActiveNavBackgroundConverter x:Key="ActiveNavBgConverter" />
+        <conv:ActiveNavForegroundConverter x:Key="ActiveNavFgConverter" />
+
+        <!-- Theme Color Brushes -->
+        <SolidColorBrush x:Key="BrushBg" Color="#0B0F19" />
+        <SolidColorBrush x:Key="BrushSidebar" Color="#0F172A" />
+        <SolidColorBrush x:Key="BrushCard" Color="#111827" />
+        <SolidColorBrush x:Key="BrushCardBorder" Color="#1F2937" />
+        <SolidColorBrush x:Key="BrushSurface" Color="#162032" />
+        <SolidColorBrush x:Key="BrushSurfaceHover" Color="#1E293B" />
+        <SolidColorBrush x:Key="BrushTextPrimary" Color="#F9FAFB" />
+        <SolidColorBrush x:Key="BrushTextSecondary" Color="#9CA3AF" />
+        <SolidColorBrush x:Key="BrushAccent" Color="#38BDF8" />
+        <SolidColorBrush x:Key="BrushEmerald" Color="#10B981" />
+        <SolidColorBrush x:Key="BrushAmber" Color="#F59E0B" />
+        <SolidColorBrush x:Key="BrushCrimson" Color="#EF4444" />
+        <SolidColorBrush x:Key="BrushViolet" Color="#A855F7" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" />
+        </Style>
+    </Application.Styles>
+</Application>

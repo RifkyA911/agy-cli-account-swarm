@@ -33,7 +33,10 @@ public class AudioService : IAudioService
             }
             catch
             {
-                SystemSounds.Asterisk.Play();
+                if (OperatingSystem.IsWindows())
+                {
+                    SystemSounds.Asterisk.Play();
+                }
             }
         });
     }
@@ -51,7 +54,10 @@ public class AudioService : IAudioService
             }
             catch
             {
-                SystemSounds.Exclamation.Play();
+                if (OperatingSystem.IsWindows())
+                {
+                    SystemSounds.Exclamation.Play();
+                }
             }
         });
     }
@@ -69,7 +75,10 @@ public class AudioService : IAudioService
             }
             catch
             {
-                SystemSounds.Beep.Play();
+                if (OperatingSystem.IsWindows())
+                {
+                    SystemSounds.Beep.Play();
+                }
             }
         });
     }
@@ -87,7 +96,10 @@ public class AudioService : IAudioService
             }
             catch
             {
-                SystemSounds.Asterisk.Play();
+                if (OperatingSystem.IsWindows())
+                {
+                    SystemSounds.Asterisk.Play();
+                }
             }
         });
     }
@@ -105,7 +117,10 @@ public class AudioService : IAudioService
             }
             catch
             {
-                SystemSounds.Beep.Play();
+                if (OperatingSystem.IsWindows())
+                {
+                    SystemSounds.Beep.Play();
+                }
             }
         });
     }
@@ -121,7 +136,10 @@ public class AudioService : IAudioService
             }
             catch
             {
-                SystemSounds.Asterisk.Play();
+                if (OperatingSystem.IsWindows())
+                {
+                    SystemSounds.Asterisk.Play();
+                }
             }
         });
     }
@@ -138,13 +156,18 @@ public class AudioService : IAudioService
             }
             catch
             {
-                SystemSounds.Hand.Play();
+                if (OperatingSystem.IsWindows())
+                {
+                    SystemSounds.Hand.Play();
+                }
             }
         });
     }
 
     private static void PlayTone(int frequency, int durationMs)
     {
+        if (!OperatingSystem.IsWindows()) return;
+
         try
         {
             var sampleRate = 8000;
@@ -192,6 +215,8 @@ public class AudioService : IAudioService
 
     private static void PlayPurrChord(double[] frequencies, int durationMs)
     {
+        if (!OperatingSystem.IsWindows()) return;
+
         try
         {
             var sampleRate = 8000;

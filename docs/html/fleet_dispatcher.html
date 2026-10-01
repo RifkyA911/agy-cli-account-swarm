@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fleet Prompt Dispatcher &amp; Git Worktree Orchestrator (Experimental) - Agy CLI Account Swarm</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --surface: #1f2937;
+      --border: #374151;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #38bdf8;
+      --purple: #8b5cf6;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container { max-width: 1060px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(139, 92, 246, 0.18);
+      color: var(--purple);
+      margin-bottom: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    .badge-exp {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    p.lead { color: var(--muted); font-size: 15px; }
+    h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 30px 0 14px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+    h3 { font-size: 16px; font-weight: 600; color: #e2e8f0; margin: 20px 0 10px 0; }
+    p { margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .callout {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 4px solid var(--amber);
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin: 16px 0;
+    }
+    .callout-danger {
+      background: rgba(244, 63, 94, 0.1);
+      border-left: 4px solid var(--rose);
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin: 16px 0;
+    }
+    .callout-success {
+      background: rgba(16, 185, 129, 0.1);
+      border-left: 4px solid var(--emerald);
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin: 16px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: var(--surface);
+      color: #fff;
+      font-weight: 600;
+    }
+    tr:nth-child(even) td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    code {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Consolas', monospace;
+      color: #38bdf8;
+      font-size: 12px;
+    }
+    pre {
+      background: #030712;
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 14px 0;
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+      color: #93c5fd;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0;
+    }
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="badge badge-exp">🧪 EXPERIMENTAL ARCHITECTURE SPECIFICATION</div>
+    <h1>Fleet Prompt Dispatcher &amp; Git Worktree Orchestrator</h1>
+    <p class="lead">Automated single-prompt distribution across multiple autonomous Google Antigravity CLI workers with Git Worktree isolation, graceful fallbacks, and resource sentinels.</p>
+  </header>
+
+  <h2>1. Executive Summary &amp; Architecture</h2>
+  <div class="card">
+    <p>The <strong>Fleet Prompt Dispatcher</strong> solves the fundamental problem of multi-agent CLI coordination: eliminating the need for the user to manually type commands into 4 separate terminal windows, while simultaneously eliminating repository lock contention via <code>git worktree</code>.</p>
+    <div class="grid-2">
+      <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 14px;">
+        <h3 style="color: var(--primary); margin-top:0;">⚡ 1-Click Objective Dispatch</h3>
+        <p style="font-size:13px; margin:0;">User writes 1 task in GUI. Dispatcher synthesizes role contexts (Backend, API, Test, Docs) and automatically launches N workers with tailored prompts.</p>
+      </div>
+      <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 14px;">
+        <h3 style="color: var(--emerald); margin-top:0;">🌿 Zero Lock Collisions</h3>
+        <p style="font-size:13px; margin:0;">Each worker receives an isolated physical working tree linked to a unified <code>.git</code> store. Staging and commits run concurrently with zero <code>index.lock</code> blocks.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>2. Robustness Matrix: Handling Fallback, Errors, Warnings, and OOR</h2>
+
+  <h3>2.1 Fallback Handling (Graceful Degradation)</h3>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Fallback Scenario</th>
+          <th>Detection Mechanism</th>
+          <th>Automated Graceful Recovery</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Non-Git Workspace</strong></td>
+          <td><code>git rev-parse --is-inside-work-tree</code> fails or returns non-zero.</td>
+          <td>Automatically falls back to <strong>Dedicated Sandbox Workspace</strong> (<code>~/.gemini-profiles/{id}/workspace</code>) without throwing errors. Displays informative UI warning badge.</td>
+        </tr>
+        <tr>
+          <td><strong>Terminal Host Unavailable</strong></td>
+          <td>Requested terminal (e.g. <code>wt.exe</code>) is not installed.</td>
+          <td>Cascading fallback: <code>wt.exe</code> &rarr; <code>powershell.exe</code> &rarr; <code>cmd.exe</code> on Windows; <code>$TERMINAL</code> &rarr; <code>x-terminal-emulator</code> &rarr; <code>ptyxis</code> &rarr; <code>gnome-terminal</code> &rarr; <code>konsole</code> &rarr; <code>bash</code> on Linux; <code>osascript</code> &rarr; <code>Terminal.app</code> on macOS.</td>
+        </tr>
+        <tr>
+          <td><strong>Dirty Working Tree</strong></td>
+          <td><code>git status --porcelain</code> detects uncommitted edits in working directory.</td>
+          <td>Proactive choice: automated temporary <code>git stash</code> before worktree provisioning, or branching directly from latest commit <code>HEAD</code> without risking uncommitted files.</td>
+        </tr>
+        <tr>
+          <td><strong>Exhausted Worker Quota</strong></td>
+          <td>Live telemetry detects 5-hour limit &lt; 5% or quota status is exhausted.</td>
+          <td>Excludes exhausted worker from dispatch batch, alerts user, and recommends the fleet worker with the highest remaining capacity.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>2.2 Error Handling &amp; Auto-Recovery</h3>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Error Condition</th>
+          <th>Root Cause</th>
+          <th>System Auto-Resolution</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Stale Worktree Lock</strong></td>
+          <td>Previous crash left <code>.git/worktrees/&lt;id&gt;/locked</code> or <code>index.lock</code>.</td>
+          <td>Executes <code>git worktree prune</code> and surgical unlock on the targeted worktree before aborting.</td>
+        </tr>
+        <tr>
+          <td><strong>Branch Name Collision</strong></td>
+          <td>Branch <code>swarm/worker-1</code> already exists from a prior run.</td>
+          <td>Uses microsecond timestamped branch naming: <code>swarm/{worker}_{yyyyMMdd_HHmmss}</code>, guaranteeing uniqueness.</td>
+        </tr>
+        <tr>
+          <td><strong>Subprocess Fatal Crash</strong></td>
+          <td><code>agy</code> CLI crashes due to invalid flag, network cutoff, or auth failure.</td>
+          <td>Process supervisor catches exit code and stderr, logs to ring buffer, kills lingering child processes, and flags UI status as failed.</td>
+        </tr>
+        <tr>
+          <td><strong>Reconciliation Merge Conflict</strong></td>
+          <td>Two workers edited the same lines in the same file.</td>
+          <td>System aborts automated merge safely without corrupting <code>main</code>, highlights conflicting files, and provides manual 3-way resolution options.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>2.3 Warning Sentinels (Proactive Alerts)</h3>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Warning Signal</th>
+          <th>Threshold</th>
+          <th>UI Action &amp; Recommendation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Low 5-Hour Limit</strong></td>
+          <td>Worker remaining 5h fraction between 5% and 20%.</td>
+          <td>Yellow warning badge: <code>⚠️ Low Quota (X% left)</code>. User can proceed or swap worker.</td>
+        </tr>
+        <tr>
+          <td><strong>Weekly Tier Ceiling</strong></td>
+          <td>Worker weekly quota remaining &lt; 10%.</td>
+          <td>Alert banner explaining weekly tier quota limits and reset countdown.</td>
+        </tr>
+        <tr>
+          <td><strong>Massive Repository Checkout</strong></td>
+          <td>Target repo &gt; 500 MB or &gt; 50,000 files.</td>
+          <td>Notification indicating worktree checkout may take 3-5 seconds on mechanical or network drives.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>2.4 Out-of-Resources (OOR) Protection Protocol</h3>
+  <div class="card">
+    <div class="callout-danger">
+      <strong style="color: var(--rose);">Critical Safeguard: Hardware Starvation Prevention</strong>
+      <p style="margin-top: 6px;">Launching 4+ AI agent sessions simultaneously can saturate CPU, RAM, and disk storage if not guarded.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Hardware Resource</th>
+          <th>Critical Limit</th>
+          <th>Active Protection Mechanism</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Disk Storage</strong></td>
+          <td>Free drive space &lt; 2.0 GB.</td>
+          <td><strong>Pre-flight Block:</strong> Aborts worktree creation before disk write. Notifies user to free disk space.</td>
+        </tr>
+        <tr>
+          <td><strong>System Memory (RAM)</strong></td>
+          <td>Free RAM &lt; 1.5 GB or usage &gt; 90%.</td>
+          <td><strong>Concurrency Throttling:</strong> Reduces concurrent active workers from 4 to 2, queuing remaining tasks.</td>
+        </tr>
+        <tr>
+          <td><strong>CPU Load Spikes</strong></td>
+          <td>N processes starting at the exact same millisecond.</td>
+          <td><strong>Staggered Launch:</strong> Enforces a 600ms stagger delay between worker process invocations.</td>
+        </tr>
+        <tr>
+          <td><strong>Orphan / Zombie Processes</strong></td>
+          <td>User clicks "Stop Swarm" while child tasks are compiling.</td>
+          <td><strong>Process Tree Termination:</strong> Calls <code>proc.Kill(entireProcessTree: true)</code> to guarantee all spawned sub-processes are wiped.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>3. End-to-End Execution Flow</h2>
+  <div class="card">
+    <pre>
+[User Objective in GUI]
+           │
+           ▼
+[Pre-Flight Resource & Git Validation]
+           │
+           ├── Git Valid? ──► [Provision Git Worktrees: .worktrees/worker-*]
+           └── Non-Git?   ──► [Fallback: Dedicated Sandbox Workspace]
+           │
+           ▼
+[Prompt Synthesizer (Objective + Worker Role Injection)]
+           │
+           ▼
+[Terminal Launcher (Windows Terminal Split-Panes / POSIX Terminal Matrix)]
+           │
+           ▼
+[agy CLI Workers Execute Concurrently in Isolated Worktrees]
+           │
+           ▼
+[Reconciliation: 1-Click Merge Swarm Branches & Prune Worktrees]</pre>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,144 @@
+using System;
+using System.Globalization;
+using Avalonia.Data.Converters;
+using Avalonia.Media;
+
+namespace AgyAccountSwarm.Avalonia.Converters;
+
+/// <summary>
+/// Compares a value against a parameter string and returns true if equal.
+/// </summary>
+public class EqualityToBooleanConverter : IValueConverter
+{
+    public static readonly EqualityToBooleanConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value == null && parameter == null) return true;
+        if (value == null || parameter == null) return false;
+        return string.Equals(value.ToString(), parameter.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotSupportedException();
+    }
+}
+
+/// <summary>
+/// Maps a subscription tier name (Basic, Plus, Pro, Ultra) to a themed SolidColorBrush.
+/// </summary>
+public class TierToBrushConverter : IValueConverter
+{
+    public static readonly TierToBrushConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var tier = value?.ToString()?.ToUpperInvariant() ?? "";
+        return tier switch
+        {
+            "PRO" => new SolidColorBrush(Color.Parse("#38BDF8")),    // Sky Blue
+            "ULTRA" => new SolidColorBrush(Color.Parse("#A855F7")),  // Violet
+            "PLUS" => new SolidColorBrush(Color.Parse("#10B981")),   // Emerald
+            "BASIC" => new SolidColorBrush(Color.Parse("#6B7280")),  // Slate Gray
+            _ => new SolidColorBrush(Color.Parse("#9CA3AF"))
+        };
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotSupportedException();
+    }
+}
+
+/// <summary>
+/// Maps a quota percentage value to an alert brush (Emerald for &lt;70%, Amber for 70-90%, Crimson for &gt;90%).
+/// </summary>
+public class QuotaToBrushConverter : IValueConverter
+{
+    public static readonly QuotaToBrushConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool b)
+        {
+            return b ? new SolidColorBrush(Color.Parse("#EF4444")) : new SolidColorBrush(Color.Parse("#10B981"));
+        }
+
+        double percent = 0;
+        if (value is double d) percent = d;
+        else if (value is int i) percent = i;
+        else if (double.TryParse(value?.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+            percent = parsed;
+
+        if (percent >= 90) return new SolidColorBrush(Color.Parse("#EF4444")); // Crimson
+        if (percent >= 70) return new SolidColorBrush(Color.Parse("#F59E0B")); // Amber
+        return new SolidColorBrush(Color.Parse("#10B981"));                     // Emerald
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotSupportedException();
+    }
+}
+
+/// <summary>
+/// Formats a hex color string (e.g. #3B82F6) into a SolidColorBrush.
+/// </summary>
+public class HexToBrushConverter : IValueConverter
+{
+    public static readonly HexToBrushConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string hex && !string.IsNullOrWhiteSpace(hex))
+        {
+            try
+            {
+                return new SolidColorBrush(Color.Parse(hex));
+            }
+            catch
+            {
+                // Fallback
+            }
+        }
+        return new SolidColorBrush(Color.Parse("#3B82F6"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotSupportedException();
+    }
+}
+
+/// <summary>
+/// Compares CurrentPage with parameter. Returns #1E293B if active, otherwise Transparent.
+/// </summary>
+public class ActiveNavBackgroundConverter : IValueConverter
+{
+    public static readonly ActiveNavBackgroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        return isActive ? new SolidColorBrush(Color.Parse("#1E293B")) : Brushes.Transparent;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Compares CurrentPage with parameter. Returns #38BDF8 if active, otherwise #E2E8F0.
+/// </summary>
+public class ActiveNavForegroundConverter : IValueConverter
+{
+    public static readonly ActiveNavForegroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        return isActive ? new SolidColorBrush(Color.Parse("#38BDF8")) : new SolidColorBrush(Color.Parse("#E2E8F0"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
