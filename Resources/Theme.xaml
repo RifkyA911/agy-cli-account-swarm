@@ -38,6 +38,16 @@
     <SolidColorBrush x:Key="BrushQuotaExhaustedBorder" Color="#DC2626" />
     <SolidColorBrush x:Key="BrushQuotaExhaustedText" Color="#FCA5A5" />
 
+    <!-- Theme-Aware Warning Alert Brushes (Soft Pastel in Light, Rich Glow in Dark) -->
+    <SolidColorBrush x:Key="BrushWarningAlertBg" Color="#2E1E05" />
+    <SolidColorBrush x:Key="BrushWarningAlertBorder" Color="#F59E0B" />
+    <SolidColorBrush x:Key="BrushWarningAlertText" Color="#FDE68A" />
+
+    <!-- Theme-Aware Error Alert Brushes (Soft Pastel in Light, Deep Rose in Dark) -->
+    <SolidColorBrush x:Key="BrushErrorAlertBg" Color="#311118" />
+    <SolidColorBrush x:Key="BrushErrorAlertBorder" Color="#EF4444" />
+    <SolidColorBrush x:Key="BrushErrorAlertText" Color="#FCA5A5" />
+
     <!-- Navigation Sidebar Brushes (Dynamic Contrast) -->
     <SolidColorBrush x:Key="BrushNavActiveBg" Color="#1E293B" />
     <SolidColorBrush x:Key="BrushNavActiveBorder" Color="#3B82F6" />
@@ -215,6 +225,46 @@
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Solid Danger Button (Prominent Action / Abort / Terminate) -->
+    <Style x:Key="SolidDangerButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource FontMain}" />
+        <Setter Property="Background" Value="#DC2626" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="BorderBrush" Value="#EF4444" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#EF4444" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#F87171" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#B91C1C" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="#991B1B" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -600,6 +650,8 @@
     <Geometry x:Key="HeroIconMagnifyingGlass">M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z</Geometry>
     <Geometry x:Key="HeroIconInformationCircle">M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z</Geometry>
     <Geometry x:Key="HeroIconStop">M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z</Geometry>
+    <Geometry x:Key="HeroIconChatBubbleOvalLeftEllipsis">M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a.75.75 0 0 1-.974-.94 5.95 5.95 0 0 0 .974-2.82C3.593 15.688 3 13.935 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z</Geometry>
+    <Geometry x:Key="HeroIconChatBubbleLeftRight">M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z</Geometry>
 
     <!-- Modern Dynamic Flat ProgressBar with Dynamic Hex / SolidColorBrush support -->
     <Style TargetType="ProgressBar">
