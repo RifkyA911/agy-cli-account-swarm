@@ -212,7 +212,12 @@ public class GitWorktreeService : IGitWorktreeService
                 WindowStyle = ProcessWindowStyle.Hidden
             };
             psi.Environment["TERM"] = "dumb";
+            psi.Environment["CI"] = "1";
+            psi.Environment["WT_SESSION"] = "";
+            psi.Environment["NO_COLOR"] = "1";
             psi.Environment["GIT_TERMINAL_PROMPT"] = "0";
+            psi.Environment["GIT_ASKPASS"] = "";
+            psi.Environment["SSH_ASKPASS"] = "";
 
             using var proc = new Process { StartInfo = psi };
             proc.Start();
