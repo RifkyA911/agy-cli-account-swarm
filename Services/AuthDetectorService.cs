@@ -20,7 +20,7 @@ public class AuthDetectorService : IAuthDetectorService
         _quotaConfigService = quotaConfigService ?? DefaultQuotaConfig;
     }
 
-    public Task<ProfileAuthStatus> DetectAuthStatusAsync(AccountProfile profile)
+    public Task<ProfileAuthStatus> DetectAuthStatusAsync(AccountProfile profile, bool allowCliSpawn = true)
     {
         return Task.Run(async () =>
         {
@@ -499,7 +499,7 @@ public class AuthDetectorService : IAuthDetectorService
                 {
                     try
                     {
-                        var liveUsage = await AgyUsageParser.FetchUsageCachedAsync(profileDir, !profile.IsMainDefaultProfile(), agyPath);
+                        var liveUsage = await AgyUsageParser.FetchUsageCachedAsync(profileDir, !profile.IsMainDefaultProfile(), agyPath, allowCliSpawn: allowCliSpawn);
 
                         if (liveUsage != null && liveUsage.IsSuccess)
                         {
