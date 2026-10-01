@@ -110,6 +110,15 @@ public static class ThemeManager
         app.Resources["BrushQuotaExhaustedBg"] = new SolidColorBrush(MediaColor.FromRgb(49, 17, 24));
         app.Resources["BrushQuotaExhaustedBorder"] = new SolidColorBrush(MediaColor.FromRgb(220, 38, 38));
         app.Resources["BrushQuotaExhaustedText"] = new SolidColorBrush(MediaColor.FromRgb(252, 165, 165));
+
+        // Preflight & General Warning / Error Alerts
+        app.Resources["BrushWarningAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(46, 30, 5));        // #2E1E05
+        app.Resources["BrushWarningAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(245, 158, 11)); // #F59E0B
+        app.Resources["BrushWarningAlertText"] = new SolidColorBrush(MediaColor.FromRgb(253, 230, 138));  // #FDE68A
+
+        app.Resources["BrushErrorAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(49, 17, 24));          // #311118
+        app.Resources["BrushErrorAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(239, 68, 68));     // #EF4444
+        app.Resources["BrushErrorAlertText"] = new SolidColorBrush(MediaColor.FromRgb(252, 165, 165));    // #FCA5A5
     }
 
     private static void ApplyLightTheme(WpfApp app)
@@ -160,6 +169,15 @@ public static class ThemeManager
         app.Resources["BrushQuotaExhaustedBg"] = new SolidColorBrush(MediaColor.FromRgb(254, 242, 242));
         app.Resources["BrushQuotaExhaustedBorder"] = new SolidColorBrush(MediaColor.FromRgb(248, 113, 113));
         app.Resources["BrushQuotaExhaustedText"] = new SolidColorBrush(MediaColor.FromRgb(185, 28, 28));
+
+        // Preflight & General Warning / Error Alerts (Soft Light Tint, High Contrast Text)
+        app.Resources["BrushWarningAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(255, 251, 235));   // Amber 50 (#FFFBEB)
+        app.Resources["BrushWarningAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(253, 230, 138)); // Amber 200 (#FDE68A)
+        app.Resources["BrushWarningAlertText"] = new SolidColorBrush(MediaColor.FromRgb(146, 64, 14));    // Amber 800 (#92400E)
+
+        app.Resources["BrushErrorAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(254, 242, 242));     // Red 50 (#FEF2F2)
+        app.Resources["BrushErrorAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(254, 202, 202)); // Red 200 (#FECACA)
+        app.Resources["BrushErrorAlertText"] = new SolidColorBrush(MediaColor.FromRgb(185, 28, 28));     // Red 700 (#B91C1C)
     }
 
     private static void ApplyCyberpunkTheme(WpfApp app)
@@ -210,6 +228,14 @@ public static class ThemeManager
         app.Resources["BrushQuotaExhaustedBg"] = new SolidColorBrush(MediaColor.FromRgb(58, 14, 30));
         app.Resources["BrushQuotaExhaustedBorder"] = new SolidColorBrush(MediaColor.FromRgb(244, 63, 94));
         app.Resources["BrushQuotaExhaustedText"] = new SolidColorBrush(MediaColor.FromRgb(254, 205, 211));
+
+        app.Resources["BrushWarningAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(46, 28, 10));
+        app.Resources["BrushWarningAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(245, 158, 11));
+        app.Resources["BrushWarningAlertText"] = new SolidColorBrush(MediaColor.FromRgb(253, 230, 138));
+
+        app.Resources["BrushErrorAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(60, 15, 30));
+        app.Resources["BrushErrorAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(239, 68, 68));
+        app.Resources["BrushErrorAlertText"] = new SolidColorBrush(MediaColor.FromRgb(252, 165, 165));
     }
 
     private static void ApplyMatrixTheme(WpfApp app)
@@ -260,5 +286,13 @@ public static class ThemeManager
         app.Resources["BrushQuotaExhaustedBg"] = new SolidColorBrush(MediaColor.FromRgb(49, 17, 24));
         app.Resources["BrushQuotaExhaustedBorder"] = new SolidColorBrush(MediaColor.FromRgb(239, 68, 68));
         app.Resources["BrushQuotaExhaustedText"] = new SolidColorBrush(MediaColor.FromRgb(254, 202, 202));
+
+        app.Resources["BrushWarningAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(20, 34, 10));
+        app.Resources["BrushWarningAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(245, 158, 11));
+        app.Resources["BrushWarningAlertText"] = new SolidColorBrush(MediaColor.FromRgb(253, 230, 138));
+
+        app.Resources["BrushErrorAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(40, 10, 15));
+        app.Resources["BrushErrorAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(239, 68, 68));
+        app.Resources["BrushErrorAlertText"] = new SolidColorBrush(MediaColor.FromRgb(252, 165, 165));
     }
 }
