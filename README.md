@@ -12,7 +12,8 @@
 [![UI: WPF & Avalonia](https://img.shields.io/badge/UI-WPF%20%26%20Avalonia%20Cross--Platform-0078D4?style=flat&logo=avaloniaui)](https://avaloniaui.net/)
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
 [![Platform: Windows | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D7?style=flat&logo=linux)](https://github.com/RifkyA911/agy-cli-account-swarm)
-[![Tests: 90 Passed](https://img.shields.io/badge/Tests-90%20Passed-brightgreen?logo=xunit)]()
+[![Tests: 91 Passed](https://img.shields.io/badge/Tests-91%20Passed-brightgreen?logo=xunit)]()
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
 

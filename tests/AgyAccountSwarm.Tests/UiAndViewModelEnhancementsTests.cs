@@ -1,9 +1,12 @@
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using AgyAccountSwarm.Converters;
 using AgyAccountSwarm.Models;
 using AgyAccountSwarm.Services;
 using AgyAccountSwarm.ViewModels;
 using Xunit;
+
 
 namespace AgyAccountSwarm.Tests;
 
@@ -73,4 +76,45 @@ public class UiAndViewModelEnhancementsTests
         Assert.Equal("#EF4444", vm.ClaudeGptWeeklyBarColor);
         Assert.Equal("#EF4444", vm.ClaudeGpt5HourBarColor);
     }
+
+    [Fact]
+    public void MainWindowXaml_AllStaticResources_MustResolve()
+    {
+        var dir = AppDomain.CurrentDomain.BaseDirectory;
+        while (!string.IsNullOrEmpty(dir) && !File.Exists(Path.Combine(dir, "AgyAccountSwarm.sln")))
+        {
+            var parent = Directory.GetParent(dir);
+            if (parent == null) break;
+            dir = parent.FullName;
+        }
+        var projectDir = dir;
+        var mainWindowXamlPath = Path.Combine(projectDir, "Views", "MainWindow.xaml");
+        var appXamlPath = Path.Combine(projectDir, "App.xaml");
+        var themeXamlPath = Path.Combine(projectDir, "Resources", "Theme.xaml");
+
+
+        Assert.True(File.Exists(mainWindowXamlPath), $"MainWindow.xaml not found at {mainWindowXamlPath}");
+        Assert.True(File.Exists(appXamlPath), $"App.xaml not found at {appXamlPath}");
+        Assert.True(File.Exists(themeXamlPath), $"Theme.xaml not found at {themeXamlPath}");
+
+        var mainWindowContent = File.ReadAllText(mainWindowXamlPath);
+        var combinedResourceText = File.ReadAllText(appXamlPath) + " " + File.ReadAllText(themeXamlPath) + " " + mainWindowContent;
+
+        var regex = new System.Text.RegularExpressions.Regex(@"StaticResource\s+([A-Za-z0-9_]+)");
+        var matches = regex.Matches(mainWindowContent);
+        var distinctKeys = matches.Select(m => m.Groups[1].Value).Distinct().ToList();
+
+        var missing = new System.Collections.Generic.List<string>();
+        foreach (var key in distinctKeys)
+        {
+            var pattern = "x:Key=\"" + key + "\"";
+            if (!combinedResourceText.Contains(pattern))
+            {
+                missing.Add(key);
+            }
+        }
+
+        Assert.True(missing.Count == 0, $"Missing StaticResource definitions in XAML: {string.Join(", ", missing)}");
+    }
 }
+

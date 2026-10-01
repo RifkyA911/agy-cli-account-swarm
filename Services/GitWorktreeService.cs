@@ -201,17 +201,23 @@ public class GitWorktreeService : IGitWorktreeService
         {
             var psi = new ProcessStartInfo
             {
-                FileName = "git",
+                FileName = ResolveGitBinary(),
                 Arguments = arguments,
                 WorkingDirectory = workingDir,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                RedirectStandardInput = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
+            psi.Environment["TERM"] = "dumb";
+            psi.Environment["GIT_TERMINAL_PROMPT"] = "0";
 
             using var proc = new Process { StartInfo = psi };
             proc.Start();
+            proc.StandardInput.Close();
+
 
             var outTask = proc.StandardOutput.ReadToEndAsync();
             var errTask = proc.StandardError.ReadToEndAsync();
@@ -232,4 +238,24 @@ public class GitWorktreeService : IGitWorktreeService
             return (-1, string.Empty, ex.Message);
         }
     }
+
+    private static string ResolveGitBinary()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            var candidates = new[]
+            {
+                @"C:\Program Files\Git\cmd\git.exe",
+                @"C:\Program Files\Git\bin\git.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\Git\cmd\git.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Git\cmd\git.exe")
+            };
+            foreach (var c in candidates)
+            {
+                if (File.Exists(c)) return c;
+            }
+        }
+        return "git";
+    }
 }
+

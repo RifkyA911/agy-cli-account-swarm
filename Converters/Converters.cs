@@ -202,3 +202,16 @@ public class BoolToFilterAccentConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
 
+public class PageToActiveBarConverter : IValueConverter
+
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool matches = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        return matches ? (SolidColorBrush)new BrushConverter().ConvertFromString("#3B82F6")! : System.Windows.Media.Brushes.Transparent;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+

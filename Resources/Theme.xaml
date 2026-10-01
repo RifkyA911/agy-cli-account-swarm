@@ -222,7 +222,15 @@
         </Setter>
     </Style>
 
+    <!-- Secondary Button (Subtle Card / Toolbar Action) -->
+    <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource ModernButton}">
+        <Setter Property="Background" Value="{DynamicResource BrushSurface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
     <!-- Modern TextBox -->
+
     <Style x:Key="ModernTextBox" TargetType="TextBox">
         <Setter Property="FontFamily" Value="{StaticResource FontMain}" />
         <Setter Property="FontSize" Value="13" />

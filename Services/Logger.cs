@@ -63,9 +63,27 @@ public static class Logger
 
     public static void Error(string message, Exception? ex = null)
     {
-        var full = ex != null ? $"{message} | Exception: {ex.GetType().Name}: {ex.Message}" : message;
-        Write("ERROR", full);
+        if (ex == null)
+        {
+            Write("ERROR", message);
+            return;
+        }
+
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"{message} | Exception: {ex.GetType().Name}: {ex.Message}");
+        var inner = ex.InnerException;
+        while (inner != null)
+        {
+            sb.Append($" --> Inner: {inner.GetType().Name}: {inner.Message}");
+            inner = inner.InnerException;
+        }
+        if (!string.IsNullOrEmpty(ex.StackTrace))
+        {
+            sb.Append($"\n{ex.StackTrace}");
+        }
+        Write("ERROR", sb.ToString());
     }
+
 
     public static IReadOnlyList<string> GetRecentLogLines()
     {

@@ -23,6 +23,10 @@
             <converters:PageToFontWeightConverter x:Key="PageToFontWeightConverter" />
             <converters:BooleanToChevronConverter x:Key="BoolToChevronConverter" />
             <converters:BoolToFilterAccentConverter x:Key="BoolToFilterAccentConverter" />
+            <converters:PageToActiveBarConverter x:Key="PageToActiveBarConverter" />
+            <converters:NullOrEmptyToVisibilityConverter x:Key="StringToVisConverter" Invert="True" />
+            <converters:PositiveIntToVisibilityConverter x:Key="NumberToVisConverter" />
         </ResourceDictionary>
+
     </Application.Resources>
 </Application>

@@ -219,8 +219,9 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                                Background="{Binding CurrentPage, Converter={StaticResource PageToActiveBarConverter}, ConverterParameter=Dispatcher}"
-                                                Margin="0,0,8,0" />
+                                                Background="#3B82F6" Margin="0,0,8,0"
+                                                Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dispatcher}" />
+
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                             <Path Data="{StaticResource HeroIconBolt}"
                                                   Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dispatcher}"
@@ -2264,7 +2265,7 @@
                                 </Grid>
 
                                 <!-- Warning Alert -->
-                                <Border Visibility="{Binding PreflightResult.WarningMessage, Converter={StaticResource StringToVisConverter}}"
+                                <Border Visibility="{Binding PreflightResult.WarningMessage, Converter={StaticResource NotNullOrEmptyToVisConverter}}"
                                         Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,6,0,0">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="⚠️" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
@@ -2273,13 +2274,14 @@
                                 </Border>
 
                                 <!-- Error Alert -->
-                                <Border Visibility="{Binding PreflightResult.ErrorMessage, Converter={StaticResource StringToVisConverter}}"
+                                <Border Visibility="{Binding PreflightResult.ErrorMessage, Converter={StaticResource NotNullOrEmptyToVisConverter}}"
                                         Background="#450A0A" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,6,0,0">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="❌" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
                                         <TextBlock Text="{Binding PreflightResult.ErrorMessage}" FontSize="11.5" Foreground="#FCA5A5" TextWrapping="Wrap" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
+
                             </StackPanel>
                         </Border>
 
@@ -2379,7 +2381,8 @@
                         </Grid>
 
                         <!-- Dispatched Tasks Panel -->
-                        <Border Visibility="{Binding DispatchedTasks.Count, Converter={StaticResource NumberToVisConverter}}"
+                        <Border Visibility="{Binding DispatchedTasks.Count, Converter={StaticResource IntToVisConverter}}"
+
                                 Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
                             <StackPanel>
                                 <TextBlock Text="📋 Active Swarm Dispatch Tasks" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,12" />

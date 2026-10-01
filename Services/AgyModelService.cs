@@ -79,7 +79,7 @@ public class AgyModelService : IAgyModelService
         // 2. Discover live models from 'agy models' CLI
         try
         {
-            var agyPath = FindAgyBinary();
+            var agyPath = TerminalLauncherService.ResolveAgyExecutablePath() ?? FindAgyBinary();
             if (!string.IsNullOrEmpty(agyPath) && File.Exists(agyPath))
             {
                 var psi = new ProcessStartInfo
@@ -89,12 +89,18 @@ public class AgyModelService : IAgyModelService
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
+                    RedirectStandardInput = true,
                     CreateNoWindow = true,
                     WindowStyle = ProcessWindowStyle.Hidden
                 };
+                psi.Environment["TERM"] = "dumb";
+                psi.Environment["CI"] = "1";
+                psi.Environment["WT_SESSION"] = "";
 
                 using var process = new Process { StartInfo = psi };
                 process.Start();
+                process.StandardInput.Close();
+
 
                 var readTask = process.StandardOutput.ReadToEndAsync();
                 var completed = await Task.WhenAny(readTask, Task.Delay(3000));

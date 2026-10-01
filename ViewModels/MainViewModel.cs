@@ -1064,11 +1064,16 @@ public partial class MainViewModel : ObservableObject
 
     public async Task ExecuteSyncSwarmAsync(bool isAutoSync = false)
     {
+        // Give UI dispatcher a moment to complete initial window rendering
+        await Task.Yield();
+        await Task.Delay(250);
+
         IsLoading = true;
         try
         {
             var tasks = Profiles.Select(p => p.RefreshAuthStatusAsync());
             await Task.WhenAll(tasks);
+
 
             // Load real history entries from disk
             _cachedRealHistory = await _telemetryService.LoadAllProfileHistoryAsync(Profiles.Select(p => p.Profile));
