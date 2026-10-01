@@ -21,8 +21,9 @@ public interface IAgyModelService
     /// falling back to standard Gemini and third-party models if the CLI is offline.
     /// </summary>
     /// <param name="additionalProfilePaths">Optional profile sandbox paths to inspect for custom model definitions.</param>
+    /// <param name="forceCliRefresh">Whether to actively spawn the CLI process to discover unlisted models.</param>
     /// <returns>A list of discovered <see cref="AgyModelInfo"/> records.</returns>
-    Task<List<AgyModelInfo>> DiscoverModelsAsync(IEnumerable<string>? additionalProfilePaths = null);
+    Task<List<AgyModelInfo>> DiscoverModelsAsync(IEnumerable<string>? additionalProfilePaths = null, bool forceCliRefresh = false);
 
     /// <summary>
     /// Evaluates whether a session model matches a filter target (handling prefixes and aliases).
@@ -61,85 +62,93 @@ public class AgyModelService : IAgyModelService
 
     private List<AgyModelInfo>? _cachedModels;
 
-    public async Task<List<AgyModelInfo>> DiscoverModelsAsync(IEnumerable<string>? additionalProfilePaths = null)
+    public async Task<List<AgyModelInfo>> DiscoverModelsAsync(IEnumerable<string>? additionalProfilePaths = null, bool forceCliRefresh = false)
     {
-        if (_cachedModels != null && _cachedModels.Count > 0)
+        if (!forceCliRefresh && _cachedModels != null && _cachedModels.Count > 0)
         {
             return _cachedModels;
         }
 
         var modelsDict = new Dictionary<string, AgyModelInfo>(StringComparer.OrdinalIgnoreCase);
 
-        // 1. Populate default fallback models
+        // 1. Populate default fallback models (instant, 0ms, zero processes)
         foreach (var m in DefaultModels)
         {
             modelsDict[m.Id] = m;
         }
 
-        // 2. Discover live models from 'agy models' CLI
-        try
+        // 2. Discover live models from 'agy models' CLI only if forced (e.g. manual refresh)
+        if (forceCliRefresh)
         {
-            var agyPath = TerminalLauncherService.ResolveAgyExecutablePath() ?? FindAgyBinary();
-            if (!string.IsNullOrEmpty(agyPath) && File.Exists(agyPath))
+            try
             {
-                var psi = new ProcessStartInfo
+                var agyPath = TerminalLauncherService.ResolveAgyExecutablePath() ?? FindAgyBinary();
+                if (!string.IsNullOrEmpty(agyPath) && File.Exists(agyPath))
                 {
-                    FileName = agyPath,
-                    Arguments = "models",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    RedirectStandardInput = true,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-                psi.Environment["TERM"] = "dumb";
-                psi.Environment["CI"] = "1";
-                psi.Environment["WT_SESSION"] = "";
-
-                using var process = new Process { StartInfo = psi };
-                process.Start();
-                process.StandardInput.Close();
-
-
-                var readTask = process.StandardOutput.ReadToEndAsync();
-                var completed = await Task.WhenAny(readTask, Task.Delay(3000));
-
-                if (completed == readTask)
-                {
-                    var output = await readTask;
-                    var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var line in lines)
+                    var psi = new ProcessStartInfo
                     {
-                        var trimmed = line.Trim();
-                        if (trimmed.StartsWith("Fetching", StringComparison.OrdinalIgnoreCase)) continue;
+                        FileName = agyPath,
+                        Arguments = "models",
+                        WorkingDirectory = Path.GetTempPath(),
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        RedirectStandardInput = true,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    psi.Environment["TERM"] = "dumb";
+                    psi.Environment["CI"] = "1";
+                    psi.Environment["WT_SESSION"] = "";
+                    psi.Environment["NO_COLOR"] = "1";
+                    psi.Environment["GIT_TERMINAL_PROMPT"] = "0";
+                    psi.Environment["GIT_ASKPASS"] = "";
+                    psi.Environment["SSH_ASKPASS"] = "";
 
-                        var parts = trimmed.Split(['\t'], 2, StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length == 2)
+                    using var process = new Process { StartInfo = psi };
+                    process.Start();
+                    process.StandardInput.Close();
+
+                    var readOutTask = process.StandardOutput.ReadToEndAsync();
+                    var readErrTask = process.StandardError.ReadToEndAsync();
+                    var completed = await Task.WhenAny(Task.WhenAll(readOutTask, readErrTask), Task.Delay(3000));
+
+                    if (completed != null && readOutTask.IsCompleted)
+                    {
+                        var output = await readOutTask;
+                        var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var line in lines)
                         {
-                            var id = parts[0].Trim();
-                            var name = parts[1].Trim();
-                            modelsDict[id] = new AgyModelInfo(id, name);
-                        }
-                        else if (parts.Length == 1 && !string.IsNullOrWhiteSpace(parts[0]))
-                        {
-                            var id = parts[0].Trim();
-                            if (!modelsDict.ContainsKey(id))
+                            var trimmed = line.Trim();
+                            if (trimmed.StartsWith("Fetching", StringComparison.OrdinalIgnoreCase)) continue;
+
+                            var parts = trimmed.Split(['\t'], 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length == 2)
                             {
-                                modelsDict[id] = new AgyModelInfo(id, id);
+                                var id = parts[0].Trim();
+                                var name = parts[1].Trim();
+                                modelsDict[id] = new AgyModelInfo(id, name);
+                            }
+                            else if (parts.Length == 1 && !string.IsNullOrWhiteSpace(parts[0]))
+                            {
+                                var id = parts[0].Trim();
+                                if (!modelsDict.ContainsKey(id))
+                                {
+                                    modelsDict[id] = new AgyModelInfo(id, id);
+                                }
                             }
                         }
                     }
-                }
-                else
-                {
-                    try { process.Kill(); } catch { }
+                    else
+                    {
+                        try { process.Kill(); } catch { }
+                    }
                 }
             }
-        }
-        catch
-        {
-            // Silently fall back to cached/default models
+            catch
+            {
+                // Silently fall back to cached/default models
+            }
         }
 
         // 3. Scan settings.json across user profile and custom sandboxes
