@@ -545,6 +545,7 @@ public partial class MainViewModel : ObservableObject
     public ObservableCollection<DispatchedWorkerTask> DispatchedTasks { get; } = [];
     public ObservableCollection<GitWorktreeInfo> ActiveWorktrees { get; } = [];
     public ObservableCollection<string> SwarmBranches { get; } = [];
+    public ObservableCollection<WorktreeTreeNode> WorktreeTreeNodes { get; } = [];
 
     public event Func<AccountProfile?, Task<AccountProfile?>>? ShowEditDialogRequested;
     public event Func<string, string, Task<bool>>? ConfirmDeleteRequested;
@@ -582,6 +583,7 @@ public partial class MainViewModel : ObservableObject
         FilteredProfiles.Filter = FilterProfile;
 
         Profiles.CollectionChanged += OnProfilesCollectionChanged;
+        DispatchedTasks.CollectionChanged += (s, e) => UpdateWorktreeTreeNodes();
     }
 
     public async Task InitializeAsync()
@@ -921,6 +923,15 @@ public partial class MainViewModel : ObservableObject
         return true;
     }
 
+    partial void OnCurrentPageChanged(string value)
+    {
+        if (string.Equals(value, "Dispatcher", StringComparison.OrdinalIgnoreCase))
+        {
+            _ = CheckPreflightAsync();
+            UpdateWorktreeTreeNodes();
+        }
+    }
+
     partial void OnSearchQueryChanged(string value)
     {
         FilteredProfiles.Refresh();
@@ -1071,15 +1082,20 @@ public partial class MainViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            var tasks = Profiles.Select(p => p.RefreshAuthStatusAsync());
+            if (!isAutoSync)
+            {
+                AgyUsageParser.InvalidateCache();
+            }
+
+            var tasks = Profiles.Select(p => p.RefreshAuthStatusAsync(allowCliSpawn: !isAutoSync));
             await Task.WhenAll(tasks);
 
 
             // Load real history entries from disk
             _cachedRealHistory = await _telemetryService.LoadAllProfileHistoryAsync(Profiles.Select(p => p.Profile));
 
-            // Discover live up-to-date AGY models
-            await RefreshDynamicModelsAsync();
+            // Discover live up-to-date AGY models (fast local scan, zero flicker)
+            await RefreshDynamicModelsAsync(forceCliRefresh: false);
 
             // Check if any profile has exhausted its quota
             var exhausted = Profiles.FirstOrDefault(p => p.HasExhaustedQuota);
@@ -1113,12 +1129,12 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    public async Task RefreshDynamicModelsAsync()
+    public async Task RefreshDynamicModelsAsync(bool forceCliRefresh = false)
     {
         try
         {
             var profilePaths = Profiles.Select(p => p.EffectiveProfilePath).ToList();
-            var discovered = await _modelService.DiscoverModelsAsync(profilePaths);
+            var discovered = await _modelService.DiscoverModelsAsync(profilePaths, forceCliRefresh: forceCliRefresh);
 
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             Action updateAction = () =>
@@ -1702,6 +1718,7 @@ public partial class MainViewModel : ObservableObject
 
         UpdateChartPoints();
         UpdateAnalyticsViews();
+        UpdateWorktreeTreeNodes();
     }
 
     private void UpdateChartPoints()
@@ -2446,6 +2463,32 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void BrowseFleetWorkspaceFolder()
+    {
+        try
+        {
+            var dialog = new Microsoft.Win32.OpenFolderDialog
+            {
+                Title = "Select Git Repository Directory for Fleet Dispatcher",
+                Multiselect = false
+            };
+            if (!string.IsNullOrWhiteSpace(FleetWorkspacePath) && Directory.Exists(FleetWorkspacePath))
+            {
+                dialog.InitialDirectory = FleetWorkspacePath;
+            }
+            if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.FolderName))
+            {
+                FleetWorkspacePath = dialog.FolderName;
+                _ = CheckPreflightAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("[MainViewModel] Failed to open folder dialog", ex);
+        }
+    }
+
+    [RelayCommand]
     public async Task CheckPreflightAsync()
     {
         _audioService.PlayClick();
@@ -2463,6 +2506,7 @@ public partial class MainViewModel : ObservableObject
             ShowNotification($"Preflight OK: {PreflightResult.AvailableDiskGb} GB Free | Branch: {PreflightResult.CurrentBranch ?? "None"}");
         }
         await RefreshWorktreesAsync();
+        UpdateWorktreeTreeNodes();
     }
 
     [RelayCommand]
@@ -2599,5 +2643,63 @@ public partial class MainViewModel : ObservableObject
             ShowNotification($"Merge warning/conflict: {output}");
         }
         await RefreshWorktreesAsync();
+    }
+
+    partial void OnFleetWorkspacePathChanged(string value)
+    {
+        UpdateWorktreeTreeNodes();
+    }
+
+    public void UpdateWorktreeTreeNodes()
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.CheckAccess())
+        {
+            dispatcher.Invoke(UpdateWorktreeTreeNodes);
+            return;
+        }
+
+        WorktreeTreeNodes.Clear();
+
+        if (DispatchedTasks.Count > 0)
+        {
+            for (int i = 0; i < DispatchedTasks.Count; i++)
+            {
+                var t = DispatchedTasks[i];
+                WorktreeTreeNodes.Add(new WorktreeTreeNode
+                {
+                    BranchName = string.IsNullOrWhiteSpace(t.BranchName) ? $"swarm/{t.ProfileName.ToLowerInvariant().Replace(' ', '-')}" : t.BranchName,
+                    WorkerName = t.ProfileName,
+                    Role = t.AssignedRole,
+                    Path = t.WorktreePath,
+                    Status = t.Status,
+                    StatusColor = t.Status is "Active" or "Dispatched" ? "#10B981" : "#3B82F6",
+                    IsActive = t.Status is "Active" or "Dispatched",
+                    IsLast = i == DispatchedTasks.Count - 1
+                });
+            }
+        }
+        else
+        {
+            var selected = Profiles.Where(p => p.IsSelectedForSwarm).ToList();
+            for (int i = 0; i < selected.Count; i++)
+            {
+                var p = selected[i];
+                var cleanName = p.Name.ToLowerInvariant().Replace(' ', '-');
+                WorktreeTreeNodes.Add(new WorktreeTreeNode
+                {
+                    BranchName = $"swarm/{cleanName}_[session]",
+                    WorkerName = p.Name,
+                    Role = p.Description ?? "General Worker",
+                    Path = string.IsNullOrWhiteSpace(FleetWorkspacePath)
+                        ? $".../worktrees/swarm-{cleanName}"
+                        : Path.Combine(FleetWorkspacePath, ".git", "worktrees", $"swarm-{cleanName}"),
+                    Status = "Planned Worktree",
+                    StatusColor = "#64748B",
+                    IsActive = false,
+                    IsLast = i == selected.Count - 1
+                });
+            }
+        }
     }
 }
