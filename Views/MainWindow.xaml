@@ -223,7 +223,7 @@
                                                 Visibility="{Binding CurrentPage, Converter={StaticResource EqualityToVisConverter}, ConverterParameter=Dispatcher}" />
 
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Path Data="{StaticResource HeroIconBolt}"
+                                            <Path Data="{StaticResource HeroIconChatBubbleOvalLeftEllipsis}"
                                                   Stroke="{Binding CurrentPage, Converter={StaticResource PageToActiveTextConverter}, ConverterParameter=Dispatcher}"
                                                   StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
                                                   Width="16" Height="16" Stretch="Uniform" Margin="0,0,9,0" VerticalAlignment="Center" />
@@ -232,9 +232,9 @@
                                                        FontSize="12.5" FontWeight="SemiBold"
                                                        VerticalAlignment="Center" />
                                         </StackPanel>
-                                        <Border Grid.Column="2" Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1"
+                                        <Border Grid.Column="2" Background="{DynamicResource BrushWarningAlertBg}" BorderBrush="{DynamicResource BrushWarningAlertBorder}" BorderThickness="1"
                                                 CornerRadius="7" Padding="5,1.5" VerticalAlignment="Center">
-                                            <TextBlock Text="EXP" FontSize="8.5" FontWeight="Bold" Foreground="#F59E0B" />
+                                            <TextBlock Text="EXP" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushWarningAlertText}" />
                                         </Border>
                                     </Grid>
 
@@ -2213,9 +2213,9 @@
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="24" Margin="0,0,0,16">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Text="⚡ Fleet Prompt Dispatcher" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,12,0" />
-                                    <Border Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                        <TextBlock Text="🧪 EXPERIMENTAL" FontSize="9.5" FontWeight="Bold" Foreground="#F59E0B" />
+                                    <TextBlock Text="💬 Fleet Prompt Dispatcher" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    <Border Background="{DynamicResource BrushWarningAlertBg}" BorderBrush="{DynamicResource BrushWarningAlertBorder}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                        <TextBlock Text="🧪 EXPERIMENTAL" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushWarningAlertText}" />
                                     </Border>
                                 </StackPanel>
                                 <TextBlock Text="Synthesize a single objective prompt, assign tailored domain roles (Backend, API, QA, Docs), and execute simultaneously across isolated Git Worktrees with zero file collisions."
@@ -2266,19 +2266,19 @@
 
                                 <!-- Warning Alert -->
                                 <Border Visibility="{Binding PreflightResult.WarningMessage, Converter={StaticResource NotNullOrEmptyToVisConverter}}"
-                                        Background="#451A03" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,6,0,0">
+                                        Background="{DynamicResource BrushWarningAlertBg}" BorderBrush="{DynamicResource BrushWarningAlertBorder}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,6,0,0">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="⚠️" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                        <TextBlock Text="{Binding PreflightResult.WarningMessage}" FontSize="11.5" Foreground="#FDE68A" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding PreflightResult.WarningMessage}" FontSize="11.5" Foreground="{DynamicResource BrushWarningAlertText}" TextWrapping="Wrap" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Error Alert -->
                                 <Border Visibility="{Binding PreflightResult.ErrorMessage, Converter={StaticResource NotNullOrEmptyToVisConverter}}"
-                                        Background="#450A0A" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,6,0,0">
+                                        Background="{DynamicResource BrushErrorAlertBg}" BorderBrush="{DynamicResource BrushErrorAlertBorder}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,6,0,0">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="❌" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                        <TextBlock Text="{Binding PreflightResult.ErrorMessage}" FontSize="11.5" Foreground="#FCA5A5" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding PreflightResult.ErrorMessage}" FontSize="11.5" Foreground="{DynamicResource BrushErrorAlertText}" TextWrapping="Wrap" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Border>
 
@@ -2292,7 +2292,19 @@
 
                                 <!-- Target Workspace -->
                                 <TextBlock Text="Target Repository Directory:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,6" />
-                                <TextBox Text="{Binding FleetWorkspacePath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Padding="10,8" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding FleetWorkspacePath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Padding="10,8" Margin="0,0,8,0" />
+                                    <Button Grid.Column="1" Command="{Binding BrowseFleetWorkspaceFolderCommand}" Style="{StaticResource SecondaryButton}" Padding="12,8">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconFolder}" Stroke="{DynamicResource BrushTextPrimary}" StrokeThickness="1.5" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="📁 Browse Folder..." FontWeight="SemiBold" FontSize="11.5" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
                                 <CheckBox IsChecked="{Binding UseGitWorktrees}" Content="Isolate workers in linked Git Worktrees (.worktrees/worker-*) to avoid .git/index.lock contention" FontSize="11.5" Margin="0,0,0,14" />
 
                                 <!-- Task Objective Prompt -->
@@ -2302,7 +2314,7 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Participating Fleet Workers Selection -->
+                        <!-- Participating Fleet Workers Selection (Rich Profile Context) -->
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,0,16">
                             <StackPanel>
                                 <Grid Margin="0,0,0,12">
@@ -2323,27 +2335,90 @@
                                 <ItemsControl ItemsSource="{Binding Profiles}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="10,8" Margin="0,0,0,6" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                            <Border Background="{DynamicResource BrushSurface}" CornerRadius="8" Padding="12,10" Margin="0,0,0,8" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto" />
                                                         <ColumnDefinition Width="Auto" />
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelectedForSwarm, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,10,0" />
-                                                    <Border Grid.Column="1" Width="28" Height="28" CornerRadius="14" Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,10,0" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Name[0]}" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
+
+                                                    <!-- Checkbox Selection -->
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelectedForSwarm, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0" />
+
+                                                    <!-- Avatar / Google Account Profile Picture -->
+                                                    <Grid Grid.Column="1" Width="36" Height="36" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                        <!-- Image Avatar -->
+                                                        <Ellipse Width="36" Height="36"
+                                                                 Stroke="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                                 StrokeThickness="1.8"
+                                                                 RenderOptions.BitmapScalingMode="HighQuality"
+                                                                 Visibility="{Binding HasAvatarUrl, Converter={StaticResource BoolToVisConverter}}">
+                                                            <Ellipse.Fill>
+                                                                <ImageBrush ImageSource="{Binding AvatarImageSource}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality" />
+                                                            </Ellipse.Fill>
+                                                        </Ellipse>
+
+                                                        <!-- Initials Circle Fallback -->
+                                                        <Border Width="36" Height="36" CornerRadius="18"
+                                                                Background="{Binding ColorTag, Converter={StaticResource HexToBrushConverter}}"
+                                                                Visibility="{Binding HasAvatarUrl, Converter={StaticResource InverseBoolToVisConverter}}">
+                                                            <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="15" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
+
+                                                        <!-- Mini 'G' Badge -->
+                                                        <Border Width="12" Height="12" CornerRadius="6"
+                                                                Background="#FFFFFF" BorderBrush="#4285F4" BorderThickness="1"
+                                                                HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                                Margin="0,0,-1,-1">
+                                                            <TextBlock Text="G" FontSize="7.5" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <!-- Identity & Context Details -->
                                                     <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                        <TextBlock Text="{Binding Description, FallbackValue='General Worker'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                        <!-- Row 1: Profile Name, Tier Badge, Status Badge, Model Badge -->
+                                                        <WrapPanel VerticalAlignment="Center" Margin="0,0,0,3">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,8,0" />
+
+                                                            <!-- Tier Badge -->
+                                                            <Border CornerRadius="4" Padding="6,1.5" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                                    Background="{Binding TierBadgeBackground, Converter={StaticResource HexToBrushConverter}}">
+                                                                <TextBlock Text="{Binding TierBadgeText}" FontSize="9.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            </Border>
+
+                                                            <!-- Status Badge -->
+                                                            <Border CornerRadius="4" Padding="6,1.5" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                                    Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Ellipse Width="6" Height="6" Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding StatusBadgeText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Border>
+
+                                                            <!-- Model Badge -->
+                                                            <Border CornerRadius="4" Padding="6,1.5" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                                    Background="{DynamicResource BrushModelBadgeBg}" BorderBrush="{DynamicResource BrushModelBadgeBorder}" BorderThickness="1">
+                                                                <TextBlock Text="{Binding CurrentModel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushModelBadgeText}" VerticalAlignment="Center" />
+                                                            </Border>
+                                                        </WrapPanel>
+
+                                                        <!-- Row 2: Account Email & Domain Role Subtitle -->
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding AccountEmail, FallbackValue='No email'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,10,0" />
+                                                            <TextBlock Text="•" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,10,0" />
+                                                            <TextBlock Text="{Binding Description, FallbackValue='General Fleet Worker'}" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                                                        </StackPanel>
                                                     </StackPanel>
-                                                    <Border Grid.Column="3" Background="{DynamicResource BrushBg}" CornerRadius="4" Padding="6,3" VerticalAlignment="Center" Margin="10,0">
-                                                        <TextBlock Text="{Binding PreferredModel}" FontSize="10.5" Foreground="{DynamicResource BrushAccent}" />
+
+                                                    <!-- Quota & Window Telemetry Pill -->
+                                                    <Border Grid.Column="3" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,6" VerticalAlignment="Center">
+                                                        <StackPanel HorizontalAlignment="Right">
+                                                            <TextBlock Text="{Binding TodayQuotaFormatted}" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Right" />
+                                                            <TextBlock Text="{Binding WeeklyRemainingFormatted}" FontSize="9.5" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Right" Margin="0,1,0,0" />
+                                                        </StackPanel>
                                                     </Border>
-                                                    <TextBlock Grid.Column="4" Text="{Binding AuthStatus.GeminiWeeklyRemainingPercent, StringFormat='{}{0:F0}% Quota'}" FontSize="11" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" />
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
@@ -2363,12 +2438,12 @@
                                     Style="{StaticResource PrimaryButton}" Background="#059669"
                                     FontSize="14" FontWeight="Bold" Padding="20,12" Margin="0,0,10,0">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Path Data="{StaticResource HeroIconBolt}" Fill="#FFFFFF" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="⚡ Dispatch &amp; Launch Swarm Fleet" />
+                                    <Path Data="{StaticResource HeroIconChatBubbleOvalLeftEllipsis}" Fill="#FFFFFF" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                    <TextBlock Text="💬 Dispatch &amp; Launch Swarm Fleet" />
                                 </StackPanel>
                             </Button>
                             <Button Grid.Column="1" Command="{Binding AbortFleetCommand}"
-                                    Style="{StaticResource DangerButton}" Padding="16,12" FontSize="13" Margin="0,0,10,0">
+                                    Style="{StaticResource SolidDangerButton}" Padding="18,12" FontSize="13" Margin="0,0,10,0">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource HeroIconStop}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
                                     <TextBlock Text="⏹ Abort Fleet" />
@@ -2379,6 +2454,92 @@
                                 <TextBlock Text="🌿 Prune Worktrees" />
                             </Button>
                         </Grid>
+
+                        <!-- Git Worktree Branch Isolation Tree Visualization -->
+                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="🌳 Git Worktree Branch Isolation Tree" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Live topological visualization of repository root and isolated worker branch sandboxes" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" CornerRadius="5" Padding="8,4" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                        <TextBlock Text="{Binding WorktreeTreeNodes.Count, StringFormat='{}{0} Branch Nodes'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                    </Border>
+                                </Grid>
+
+                                <!-- Tree Container -->
+                                <Border Background="{DynamicResource BrushSurface}" CornerRadius="8" Padding="16,14" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                    <StackPanel>
+                                        <!-- Root Repository Node -->
+                                        <Grid Margin="0,0,0,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Background="#3B82F6" CornerRadius="5" Padding="8,4" Margin="0,0,10,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🏠 " FontSize="11" VerticalAlignment="Center" />
+                                                    <TextBlock Text="ROOT REPO" FontWeight="Bold" FontSize="10.5" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding PreflightResult.CurrentBranch, StringFormat='Base Branch: {0}', FallbackValue='Base Branch: master'}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                <TextBlock Text="{Binding FleetWorkspacePath, FallbackValue='No workspace selected'}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                                            </StackPanel>
+                                            <Border Grid.Column="2" Background="{DynamicResource BrushCard}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                <TextBlock Text="Shared Object Store" FontSize="10" Foreground="{DynamicResource BrushTextSecondary}" />
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Branch Nodes -->
+                                        <ItemsControl ItemsSource="{Binding WorktreeTreeNodes}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="12,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="28" />
+                                                            <ColumnDefinition Width="*" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <!-- Tree Connector Visual -->
+                                                        <TextBlock Grid.Column="0" Text="└── " FontFamily="{StaticResource FontMono}" FontSize="15" FontWeight="Bold" Foreground="#3B82F6" VerticalAlignment="Center" />
+
+                                                        <!-- Node Card -->
+                                                        <Border Grid.Column="1" Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                                        <TextBlock Text="🌱 " FontSize="11" VerticalAlignment="Center" />
+                                                                        <TextBlock Text="{Binding BranchName}" FontFamily="{StaticResource FontMono}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushAccent}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="3" Padding="5,1" VerticalAlignment="Center">
+                                                                            <TextBlock Text="{Binding WorkerName, StringFormat='Worker: {0}'}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                                                        </Border>
+                                                                    </StackPanel>
+                                                                    <TextBlock Text="{Binding Path}" FontFamily="{StaticResource FontMono}" FontSize="10" Foreground="{DynamicResource BrushTextSecondary}" TextTrimming="CharacterEllipsis" />
+                                                                </StackPanel>
+                                                                <Border Grid.Column="1" Background="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}" CornerRadius="4" Padding="8,3" VerticalAlignment="Center" Margin="10,0,0,0">
+                                                                    <TextBlock Text="{Binding Status}" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                                </Border>
+                                                            </Grid>
+                                                        </Border>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
 
                         <!-- Dispatched Tasks Panel -->
                         <Border Visibility="{Binding DispatchedTasks.Count, Converter={StaticResource IntToVisConverter}}"
