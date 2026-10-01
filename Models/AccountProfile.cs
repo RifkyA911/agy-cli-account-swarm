@@ -1,10 +1,22 @@
 using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace AgyAccountSwarm.Models;
 
-public class AccountProfile
+public class AccountProfile : INotifyPropertyChanged
 {
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    public void NotifyAllPropertiesChanged()
+    {
+        OnPropertyChanged(string.Empty);
+    }
+
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
@@ -30,10 +42,23 @@ public class AccountProfile
     /// </summary>
     public bool DangerouslySkipPermissions { get; set; } = false;
 
+    private bool _isSelectedForSwarm = true;
+
     /// <summary>
     /// Whether this profile is selected for Swarm Launch (batch execution).
     /// </summary>
-    public bool IsSelectedForSwarm { get; set; } = true;
+    public bool IsSelectedForSwarm
+    {
+        get => _isSelectedForSwarm;
+        set
+        {
+            if (_isSelectedForSwarm != value)
+            {
+                _isSelectedForSwarm = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     /// <summary>
     /// Subscription tier: Basic, Plus, Pro, Ultra, or Unverified (default before login)
@@ -63,6 +88,79 @@ public class AccountProfile
 
     [JsonIgnore]
     public bool IsDefaultPrimary => IsMainDefaultProfile();
+
+    [JsonIgnore]
+    public string AvatarInitial
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(Name)) return Name.Substring(0, 1).ToUpperInvariant();
+            if (!string.IsNullOrWhiteSpace(AuthStatus?.AccountEmail)) return AuthStatus.AccountEmail.Substring(0, 1).ToUpperInvariant();
+            return "G";
+        }
+    }
+
+    [JsonIgnore]
+    public string? AvatarUrl
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(AuthStatus?.LocalAvatarPath) && System.IO.File.Exists(AuthStatus.LocalAvatarPath))
+                return AuthStatus.LocalAvatarPath;
+            if (!string.IsNullOrEmpty(AuthStatus?.AvatarUrl))
+            {
+                if (System.IO.File.Exists(AuthStatus.AvatarUrl)) return AuthStatus.AvatarUrl;
+                if (AuthStatus.AvatarUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return AuthStatus.AvatarUrl;
+            }
+            return null;
+        }
+    }
+
+    [JsonIgnore]
+    public bool HasAvatarUrl => !string.IsNullOrEmpty(AvatarUrl);
+
+    [JsonIgnore]
+    public string? AccountEmail => AuthStatus?.AccountEmail;
+
+    [JsonIgnore]
+    public string TierBadgeText => !string.IsNullOrWhiteSpace(Tier) ? Tier : "Basic";
+
+    [JsonIgnore]
+    public string TierBadgeBackground => TierBadgeText.ToLowerInvariant() switch
+    {
+        "ultra" => "#D97706",
+        "pro" => "#7C3AED",
+        "plus" => "#0284C7",
+        _ => "#64748B"
+    };
+
+    [JsonIgnore]
+    public string StatusBadgeColor => AuthStatus?.Status switch
+    {
+        AuthStatusType.Authenticated => "#10B981",
+        AuthStatusType.QuotaExhausted => "#EF4444",
+        AuthStatusType.NeedsLogin => "#F59E0B",
+        AuthStatusType.Error => "#EF4444",
+        _ => "#6B7280"
+    };
+
+    [JsonIgnore]
+    public string StatusBadgeText => AuthStatus?.Status switch
+    {
+        AuthStatusType.Authenticated => string.IsNullOrEmpty(AuthStatus.AccountEmail) ? "Authenticated" : AuthStatus.AccountEmail,
+        AuthStatusType.QuotaExhausted => "Quota Exhausted",
+        AuthStatusType.NeedsLogin => "Needs Login",
+        AuthStatusType.Error => "Auth Error",
+        _ => "Ready"
+    };
+
+    [JsonIgnore]
+    public string TodayQuotaFormatted => $"{AuthStatus?.TodayTurnsCount ?? 0} / {QuotaLimit} prompts today";
+
+    [JsonIgnore]
+    public string WeeklyRemainingFormatted => AuthStatus != null && AuthStatus.GeminiWeeklyRemainingPercent > 0
+        ? $"{AuthStatus.GeminiWeeklyRemainingPercent:F0}% quota remaining"
+        : "Authentic Quota Ready";
 
     public bool IsMainDefaultProfile()
     {
