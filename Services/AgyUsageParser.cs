@@ -173,10 +173,13 @@ public static class AgyUsageParser
         await _cliLock.WaitAsync();
         try
         {
+            var workingDir = Directory.Exists(effectiveProfileDir) ? effectiveProfileDir : Path.GetTempPath();
+
             var psi = new ProcessStartInfo
             {
                 FileName = agyExecutablePath,
                 Arguments = "-p \"/usage\" --output-format json",
+                WorkingDirectory = workingDir,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -192,6 +195,10 @@ public static class AgyUsageParser
             psi.Environment["WT_SESSION"] = "";
             psi.Environment["CI"] = "1";
             psi.Environment["TERM"] = "dumb";
+            psi.Environment["NO_COLOR"] = "1";
+            psi.Environment["GIT_TERMINAL_PROMPT"] = "0";
+            psi.Environment["GIT_ASKPASS"] = "";
+            psi.Environment["SSH_ASKPASS"] = "";
 
             if (isIsolated)
             {
@@ -203,13 +210,14 @@ public static class AgyUsageParser
             process.Start();
             process.StandardInput.Close();
 
-            var readTask = process.StandardOutput.ReadToEndAsync();
+            var readOutTask = process.StandardOutput.ReadToEndAsync();
+            var readErrTask = process.StandardError.ReadToEndAsync();
             var timeoutTask = Task.Delay(10000); // 10 second safety timeout
 
-            var finished = await Task.WhenAny(readTask, timeoutTask);
-            if (finished == readTask)
+            var finished = await Task.WhenAny(Task.WhenAll(readOutTask, readErrTask), timeoutTask);
+            if (finished != timeoutTask && readOutTask.IsCompleted)
             {
-                var output = await readTask;
+                var output = await readOutTask;
                 if (!string.IsNullOrWhiteSpace(output) && output.TrimStart().StartsWith("{"))
                 {
                     var parsed = Parse(output);
@@ -240,12 +248,27 @@ public static class AgyUsageParser
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTime CachedAt, AgyUsageResult Result)> _usageCache = new(StringComparer.OrdinalIgnoreCase);
 
-    public static async Task<AgyUsageResult?> FetchUsageCachedAsync(string effectiveProfileDir, bool isIsolated, string? agyExecutablePath, TimeSpan? maxAge = null)
+    /// <summary>
+    /// Retrieves cached usage data or fetches fresh data if allowed.
+    /// During automatic background sync, <paramref name="allowCliSpawn"/> is false to avoid CLI flickers.
+    /// </summary>
+    public static async Task<AgyUsageResult?> FetchUsageCachedAsync(
+        string effectiveProfileDir,
+        bool isIsolated,
+        string? agyExecutablePath,
+        TimeSpan? maxAge = null,
+        bool allowCliSpawn = true)
     {
-        var ttl = maxAge ?? TimeSpan.FromSeconds(60);
+        var ttl = maxAge ?? TimeSpan.FromMinutes(30);
         if (_usageCache.TryGetValue(effectiveProfileDir, out var entry) && (DateTime.UtcNow - entry.CachedAt) < ttl)
         {
             return entry.Result;
+        }
+
+        if (!allowCliSpawn)
+        {
+            // Fall back to stale cache if available, but never spawn a process during background auto-sync
+            return _usageCache.TryGetValue(effectiveProfileDir, out var stale) ? stale.Result : null;
         }
 
         var result = await FetchUsageAsync(effectiveProfileDir, isIsolated, agyExecutablePath);
@@ -254,6 +277,18 @@ public static class AgyUsageParser
             _usageCache[effectiveProfileDir] = (DateTime.UtcNow, result);
         }
         return result;
+    }
+
+    public static void InvalidateCache(string? profileDir = null)
+    {
+        if (string.IsNullOrEmpty(profileDir))
+        {
+            _usageCache.Clear();
+        }
+        else
+        {
+            _usageCache.TryRemove(profileDir, out _);
+        }
     }
 }
 
