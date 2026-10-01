@@ -50,3 +50,16 @@ public class DispatchedWorkerTask
     public int? ProcessId { get; set; }
     public DateTime? StartedAt { get; set; }
 }
+
+public class WorktreeTreeNode
+{
+    public string BranchName { get; set; } = string.Empty;
+    public string WorkerName { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string Path { get; set; } = string.Empty;
+    public string Status { get; set; } = "Ready";
+    public string StatusColor { get; set; } = "#3B82F6";
+    public bool IsActive { get; set; }
+    public bool IsLast { get; set; }
+}
+
