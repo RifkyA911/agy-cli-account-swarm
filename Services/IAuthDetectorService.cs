@@ -15,8 +15,9 @@ public interface IAuthDetectorService
     /// stored OAuth tokens, decoding JWT id_tokens, and checking validity against expiration timestamps.
     /// </summary>
     /// <param name="profile">The account profile to examine.</param>
+    /// <param name="allowCliSpawn">Whether spawning the CLI process to query usage is permitted.</param>
     /// <returns>A populated <see cref="ProfileAuthStatus"/> object detailing identity and freshness.</returns>
-    Task<ProfileAuthStatus> DetectAuthStatusAsync(AccountProfile profile);
+    Task<ProfileAuthStatus> DetectAuthStatusAsync(AccountProfile profile, bool allowCliSpawn = true);
 
     /// <summary>
     /// Discovers existing conversation sessions within a profile's history and SQLite databases,
