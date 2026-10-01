@@ -25,6 +25,16 @@ public partial class MainWindow : Window
                 BtnMaximize.Content = WindowState == WindowState.Maximized ? "🗗" : "🗖";
             }
         };
+
+        _viewModel.BrowseFolderRequested += async () =>
+        {
+            var folders = await StorageProvider.OpenFolderPickerAsync(new global::Avalonia.Platform.Storage.FolderPickerOpenOptions
+            {
+                Title = "Select Git Repository Directory",
+                AllowMultiple = false
+            });
+            return folders.Count > 0 ? folders[0].Path.LocalPath : null;
+        };
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
