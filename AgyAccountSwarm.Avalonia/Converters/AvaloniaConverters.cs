@@ -142,3 +142,29 @@ public class ActiveNavForegroundConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
 }
+
+/// <summary>
+/// Converts a local image path string into an Avalonia Bitmap.
+/// </summary>
+public class PathToBitmapConverter : IValueConverter
+{
+    public static readonly PathToBitmapConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string path && !string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path))
+        {
+            try
+            {
+                return new global::Avalonia.Media.Imaging.Bitmap(path);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
