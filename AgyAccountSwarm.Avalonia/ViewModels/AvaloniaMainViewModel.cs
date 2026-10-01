@@ -88,6 +88,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [ObservableProperty]
     private string _fleetWorkspacePath = string.Empty;
 
+    partial void OnFleetWorkspacePathChanged(string value) => UpdateWorktreeTreeNodes();
+
     [ObservableProperty]
     private DispatchMode _selectedDispatchMode = DispatchMode.RoleTailored;
 
@@ -103,6 +105,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [ObservableProperty]
     private string _fleetStatusText = "Fleet Dispatcher Ready";
 
+    public event Func<Task<string?>>? BrowseFolderRequested;
+
     public ObservableCollection<AccountProfile> Profiles { get; } = new();
     public ObservableCollection<AccountProfile> FilteredProfiles { get; } = new();
     public ObservableCollection<McpServerConfig> McpServers { get; } = new();
@@ -110,6 +114,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
     public ObservableCollection<DispatchedWorkerTask> DispatchedTasks { get; } = new();
     public ObservableCollection<GitWorktreeInfo> ActiveWorktrees { get; } = new();
     public ObservableCollection<string> SwarmBranches { get; } = new();
+    public ObservableCollection<WorktreeTreeNode> WorktreeTreeNodes { get; } = new();
 
     public AvaloniaMainViewModel()
     {
@@ -160,6 +165,15 @@ public partial class AvaloniaMainViewModel : ObservableObject
     {
         CurrentPage = page;
         _audioService.PlayClick();
+        if (page == "Logs")
+        {
+            RefreshLogs();
+        }
+        else if (page == "Dispatcher")
+        {
+            _ = CheckPreflightAsync();
+            UpdateWorktreeTreeNodes();
+        }
     }
 
     [RelayCommand]
@@ -175,6 +189,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 Profiles.Add(p);
             }
             ApplyFilters();
+            UpdateWorktreeTreeNodes();
 
             // Run background quick auth audit
             _ = Task.Run(async () =>
@@ -183,14 +198,15 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 {
                     try
                     {
-                        var status = await _authDetectorService.DetectAuthStatusAsync(profile);
+                        var status = await _authDetectorService.DetectAuthStatusAsync(profile, allowCliSpawn: false);
                         profile.AuthStatus = status;
 
-                        // Fetch authentic CLI usage if possible
-                        var usage = await AgyUsageParser.FetchUsageAsync(
+                        // Fetch authentic CLI usage if cached, but never spawn CLI process during background auto audit
+                        var usage = await AgyUsageParser.FetchUsageCachedAsync(
                             profile.GetEffectiveProfileDirectory(),
                             !profile.IsMainDefaultProfile(),
-                            Settings.CustomAgyExecutablePath);
+                            Settings.CustomAgyExecutablePath,
+                            allowCliSpawn: false);
 
                         if (usage != null && usage.IsSuccess)
                         {
@@ -198,6 +214,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
                             profile.AuthStatus.GeminiWeeklyRefreshesIn = usage.GeminiWeeklyRefreshesIn ?? "N/A";
                             profile.AuthStatus.ClaudeGptWeeklyRemainingPercent = usage.ClaudeGptWeeklyRemainingPercent ?? 0;
                         }
+
+                        profile.NotifyAllPropertiesChanged();
                     }
                     catch (Exception ex)
                     {
@@ -205,7 +223,11 @@ public partial class AvaloniaMainViewModel : ObservableObject
                     }
                 }
 
-                Dispatcher.UIThread.Post(ApplyFilters);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    ApplyFilters();
+                    UpdateWorktreeTreeNodes();
+                });
             });
         }
         finally
@@ -259,13 +281,14 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
         try
         {
-            var status = await _authDetectorService.DetectAuthStatusAsync(profile);
+            var status = await _authDetectorService.DetectAuthStatusAsync(profile, allowCliSpawn: true);
             profile.AuthStatus = status;
 
-            var usage = await AgyUsageParser.FetchUsageAsync(
+            var usage = await AgyUsageParser.FetchUsageCachedAsync(
                 profile.GetEffectiveProfileDirectory(),
                 !profile.IsMainDefaultProfile(),
-                Settings.CustomAgyExecutablePath);
+                Settings.CustomAgyExecutablePath,
+                allowCliSpawn: true);
 
             if (usage != null && usage.IsSuccess)
             {
@@ -274,7 +297,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 profile.AuthStatus.ClaudeGptWeeklyRemainingPercent = usage.ClaudeGptWeeklyRemainingPercent ?? 0;
             }
 
+            profile.NotifyAllPropertiesChanged();
             ApplyFilters();
+            UpdateWorktreeTreeNodes();
             ShowNotification($"Synchronized {profile.Name}.");
         }
         catch (Exception ex)
@@ -298,6 +323,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
             p.IsSelectedForSwarm = select;
         }
         ApplyFilters();
+        UpdateWorktreeTreeNodes();
     }
 
     [RelayCommand]
@@ -662,6 +688,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
             ShowNotification($"Preflight OK: {PreflightResult.AvailableDiskGb} GB Free | Branch: {PreflightResult.CurrentBranch ?? "None"}");
         }
         await RefreshWorktreesAsync();
+        UpdateWorktreeTreeNodes();
     }
 
     [RelayCommand]
@@ -714,6 +741,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
             FleetStatusText = $"Fleet Active ({tasks.Count} Dispatched)";
             ShowNotification($"Successfully dispatched objective to {tasks.Count} workers.");
             await RefreshWorktreesAsync();
+            UpdateWorktreeTreeNodes();
         }
         catch (Exception ex)
         {
@@ -734,6 +762,68 @@ public partial class AvaloniaMainViewModel : ObservableObject
         int killed = await _fleetDispatcherService.AbortFleetAsync(DispatchedTasks);
         FleetStatusText = "Fleet Aborted";
         ShowNotification($"Stopped {killed} dispatched worker process(es).");
+        UpdateWorktreeTreeNodes();
+    }
+
+    [RelayCommand]
+    public async Task BrowseFleetWorkspaceFolderAsync()
+    {
+        _audioService.PlayClick();
+        if (BrowseFolderRequested != null)
+        {
+            var path = await BrowseFolderRequested.Invoke();
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                FleetWorkspacePath = path;
+                await CheckPreflightAsync();
+            }
+        }
+    }
+
+    public void UpdateWorktreeTreeNodes()
+    {
+        WorktreeTreeNodes.Clear();
+
+        if (DispatchedTasks.Count > 0)
+        {
+            for (int i = 0; i < DispatchedTasks.Count; i++)
+            {
+                var t = DispatchedTasks[i];
+                WorktreeTreeNodes.Add(new WorktreeTreeNode
+                {
+                    BranchName = string.IsNullOrWhiteSpace(t.BranchName) ? $"swarm/{t.ProfileName.ToLowerInvariant().Replace(' ', '-')}" : t.BranchName,
+                    WorkerName = t.ProfileName,
+                    Role = t.AssignedRole,
+                    Path = t.WorktreePath,
+                    Status = t.Status,
+                    StatusColor = t.Status is "Active" or "Dispatched" ? "#10B981" : "#3B82F6",
+                    IsActive = t.Status is "Active" or "Dispatched",
+                    IsLast = i == DispatchedTasks.Count - 1
+                });
+            }
+        }
+        else
+        {
+            var selected = Profiles.Where(p => p.IsSelectedForSwarm).ToList();
+            for (int i = 0; i < selected.Count; i++)
+            {
+                var p = selected[i];
+                var cleanName = p.Name.ToLowerInvariant().Replace(' ', '-');
+                WorktreeTreeNodes.Add(new WorktreeTreeNode
+                {
+                    BranchName = $"swarm/{cleanName}_[session]",
+                    WorkerName = p.Name,
+                    Role = p.Description ?? "General Worker",
+                    Path = string.IsNullOrWhiteSpace(FleetWorkspacePath)
+                        ? $".../worktrees/swarm-{cleanName}"
+                        : Path.Combine(FleetWorkspacePath, ".git", "worktrees", $"swarm-{cleanName}"),
+                    Status = "Planned Worktree",
+                    StatusColor = "#64748B",
+                    IsActive = false,
+                    IsLast = i == selected.Count - 1
+                });
+            }
+        }
     }
 
     [RelayCommand]
@@ -776,6 +866,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         int pruned = await _gitWorktreeService.PruneStaleWorktreesAsync(targetDir);
         ShowNotification(pruned > 0 ? $"Pruned {pruned} stale worktree(s)." : "No stale worktrees to prune.");
         await RefreshWorktreesAsync();
+        UpdateWorktreeTreeNodes();
     }
 
     [RelayCommand]
@@ -799,5 +890,6 @@ public partial class AvaloniaMainViewModel : ObservableObject
             ShowNotification($"Merge warning/conflict: {output}");
         }
         await RefreshWorktreesAsync();
+        UpdateWorktreeTreeNodes();
     }
 }
