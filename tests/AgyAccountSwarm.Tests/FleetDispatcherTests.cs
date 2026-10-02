@@ -135,4 +135,61 @@ locked Build in progress
         Assert.True(result.IsGitRepository);
         Assert.False(string.IsNullOrWhiteSpace(result.CurrentBranch));
     }
+
+    [Fact]
+    public void DispatchedWorkerTask_IsObservable_RaisesPropertyChangedAndUpdatesStatusColor()
+    {
+        var task = new DispatchedWorkerTask
+        {
+            ProfileName = "Worker Alpha",
+            Status = "Launching",
+            StatusColor = "#3B82F6"
+        };
+
+        bool statusChanged = false;
+        bool colorChanged = false;
+        task.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(DispatchedWorkerTask.Status)) statusChanged = true;
+            if (e.PropertyName == nameof(DispatchedWorkerTask.StatusColor)) colorChanged = true;
+        };
+
+        task.Status = "Completed";
+        task.StatusColor = "#8B5CF6";
+
+        Assert.True(statusChanged);
+        Assert.True(colorChanged);
+        Assert.Equal("Completed", task.Status);
+        Assert.Equal("#8B5CF6", task.StatusColor);
+    }
+
+    [Fact]
+    public void WorktreeTreeNode_IsObservable_RaisesPropertyChanged()
+    {
+        var node = new WorktreeTreeNode { BranchName = "swarm/branch-1", Status = "Ready" };
+        bool changed = false;
+        node.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(WorktreeTreeNode.Status)) changed = true;
+        };
+
+        node.Status = "Running";
+        Assert.True(changed);
+        Assert.Equal("Running", node.Status);
+    }
+
+    [Fact]
+    public void FleetProgressReport_InitializesCorrectly()
+    {
+        var report = new FleetProgressReport
+        {
+            Percent = 50,
+            Stage = "Allocating Git Worktree",
+            Detail = "Branch: swarm/worker-1"
+        };
+
+        Assert.Equal(50, report.Percent);
+        Assert.Equal("Allocating Git Worktree", report.Stage);
+        Assert.Equal("Branch: swarm/worker-1", report.Detail);
+    }
 }

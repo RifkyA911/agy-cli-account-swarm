@@ -190,5 +190,27 @@ public class UiAndViewModelEnhancementsTests
 
         Assert.True(missing.Count == 0, $"Missing StaticResource definitions in Avalonia AXAML: {string.Join(", ", missing)}");
     }
+
+    [Fact]
+    public void NullOrEmptyToVisibilityConverter_WithInvertTrueAndFalse_EvaluatesProperly()
+    {
+        var normal = new NullOrEmptyToVisibilityConverter { Invert = false };
+        var inverted = new NullOrEmptyToVisibilityConverter { Invert = true };
+
+        // Normal (Visible when NOT null/empty)
+        Assert.Equal(System.Windows.Visibility.Collapsed, normal.Convert(null, typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Collapsed, normal.Convert("", typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Collapsed, normal.Convert("   ", typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Visible, normal.Convert("Alert Text", typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Collapsed, normal.Convert(0, typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Visible, normal.Convert(3, typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Collapsed, normal.Convert(new System.Collections.Generic.List<string>(), typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Visible, normal.Convert(new System.Collections.Generic.List<string> { "item" }, typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+
+        // Inverted (Visible when empty/null)
+        Assert.Equal(System.Windows.Visibility.Visible, inverted.Convert(null, typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Visible, inverted.Convert("", typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+        Assert.Equal(System.Windows.Visibility.Collapsed, inverted.Convert("Alert Text", typeof(System.Windows.Visibility), null, CultureInfo.InvariantCulture));
+    }
 }
 

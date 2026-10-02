@@ -263,6 +263,24 @@ public class TerminalLauncherTests
     }
 
     [Fact]
+    public void SanitizeSessionArgs_PromptArgs_SupportedAndSanitized()
+    {
+        var arg = TerminalLauncherService.SanitizeSessionArgs("-p \"Implement auth flow\"");
+        Assert.NotNull(arg);
+        Assert.StartsWith("-p \"Implement auth flow\"", arg);
+
+        var longArg = TerminalLauncherService.SanitizeSessionArgs("--prompt \"Fix race condition\"");
+        Assert.NotNull(longArg);
+        Assert.StartsWith("--prompt \"Fix race condition\"", longArg);
+
+        // Shell control characters like & and | should be sanitized
+        var injected = TerminalLauncherService.SanitizeSessionArgs("-p \"task & whoami | calc\"");
+        Assert.NotNull(injected);
+        Assert.DoesNotContain("&", injected);
+        Assert.DoesNotContain("|", injected);
+    }
+
+    [Fact]
     public void AccountProfile_PathTraversal_SanitizesProperly()
     {
         var profile = new AccountProfile
