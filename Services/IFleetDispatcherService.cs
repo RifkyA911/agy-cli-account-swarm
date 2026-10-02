@@ -11,6 +11,7 @@ public interface IFleetDispatcherService
     Task<List<DispatchedWorkerTask>> DispatchFleetAsync(
         FleetDispatchConfig config, 
         IEnumerable<AccountProfile> selectedWorkers, 
-        TerminalType terminal);
+        TerminalType terminal,
+        System.IProgress<FleetProgressReport>? progress = null);
     Task<int> AbortFleetAsync(IEnumerable<DispatchedWorkerTask> activeTasks);
 }

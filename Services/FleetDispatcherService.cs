@@ -98,7 +98,8 @@ public class FleetDispatcherService : IFleetDispatcherService
     public async Task<List<DispatchedWorkerTask>> DispatchFleetAsync(
         FleetDispatchConfig config,
         IEnumerable<AccountProfile> selectedWorkers,
-        TerminalType terminal)
+        TerminalType terminal,
+        IProgress<FleetProgressReport>? progress = null)
     {
         var workerList = selectedWorkers.ToList();
         var tasks = new List<DispatchedWorkerTask>();
@@ -108,6 +109,13 @@ public class FleetDispatcherService : IFleetDispatcherService
             return tasks;
         }
 
+        progress?.Report(new FleetProgressReport
+        {
+            Percent = 10,
+            Stage = "Validating Environment",
+            Detail = $"Preparing dispatch for {workerList.Count} worker account(s)..."
+        });
+
         var workspacePath = string.IsNullOrWhiteSpace(config.TargetWorkspace)
             ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
             : Path.GetFullPath(config.TargetWorkspace);
@@ -115,17 +123,40 @@ public class FleetDispatcherService : IFleetDispatcherService
         bool isGit = await _gitWorktreeService.IsGitRepositoryAsync(workspacePath);
         var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 
+        progress?.Report(new FleetProgressReport
+        {
+            Percent = 20,
+            Stage = isGit ? "Git Repository Confirmed" : "Dedicated Workspace Sandbox",
+            Detail = isGit ? $"Base repository verified: {workspacePath}" : "Non-Git repository: using profile sandbox directories"
+        });
+
         for (int i = 0; i < workerList.Count; i++)
         {
             var worker = workerList[i];
             var role = ResolveWorkerRole(worker, i);
             var tailoredPrompt = SynthesizePrompt(config.TaskObjective, role, config.Mode, i, workerList.Count);
 
+            int workerBasePercent = 25 + (int)((i / (double)workerList.Count) * 65);
+
+            progress?.Report(new FleetProgressReport
+            {
+                Percent = workerBasePercent,
+                Stage = $"Synthesizing Objective for [{role}]",
+                Detail = $"Worker {i + 1}/{workerList.Count}: {worker.Name} ({role})"
+            });
+
             string targetWorkDir;
             string branchName = $"swarm/{SanitizeForBranch(worker.Name)}_{timestamp}";
 
             if (isGit && config.UseGitWorktrees)
             {
+                progress?.Report(new FleetProgressReport
+                {
+                    Percent = workerBasePercent + 5,
+                    Stage = "Allocating Git Worktree",
+                    Detail = $"Branch: {branchName}"
+                });
+
                 var repoParent = Directory.GetParent(workspacePath)?.FullName ?? workspacePath;
                 var repoName = new DirectoryInfo(workspacePath).Name;
                 var worktreeBase = Path.Combine(repoParent, ".worktrees");
@@ -157,6 +188,7 @@ public class FleetDispatcherService : IFleetDispatcherService
                 WorktreePath = targetWorkDir,
                 BranchName = branchName,
                 Status = "Launching",
+                StatusColor = "#3B82F6",
                 StartedAt = DateTime.UtcNow
             };
 
@@ -172,6 +204,13 @@ public class FleetDispatcherService : IFleetDispatcherService
                     await Task.Delay(600);
                 }
 
+                progress?.Report(new FleetProgressReport
+                {
+                    Percent = workerBasePercent + 15,
+                    Stage = "Spawning Terminal Session",
+                    Detail = $"Launching isolated session for '{worker.Name}' in '{targetWorkDir}'"
+                });
+
                 // Prepare session arg with initial prompt
                 var safePromptArg = EscapePromptForCli(tailoredPrompt);
                 var proc = await _terminalLauncherService.LaunchProfileAsync(
@@ -184,16 +223,19 @@ public class FleetDispatcherService : IFleetDispatcherService
                 {
                     workerTask.ProcessId = proc.Id;
                     workerTask.Status = "Running";
+                    workerTask.StatusColor = "#10B981";
                 }
                 else
                 {
                     workerTask.Status = "Detached";
+                    workerTask.StatusColor = "#6B7280";
                 }
             }
             catch (Exception ex)
             {
                 Logger.Error($"[FleetDispatcher] Launch error for {worker.Name}", ex);
                 workerTask.Status = $"Failed: {ex.Message}";
+                workerTask.StatusColor = "#EF4444";
             }
             finally
             {
@@ -202,6 +244,13 @@ public class FleetDispatcherService : IFleetDispatcherService
 
             tasks.Add(workerTask);
         }
+
+        progress?.Report(new FleetProgressReport
+        {
+            Percent = 100,
+            Stage = "Fleet Dispatched Successfully",
+            Detail = $"All {tasks.Count} worker instances running in isolated environments."
+        });
 
         return tasks;
     }
@@ -230,6 +279,7 @@ public class FleetDispatcherService : IFleetDispatcherService
                     }
                 }
                 task.Status = "Stopped";
+                task.StatusColor = "#EF4444";
             }
         });
 

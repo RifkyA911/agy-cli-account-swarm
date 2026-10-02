@@ -278,6 +278,61 @@ public class TerminalLauncherService : ITerminalLauncherService
                 return $"--conversation {idPart}";
             }
         }
+        if (trimmed.StartsWith("-p ", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.StartsWith("-p\"", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.StartsWith("--prompt ", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.StartsWith("--prompt=\"", StringComparison.OrdinalIgnoreCase))
+        {
+            string rawPrompt;
+            string flag;
+            if (trimmed.StartsWith("--prompt=\"", StringComparison.OrdinalIgnoreCase))
+            {
+                flag = "--prompt";
+                rawPrompt = trimmed.Substring("--prompt=\"".Length);
+                if (rawPrompt.EndsWith("\"")) rawPrompt = rawPrompt.Substring(0, rawPrompt.Length - 1);
+            }
+            else if (trimmed.StartsWith("--prompt ", StringComparison.OrdinalIgnoreCase))
+            {
+                flag = "--prompt";
+                rawPrompt = trimmed.Substring("--prompt ".Length).Trim();
+            }
+            else if (trimmed.StartsWith("-p\"", StringComparison.OrdinalIgnoreCase))
+            {
+                flag = "-p";
+                rawPrompt = trimmed.Substring("-p\"".Length);
+                if (rawPrompt.EndsWith("\"")) rawPrompt = rawPrompt.Substring(0, rawPrompt.Length - 1);
+            }
+            else
+            {
+                flag = "-p";
+                rawPrompt = trimmed.Substring(3).Trim();
+            }
+
+            if (rawPrompt.StartsWith("\"") && rawPrompt.EndsWith("\"") && rawPrompt.Length >= 2)
+            {
+                rawPrompt = rawPrompt.Substring(1, rawPrompt.Length - 2);
+            }
+
+            // Sanitize batch and shell control characters to prevent command injection and batch syntax errors
+            var sanitized = rawPrompt
+                .Replace("&", " and ")
+                .Replace("|", " ")
+                .Replace("<", " ")
+                .Replace(">", " ")
+                .Replace("^", " ")
+                .Replace("%", " ")
+                .Replace("`", "'")
+                .Replace("\r", " ")
+                .Replace("\n", " ");
+
+            sanitized = System.Text.RegularExpressions.Regex.Replace(sanitized, @"\s+", " ").Trim();
+            sanitized = sanitized.Replace("\"", "'");
+
+            if (!string.IsNullOrWhiteSpace(sanitized))
+            {
+                return $"{flag} \"{sanitized}\"";
+            }
+        }
         return null;
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AgyAccountSwarm.Models;
 
@@ -39,27 +40,66 @@ public class ResourceCheckResult
     public string? ErrorMessage { get; set; }
 }
 
-public class DispatchedWorkerTask
+public partial class DispatchedWorkerTask : ObservableObject
 {
-    public string ProfileName { get; set; } = string.Empty;
-    public string AssignedRole { get; set; } = string.Empty;
-    public string TailoredPrompt { get; set; } = string.Empty;
-    public string WorktreePath { get; set; } = string.Empty;
-    public string BranchName { get; set; } = string.Empty;
-    public string Status { get; set; } = "Ready";
-    public int? ProcessId { get; set; }
-    public DateTime? StartedAt { get; set; }
+    [ObservableProperty]
+    private string _profileName = string.Empty;
+
+    [ObservableProperty]
+    private string _assignedRole = string.Empty;
+
+    [ObservableProperty]
+    private string _tailoredPrompt = string.Empty;
+
+    [ObservableProperty]
+    private string _worktreePath = string.Empty;
+
+    [ObservableProperty]
+    private string _branchName = string.Empty;
+
+    [ObservableProperty]
+    private string _status = "Ready";
+
+    [ObservableProperty]
+    private string _statusColor = "#10B981";
+
+    [ObservableProperty]
+    private int? _processId;
+
+    [ObservableProperty]
+    private DateTime? _startedAt;
 }
 
-public class WorktreeTreeNode
+public partial class WorktreeTreeNode : ObservableObject
 {
-    public string BranchName { get; set; } = string.Empty;
-    public string WorkerName { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
-    public string Path { get; set; } = string.Empty;
-    public string Status { get; set; } = "Ready";
-    public string StatusColor { get; set; } = "#3B82F6";
-    public bool IsActive { get; set; }
-    public bool IsLast { get; set; }
+    [ObservableProperty]
+    private string _branchName = string.Empty;
+
+    [ObservableProperty]
+    private string _workerName = string.Empty;
+
+    [ObservableProperty]
+    private string _role = string.Empty;
+
+    [ObservableProperty]
+    private string _path = string.Empty;
+
+    [ObservableProperty]
+    private string _status = "Ready";
+
+    [ObservableProperty]
+    private string _statusColor = "#3B82F6";
+
+    [ObservableProperty]
+    private bool _isActive;
+
+    [ObservableProperty]
+    private bool _isLast;
 }
 
+public class FleetProgressReport
+{
+    public int Percent { get; set; }
+    public string Stage { get; set; } = string.Empty;
+    public string Detail { get; set; } = string.Empty;
+}
