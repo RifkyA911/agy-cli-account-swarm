@@ -246,7 +246,7 @@
                                               Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         <Border Background="{DynamicResource BrushWarningAlertBg}" BorderBrush="{DynamicResource BrushWarningAlertBorder}" BorderThickness="1"
                                                 CornerRadius="7" Padding="3,1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-3,0" ClipToBounds="False">
-                                            <TextBlock Text="💬" FontSize="8" FontWeight="Bold" Foreground="{DynamicResource BrushWarningAlertText}" />
+                                            <TextBlock Text="EXP" FontSize="7" FontWeight="Bold" Foreground="{DynamicResource BrushWarningAlertText}" />
                                         </Border>
                                     </Grid>
                                 </Grid>
@@ -2213,7 +2213,7 @@
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="24" Margin="0,0,0,16">
                             <StackPanel>
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Text="💬 Fleet Prompt Dispatcher" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    <TextBlock Text="Fleet Prompt Dispatcher" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,12,0" />
                                     <Border Background="{DynamicResource BrushWarningAlertBg}" BorderBrush="{DynamicResource BrushWarningAlertBorder}" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                         <TextBlock Text="🧪 EXPERIMENTAL" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushWarningAlertText}" />
                                     </Border>
@@ -2301,11 +2301,30 @@
                                     <Button Grid.Column="1" Command="{Binding BrowseFleetWorkspaceFolderCommand}" Style="{StaticResource SecondaryButton}" Padding="12,8">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <Path Data="{StaticResource HeroIconFolder}" Stroke="{DynamicResource BrushTextPrimary}" StrokeThickness="1.5" Width="14" Height="14" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                            <TextBlock Text="📁 Browse Folder..." FontWeight="SemiBold" FontSize="11.5" VerticalAlignment="Center" />
+                                            <TextBlock Text="Browse Folder..." FontWeight="SemiBold" FontSize="11.5" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </Button>
                                 </Grid>
                                 <CheckBox IsChecked="{Binding UseGitWorktrees}" Content="Isolate workers in linked Git Worktrees (.worktrees/worker-*) to avoid .git/index.lock contention" FontSize="11.5" Margin="0,0,0,14" />
+
+                                <!-- Quick Objective Suggestion Chips -->
+                                <StackPanel Margin="0,0,0,10">
+                                    <TextBlock Text="Quick Objective Suggestions &amp; Templates:" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" Margin="0,0,0,6" />
+                                    <WrapPanel>
+                                        <Button Content="🚀 Full-Stack Feature" Command="{Binding ApplyObjectiveSuggestionCommand}" CommandParameter="fullstack"
+                                                Style="{StaticResource ModernButton}" Padding="10,5" FontSize="11" Margin="0,0,6,6" ToolTip="JWT Auth + Backend API + Frontend UI + Test Suite" />
+                                        <Button Content="🛡️ Security Audit &amp; Fix" Command="{Binding ApplyObjectiveSuggestionCommand}" CommandParameter="security"
+                                                Style="{StaticResource ModernButton}" Padding="10,5" FontSize="11" Margin="0,0,6,6" ToolTip="OWASP scan, input sanitation, CVE review" />
+                                        <Button Content="🧪 Tests &amp; Benchmarks" Command="{Binding ApplyObjectiveSuggestionCommand}" CommandParameter="tests"
+                                                Style="{StaticResource ModernButton}" Padding="10,5" FontSize="11" Margin="0,0,6,6" ToolTip="Unit tests, integration test suite, and performance benchmarks" />
+                                        <Button Content="📚 Docs &amp; OpenAPI Spec" Command="{Binding ApplyObjectiveSuggestionCommand}" CommandParameter="docs"
+                                                Style="{StaticResource ModernButton}" Padding="10,5" FontSize="11" Margin="0,0,6,6" ToolTip="Swagger / OpenAPI spec, architecture docs, and onboarding" />
+                                        <Button Content="⚡ Performance Refactor" Command="{Binding ApplyObjectiveSuggestionCommand}" CommandParameter="refactor"
+                                                Style="{StaticResource ModernButton}" Padding="10,5" FontSize="11" Margin="0,0,6,6" ToolTip="Profile bottlenecks, memory optimization, and modular refactoring" />
+                                        <Button Content="Clear" Command="{Binding ClearObjectiveCommand}"
+                                                Style="{StaticResource ModernButton}" Padding="8,5" FontSize="11" Margin="0,0,6,6" ToolTip="Clear objective text" />
+                                    </WrapPanel>
+                                </StackPanel>
 
                                 <!-- Task Objective Prompt -->
                                 <TextBlock Text="Task Objective Prompt (Single Input -> Tailored Multi-Worker Execution):" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,0,0,6" />
@@ -2367,12 +2386,12 @@
                                                             <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="15" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                         </Border>
 
-                                                        <!-- Mini 'G' Badge -->
-                                                        <Border Width="12" Height="12" CornerRadius="6"
-                                                                Background="#FFFFFF" BorderBrush="#4285F4" BorderThickness="1"
+                                                        <!-- Authentic Status Indicator Dot -->
+                                                        <Border Width="11" Height="11" CornerRadius="5.5"
+                                                                Background="{DynamicResource BrushSurface}"
                                                                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                                                Margin="0,0,-1,-1">
-                                                            <TextBlock Text="G" FontSize="7.5" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                                Margin="0,0,-1,-1" Padding="1.5">
+                                                            <Ellipse Fill="{Binding StatusBadgeColor, Converter={StaticResource HexToBrushConverter}}" />
                                                         </Border>
                                                     </Grid>
 
@@ -2427,6 +2446,37 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- Live Dispatch Progress Panel -->
+                        <Border Visibility="{Binding IsFleetDispatching, Converter={StaticResource BoolToVisConverter}}"
+                                Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushAccent}" BorderThickness="1.5"
+                                CornerRadius="10" Padding="18" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconArrowPath}"
+                                              Stroke="{DynamicResource BrushAccent}" StrokeThickness="2"
+                                              Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding DispatchProgressStage, FallbackValue='Dispatching Swarm Fleet...'}"
+                                                   FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding DispatchProgressPercent, StringFormat='{}{0}%'}"
+                                               FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushAccent}" VerticalAlignment="Center" />
+                                </Grid>
+
+                                <!-- Progress Bar -->
+                                <ProgressBar Value="{Binding DispatchProgressPercent}" Minimum="0" Maximum="100" Height="6"
+                                             Foreground="{DynamicResource BrushAccent}" Background="{DynamicResource BrushSurface}"
+                                             BorderThickness="0" Margin="0,0,0,8" />
+
+                                <TextBlock Text="{Binding DispatchProgressDetail, FallbackValue='Configuring worktrees and spawning isolated CLI terminals...'}"
+                                           FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                            </StackPanel>
+                        </Border>
+
                         <!-- Action Control Bar -->
                         <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
@@ -2439,19 +2489,19 @@
                                     FontSize="14" FontWeight="Bold" Padding="20,12" Margin="0,0,10,0">
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <Path Data="{StaticResource HeroIconChatBubbleOvalLeftEllipsis}" Fill="#FFFFFF" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="💬 Dispatch &amp; Launch Swarm Fleet" />
+                                    <TextBlock Text="Dispatch &amp; Launch Swarm Fleet" />
                                 </StackPanel>
                             </Button>
                             <Button Grid.Column="1" Command="{Binding AbortFleetCommand}"
                                     Style="{StaticResource SolidDangerButton}" Padding="18,12" FontSize="13" Margin="0,0,10,0">
                                 <StackPanel Orientation="Horizontal">
                                     <Path Data="{StaticResource HeroIconStop}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="⏹ Abort Fleet" />
+                                    <TextBlock Text="Abort Fleet" />
                                 </StackPanel>
                             </Button>
                             <Button Grid.Column="2" Command="{Binding PruneWorktreesCommand}"
                                     Style="{StaticResource SecondaryButton}" Padding="16,12" FontSize="13">
-                                <TextBlock Text="🌿 Prune Worktrees" />
+                                <TextBlock Text="Prune Worktrees" />
                             </Button>
                         </Grid>
 
@@ -2542,11 +2592,19 @@
                         </Border>
 
                         <!-- Dispatched Tasks Panel -->
-                        <Border Visibility="{Binding DispatchedTasks.Count, Converter={StaticResource IntToVisConverter}}"
-
+                        <Border Visibility="{Binding HasDispatchedTasks, Converter={StaticResource BoolToVisConverter}}"
                                 Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
                             <StackPanel>
-                                <TextBlock Text="📋 Active Swarm Dispatch Tasks" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,0,12" />
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="📋 Active Swarm Dispatch Tasks" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="8,3" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                        <TextBlock Text="{Binding DispatchedTasks.Count, StringFormat='{}{0} Dispatched'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                    </Border>
+                                </Grid>
                                 <ItemsControl ItemsSource="{Binding DispatchedTasks}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -2565,7 +2623,9 @@
                                                         <TextBlock Text="{Binding ProfileName}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" />
                                                         <TextBlock Text="{Binding BranchName, StringFormat='Branch: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
                                                     </StackPanel>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Status}" FontSize="11" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center" Margin="12,0" />
+                                                    <Border Grid.Column="2" Background="{Binding StatusColor, Converter={StaticResource HexToBrushConverter}}" CornerRadius="4" Padding="8,3" VerticalAlignment="Center" Margin="12,0">
+                                                        <TextBlock Text="{Binding Status}" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                    </Border>
                                                     <Button Grid.Column="3" Content="Merge" Command="{Binding DataContext.MergeSwarmBranchCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding BranchName}" Style="{StaticResource SecondaryButton}" Padding="8,4" FontSize="11" VerticalAlignment="Center" />
                                                 </Grid>
                                             </Border>
