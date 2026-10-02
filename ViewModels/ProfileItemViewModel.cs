@@ -42,6 +42,14 @@ public partial class ProfileItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSelectedForSwarm;
 
+    public event Action<ProfileItemViewModel, bool>? SelectionChanged;
+
+    partial void OnIsSelectedForSwarmChanged(bool value)
+    {
+        Profile.IsSelectedForSwarm = value;
+        SelectionChanged?.Invoke(this, value);
+    }
+
     [ObservableProperty]
     private ProfileAuthStatus _authStatus = new();
 

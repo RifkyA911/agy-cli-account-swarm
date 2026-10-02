@@ -103,7 +103,21 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private bool _isFleetDispatching = false;
 
     [ObservableProperty]
+    private int _dispatchProgressPercent = 0;
+
+    [ObservableProperty]
+    private string _dispatchProgressStage = string.Empty;
+
+    [ObservableProperty]
+    private string _dispatchProgressDetail = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasDispatchedTasks;
+
+    [ObservableProperty]
     private string _fleetStatusText = "Fleet Dispatcher Ready";
+
+    private readonly DispatcherTimer _fleetProcessWatcherTimer;
 
     public event Func<Task<string?>>? BrowseFolderRequested;
 
@@ -135,6 +149,18 @@ public partial class AvaloniaMainViewModel : ObservableObject
             Interval = TimeSpan.FromSeconds(1)
         };
         _syncTimer.Tick += SyncTimer_Tick;
+
+        _fleetProcessWatcherTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(2)
+        };
+        _fleetProcessWatcherTimer.Tick += (s, e) => WatchDispatchedProcesses();
+
+        DispatchedTasks.CollectionChanged += (s, e) =>
+        {
+            HasDispatchedTasks = DispatchedTasks.Count > 0;
+            UpdateWorktreeTreeNodes();
+        };
 
         // Initialize state
         _ = InitializeAsync();
@@ -172,6 +198,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         else if (page == "Dispatcher")
         {
             _ = CheckPreflightAsync();
+            _ = RefreshWorktreesAsync();
             UpdateWorktreeTreeNodes();
         }
     }
@@ -692,6 +719,35 @@ public partial class AvaloniaMainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void ApplyObjectiveSuggestion(string? suggestion)
+    {
+        _audioService.PlayClick();
+        if (string.IsNullOrWhiteSpace(suggestion))
+        {
+            FleetTaskObjective = string.Empty;
+            return;
+        }
+
+        FleetTaskObjective = suggestion switch
+        {
+            "fullstack" => "Implement end-to-end user authentication with JWT tokens, refresh rotation, secure HTTP cookies, frontend login form, and integration test suite.",
+            "security" => "Perform thorough security audit, sanitize command execution inputs against shell injections, validate path traversal guards, and fix OWASP vulnerabilities.",
+            "tests" => "Author comprehensive unit tests and regression test suite covering all public service methods, edge cases, error handling, and performance benchmarks.",
+            "docs" => "Generate comprehensive OpenAPI / Swagger specifications, architecture diagrams, module docstrings, and developer onboarding documentation.",
+            "refactor" => "Profile bottlenecks, optimize memory allocations, eliminate redundant disk I/O, and refactor monolithic methods into testable modular services.",
+            _ => suggestion
+        };
+        ShowNotification("Applied objective suggestion template.");
+    }
+
+    [RelayCommand]
+    public void ClearObjective()
+    {
+        _audioService.PlayClick();
+        FleetTaskObjective = string.Empty;
+    }
+
+    [RelayCommand]
     public async Task DispatchFleetAsync()
     {
         if (string.IsNullOrWhiteSpace(FleetTaskObjective))
@@ -716,6 +772,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
         }
 
         IsFleetDispatching = true;
+        DispatchProgressPercent = 5;
+        DispatchProgressStage = "Initializing Fleet Dispatcher...";
+        DispatchProgressDetail = $"Preparing dispatch for {selected.Count} worker account(s)...";
+
         _audioService.PlayLaunch();
         FleetStatusText = $"Dispatching to {selected.Count} workers...";
         ShowNotification($"Synthesizing and dispatching to {selected.Count} workers...");
@@ -731,17 +791,28 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
         try
         {
-            var tasks = await _fleetDispatcherService.DispatchFleetAsync(config, selected, Settings.PreferredTerminal);
+            var progress = new Progress<FleetProgressReport>(report =>
+            {
+                DispatchProgressPercent = report.Percent;
+                DispatchProgressStage = report.Stage;
+                DispatchProgressDetail = report.Detail;
+            });
+
+            var tasks = await _fleetDispatcherService.DispatchFleetAsync(config, selected, Settings.PreferredTerminal, progress);
             DispatchedTasks.Clear();
             foreach (var t in tasks)
             {
                 DispatchedTasks.Add(t);
             }
+            HasDispatchedTasks = DispatchedTasks.Count > 0;
 
             FleetStatusText = $"Fleet Active ({tasks.Count} Dispatched)";
             ShowNotification($"Successfully dispatched objective to {tasks.Count} workers.");
             await RefreshWorktreesAsync();
             UpdateWorktreeTreeNodes();
+
+            // Start background process watcher
+            _fleetProcessWatcherTimer.Start();
         }
         catch (Exception ex)
         {
@@ -759,10 +830,64 @@ public partial class AvaloniaMainViewModel : ObservableObject
     public async Task AbortFleetAsync()
     {
         _audioService.PlayDelete();
+        _fleetProcessWatcherTimer.Stop();
         int killed = await _fleetDispatcherService.AbortFleetAsync(DispatchedTasks);
         FleetStatusText = "Fleet Aborted";
         ShowNotification($"Stopped {killed} dispatched worker process(es).");
         UpdateWorktreeTreeNodes();
+        await RefreshWorktreesAsync();
+    }
+
+    private void WatchDispatchedProcesses()
+    {
+        if (DispatchedTasks.Count == 0) return;
+
+        bool stateChanged = false;
+        int activeCount = 0;
+
+        foreach (var task in DispatchedTasks)
+        {
+            if (task.ProcessId.HasValue)
+            {
+                try
+                {
+                    var proc = Process.GetProcessById(task.ProcessId.Value);
+                    if (proc.HasExited)
+                    {
+                        task.Status = proc.ExitCode == 0 ? "Completed" : $"Exited ({proc.ExitCode})";
+                        task.StatusColor = proc.ExitCode == 0 ? "#8B5CF6" : "#EF4444";
+                        task.ProcessId = null;
+                        stateChanged = true;
+                    }
+                    else
+                    {
+                        activeCount++;
+                    }
+                }
+                catch
+                {
+                    task.Status = "Completed";
+                    task.StatusColor = "#8B5CF6";
+                    task.ProcessId = null;
+                    stateChanged = true;
+                }
+            }
+        }
+
+        if (stateChanged)
+        {
+            UpdateWorktreeTreeNodes();
+            _ = RefreshWorktreesAsync();
+            if (activeCount == 0)
+            {
+                FleetStatusText = "All Worker Tasks Completed";
+                _fleetProcessWatcherTimer.Stop();
+            }
+            else
+            {
+                FleetStatusText = $"Fleet Active ({activeCount} Running)";
+            }
+        }
     }
 
     [RelayCommand]
@@ -789,6 +914,12 @@ public partial class AvaloniaMainViewModel : ObservableObject
             for (int i = 0; i < DispatchedTasks.Count; i++)
             {
                 var t = DispatchedTasks[i];
+                var isRunning = t.Status is "Active" or "Dispatched" or "Running" or "Launching";
+                var isCompleted = t.Status is "Completed";
+                var isFailed = t.Status.StartsWith("Failed") || t.Status.StartsWith("Exited");
+
+                var color = isRunning ? "#10B981" : (isCompleted ? "#8B5CF6" : (isFailed ? "#EF4444" : "#64748B"));
+
                 WorktreeTreeNodes.Add(new WorktreeTreeNode
                 {
                     BranchName = string.IsNullOrWhiteSpace(t.BranchName) ? $"swarm/{t.ProfileName.ToLowerInvariant().Replace(' ', '-')}" : t.BranchName,
@@ -796,8 +927,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
                     Role = t.AssignedRole,
                     Path = t.WorktreePath,
                     Status = t.Status,
-                    StatusColor = t.Status is "Active" or "Dispatched" ? "#10B981" : "#3B82F6",
-                    IsActive = t.Status is "Active" or "Dispatched",
+                    StatusColor = color,
+                    IsActive = isRunning,
                     IsLast = i == DispatchedTasks.Count - 1
                 });
             }
