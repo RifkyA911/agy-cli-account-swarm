@@ -14,7 +14,8 @@
             <converters:BooleanToVisibilityConverter x:Key="InverseBoolToVisConverter" Invert="True" />
             <converters:InverseBooleanConverter x:Key="InverseBoolConverter" />
             <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisConverter" />
-            <converters:NullOrEmptyToVisibilityConverter x:Key="NotNullOrEmptyToVisConverter" Invert="True" />
+            <converters:NullOrEmptyToVisibilityConverter x:Key="NotNullOrEmptyToVisConverter" Invert="False" />
+            <converters:NullOrEmptyToVisibilityConverter x:Key="EmptyToVisConverter" Invert="True" />
             <converters:EqualityToVisibilityConverter x:Key="EqualityToVisConverter" />
             <converters:PositiveIntToVisibilityConverter x:Key="IntToVisConverter" />
             <converters:PageToActiveBgConverter x:Key="PageToActiveBgConverter" />
@@ -24,7 +25,7 @@
             <converters:BooleanToChevronConverter x:Key="BoolToChevronConverter" />
             <converters:BoolToFilterAccentConverter x:Key="BoolToFilterAccentConverter" />
             <converters:PageToActiveBarConverter x:Key="PageToActiveBarConverter" />
-            <converters:NullOrEmptyToVisibilityConverter x:Key="StringToVisConverter" Invert="True" />
+            <converters:NullOrEmptyToVisibilityConverter x:Key="StringToVisConverter" Invert="False" />
             <converters:PositiveIntToVisibilityConverter x:Key="NumberToVisConverter" />
         </ResourceDictionary>
 

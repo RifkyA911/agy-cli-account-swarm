@@ -39,13 +39,13 @@
     <SolidColorBrush x:Key="BrushQuotaExhaustedText" Color="#FCA5A5" />
 
     <!-- Theme-Aware Warning Alert Brushes (Soft Pastel in Light, Rich Glow in Dark) -->
-    <SolidColorBrush x:Key="BrushWarningAlertBg" Color="#2E1E05" />
-    <SolidColorBrush x:Key="BrushWarningAlertBorder" Color="#F59E0B" />
+    <SolidColorBrush x:Key="BrushWarningAlertBg" Color="#241A06" />
+    <SolidColorBrush x:Key="BrushWarningAlertBorder" Color="#D97706" />
     <SolidColorBrush x:Key="BrushWarningAlertText" Color="#FDE68A" />
 
     <!-- Theme-Aware Error Alert Brushes (Soft Pastel in Light, Deep Rose in Dark) -->
-    <SolidColorBrush x:Key="BrushErrorAlertBg" Color="#311118" />
-    <SolidColorBrush x:Key="BrushErrorAlertBorder" Color="#EF4444" />
+    <SolidColorBrush x:Key="BrushErrorAlertBg" Color="#2A0E13" />
+    <SolidColorBrush x:Key="BrushErrorAlertBorder" Color="#DC2626" />
     <SolidColorBrush x:Key="BrushErrorAlertText" Color="#FCA5A5" />
 
     <!-- Navigation Sidebar Brushes (Dynamic Contrast) -->

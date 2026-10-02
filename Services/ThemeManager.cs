@@ -112,13 +112,13 @@ public static class ThemeManager
         app.Resources["BrushQuotaExhaustedText"] = new SolidColorBrush(MediaColor.FromRgb(252, 165, 165));
 
         // Preflight & General Warning / Error Alerts
-        app.Resources["BrushWarningAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(46, 30, 5));        // #2E1E05
-        app.Resources["BrushWarningAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(245, 158, 11)); // #F59E0B
-        app.Resources["BrushWarningAlertText"] = new SolidColorBrush(MediaColor.FromRgb(253, 230, 138));  // #FDE68A
+        app.Resources["BrushWarningAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(36, 26, 6));        // Clean amber-dark
+        app.Resources["BrushWarningAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(217, 119, 6)); // Amber 600
+        app.Resources["BrushWarningAlertText"] = new SolidColorBrush(MediaColor.FromRgb(253, 230, 138));  // Amber 200
 
-        app.Resources["BrushErrorAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(49, 17, 24));          // #311118
-        app.Resources["BrushErrorAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(239, 68, 68));     // #EF4444
-        app.Resources["BrushErrorAlertText"] = new SolidColorBrush(MediaColor.FromRgb(252, 165, 165));    // #FCA5A5
+        app.Resources["BrushErrorAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(42, 14, 19));          // Clean rose-dark
+        app.Resources["BrushErrorAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(220, 38, 38));     // Red 600
+        app.Resources["BrushErrorAlertText"] = new SolidColorBrush(MediaColor.FromRgb(252, 165, 165));    // Red 300
     }
 
     private static void ApplyLightTheme(WpfApp app)
@@ -171,13 +171,13 @@ public static class ThemeManager
         app.Resources["BrushQuotaExhaustedText"] = new SolidColorBrush(MediaColor.FromRgb(185, 28, 28));
 
         // Preflight & General Warning / Error Alerts (Soft Light Tint, High Contrast Text)
-        app.Resources["BrushWarningAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(255, 251, 235));   // Amber 50 (#FFFBEB)
-        app.Resources["BrushWarningAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(253, 230, 138)); // Amber 200 (#FDE68A)
+        app.Resources["BrushWarningAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(254, 243, 199));   // Amber 100 (#FEF3C7)
+        app.Resources["BrushWarningAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(245, 158, 11)); // Amber 500 (#F59E0B)
         app.Resources["BrushWarningAlertText"] = new SolidColorBrush(MediaColor.FromRgb(146, 64, 14));    // Amber 800 (#92400E)
 
-        app.Resources["BrushErrorAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(254, 242, 242));     // Red 50 (#FEF2F2)
-        app.Resources["BrushErrorAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(254, 202, 202)); // Red 200 (#FECACA)
-        app.Resources["BrushErrorAlertText"] = new SolidColorBrush(MediaColor.FromRgb(185, 28, 28));     // Red 700 (#B91C1C)
+        app.Resources["BrushErrorAlertBg"] = new SolidColorBrush(MediaColor.FromRgb(254, 226, 226));     // Red 100 (#FEE2E2)
+        app.Resources["BrushErrorAlertBorder"] = new SolidColorBrush(MediaColor.FromRgb(239, 68, 68));     // Red 500 (#EF4444)
+        app.Resources["BrushErrorAlertText"] = new SolidColorBrush(MediaColor.FromRgb(153, 27, 27));     // Red 800 (#991B1B)
     }
 
     private static void ApplyCyberpunkTheme(WpfApp app)

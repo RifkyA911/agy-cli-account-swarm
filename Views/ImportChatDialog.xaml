@@ -119,7 +119,7 @@
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Foreground="{DynamicResource BrushTextSecondary}"
-                               Visibility="{Binding Conversations.Count, Converter={StaticResource NullOrEmptyToVisConverter}}" />
+                               Visibility="{Binding Conversations.Count, Converter={StaticResource EmptyToVisConverter}}" />
 
                     <!-- List -->
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
