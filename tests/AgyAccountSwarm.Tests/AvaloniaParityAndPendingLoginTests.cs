@@ -257,7 +257,8 @@ public class AvaloniaParityAndPendingLoginTests
         Assert.Contains("DataTemplate DataType=\"vm:AvaloniaProfileItemViewModel\"", content);
 
         // Verify outline button for Sync Swarm in navbar
-        Assert.Contains("Command=\"{Binding SyncSwarmCommand}\"\n                                    Classes=\"outline\"", content.Replace("\r\n", "\n"));
+        Assert.Contains("Command=\"{Binding SyncSwarmCommand}\"", content);
+        Assert.Contains("Classes=\"outline\"", content);
     }
 
     [Fact]

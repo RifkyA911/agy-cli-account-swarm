@@ -135,8 +135,67 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [ObservableProperty]
     private int _mcpToolsTotalCount;
 
+    public static string FormatSyncTimestamp(DateTime dt)
+    {
+        var offset = TimeZoneInfo.Local.GetUtcOffset(dt);
+        string sign = offset >= TimeSpan.Zero ? "+" : "-";
+        string offsetStr = offset.Minutes == 0 
+            ? $"UTC{sign}{Math.Abs((int)offset.TotalHours)}" 
+            : $"UTC{sign}{Math.Abs((int)offset.TotalHours)}:{Math.Abs(offset.Minutes):D2}";
+        return $"Synced {dt:yyyy/MM/dd HH:mm:ss} ({offsetStr})";
+    }
+
     [ObservableProperty]
-    private string _lastSyncedAtText = $"Synced {DateTime.Now:HH:mm:ss}";
+    private string _lastSyncedAtText = FormatSyncTimestamp(DateTime.Now);
+
+    [ObservableProperty]
+    private bool _isWelcomeOverlayVisible = true;
+
+    [RelayCommand]
+    public void DismissWelcomeOverlay() => IsWelcomeOverlayVisible = false;
+
+    // Foldable Cards expansion states
+    [ObservableProperty]
+    private bool _isDashboardKpiExpanded = true;
+
+    [ObservableProperty]
+    private bool _isDashboardChartExpanded = true;
+
+    [ObservableProperty]
+    private bool _isDashboardAccountsExpanded = true;
+
+    [ObservableProperty]
+    private bool _isProjectContextExpanded = true;
+
+    [ObservableProperty]
+    private bool _isProjectTasksExpanded = true;
+
+    [ObservableProperty]
+    private bool _isAnalyticsTrendsExpanded = true;
+
+    [ObservableProperty]
+    private bool _isAnalyticsEfficiencyExpanded = true;
+
+    [RelayCommand]
+    public void ToggleDashboardKpi() => IsDashboardKpiExpanded = !IsDashboardKpiExpanded;
+
+    [RelayCommand]
+    public void ToggleDashboardChart() => IsDashboardChartExpanded = !IsDashboardChartExpanded;
+
+    [RelayCommand]
+    public void ToggleDashboardAccounts() => IsDashboardAccountsExpanded = !IsDashboardAccountsExpanded;
+
+    [RelayCommand]
+    public void ToggleProjectContext() => IsProjectContextExpanded = !IsProjectContextExpanded;
+
+    [RelayCommand]
+    public void ToggleProjectTasks() => IsProjectTasksExpanded = !IsProjectTasksExpanded;
+
+    [RelayCommand]
+    public void ToggleAnalyticsTrends() => IsAnalyticsTrendsExpanded = !IsAnalyticsTrendsExpanded;
+
+    [RelayCommand]
+    public void ToggleAnalyticsEfficiency() => IsAnalyticsEfficiencyExpanded = !IsAnalyticsEfficiencyExpanded;
 
     // Dashboard & Chart Filters
     [ObservableProperty]
@@ -467,6 +526,18 @@ public partial class AvaloniaMainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public void OpenLogsFolder()
+    {
+        _audioService.PlayClick();
+        var dir = Logger.LogDirectory;
+        if (!Directory.Exists(dir))
+        {
+            try { Directory.CreateDirectory(dir); } catch { }
+        }
+        TerminalLauncherService.OpenFolderInFileManager(dir);
+    }
+
+    [RelayCommand]
     public void OpenUrl(string url)
     {
         try
@@ -555,7 +626,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
             // 6. Audio feedback & status notification
             _audioService.PlaySync();
-            LastSyncedAtText = $"Synced {DateTime.Now:HH:mm:ss}";
+            LastSyncedAtText = FormatSyncTimestamp(DateTime.Now);
             ShowNotification($"Synchronized {Profiles.Count} swarm account(s) and live telemetry.");
         }
         catch (Exception ex)
@@ -693,7 +764,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         sb.AppendLine("  th { background: #f1f5f9 !important; color: #334155 !important; font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid #cbd5e1 !important; padding: 8px 10px; text-align: left; }");
         sb.AppendLine("  td { border: 1px solid #e2e8f0 !important; color: #1e293b !important; padding: 7px 10px; vertical-align: middle; background: #ffffff; }");
         sb.AppendLine("  tr:nth-child(even) td { background: #f8fafc !important; }");
-        sb.AppendLine("  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; color: #ffffff !important; }");
+        sb.AppendLine("  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #0f172a; }");
         sb.AppendLine("  .tool-pill { display: inline-block; background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; border-radius: 3px; padding: 1px 5px; font-family: Consolas, Monaco, monospace; font-size: 9.5px; margin: 1px 2px; color: #0369a1 !important; word-break: break-all; }");
         sb.AppendLine("  .footer { text-align: center; font-size: 10.5px; color: #94a3b8; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; }");
         sb.AppendLine("  @media print {");
@@ -751,8 +822,28 @@ public partial class AvaloniaMainViewModel : ObservableObject
         sb.AppendLine("    <tbody>");
         foreach (var p in Profiles)
         {
-            string tierBg = p.TierBadgeBackground;
-            sb.AppendLine($"      <tr><td><strong>{p.Name}</strong></td><td>{p.StatusBadgeText}</td><td>{p.AccountEmail ?? "Pending Auth"}</td><td><span class='badge' style='background:{tierBg};'>{p.TierBadgeText}</span></td><td>{p.CurrentModel}</td><td>{p.UsageLabel}</td><td>{p.DailyQuotaLimit:N0}</td></tr>");
+            string tierBg;
+            string tierFg;
+            switch (p.TierBadgeText?.ToUpperInvariant())
+            {
+                case "ULTRA":
+                    tierBg = "#fef3c7";
+                    tierFg = "#b45309";
+                    break;
+                case "PRO":
+                    tierBg = "#f3e8ff";
+                    tierFg = "#7e22ce";
+                    break;
+                case "PLUS":
+                    tierBg = "#e0f2fe";
+                    tierFg = "#0369a1";
+                    break;
+                default:
+                    tierBg = "#f1f5f9";
+                    tierFg = "#334155";
+                    break;
+            }
+            sb.AppendLine($"      <tr><td><strong>{p.Name}</strong></td><td><span class='badge' style='background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;'>{p.StatusBadgeText}</span></td><td>{p.AccountEmail ?? "Pending Auth"}</td><td><span class='badge' style='background:{tierBg}; color:{tierFg}; border:1px solid rgba(0,0,0,0.1);'>{p.TierBadgeText}</span></td><td>{p.CurrentModel}</td><td>{p.UsageLabel}</td><td>{p.DailyQuotaLimit:N0}</td></tr>");
         }
         sb.AppendLine("    </tbody>");
         sb.AppendLine("  </table>");
@@ -768,7 +859,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
             sb.AppendLine("    <tbody>");
             foreach (var m in ModelEfficiencies)
             {
-                sb.AppendLine($"      <tr><td><strong>{m.ModelName}</strong></td><td>{m.Tier}</td><td>{m.Requests}</td><td><strong style='color:#0284c7;'>{m.Tokens}</strong></td><td><strong style='color:#059669;'>{m.AvgSpeed}</strong></td><td>{m.ErrorRate}</td><td><span class='badge' style='background:#f1f5f9; color:{m.StatusColor}; border:1px solid #cbd5e1;'>{m.Status}</span></td></tr>");
+                sb.AppendLine($"      <tr><td><strong>{m.ModelName}</strong></td><td>{m.Tier}</td><td>{m.Requests}</td><td><strong style='color:#0284c7;'>{m.Tokens}</strong></td><td><strong style='color:#059669;'>{m.AvgSpeed}</strong></td><td>{m.ErrorRate}</td><td><span class='badge' style='background:#f8fafc; color:{m.StatusColor}; border:1px solid #cbd5e1;'>{m.Status}</span></td></tr>");
             }
             sb.AppendLine("    </tbody>");
             sb.AppendLine("  </table>");
@@ -1406,6 +1497,13 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
             // Automatic background swarm sync on launch with zero CLI flicker
             _ = Task.Run(async () => await SyncSwarmAsync());
+
+            // Auto-dismiss welcome overlay after 2 seconds (2000 ms)
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(2000);
+                Dispatcher.UIThread.Post(() => IsWelcomeOverlayVisible = false);
+            });
         }
         catch (Exception ex)
         {

@@ -59,6 +59,16 @@ public partial class AvaloniaProfileItemViewModel : ObservableObject
     private bool _isBusy;
 
     [ObservableProperty]
+    private bool _isCardExpanded = true;
+
+    [RelayCommand]
+    public void ToggleCardExpanded()
+    {
+        _audioService.PlayClick();
+        IsCardExpanded = !IsCardExpanded;
+    }
+
+    [ObservableProperty]
     private bool _isDetailsExpanded;
 
     partial void OnIsDetailsExpandedChanged(bool value)

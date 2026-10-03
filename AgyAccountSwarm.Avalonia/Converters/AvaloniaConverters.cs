@@ -215,15 +215,18 @@ public class PageToFontWeightConverter : IValueConverter
 public class PathToBitmapConverter : IValueConverter
 {
     public static readonly PathToBitmapConverter Instance = new();
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, global::Avalonia.Media.Imaging.Bitmap> _bitmapCache = new(StringComparer.OrdinalIgnoreCase);
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (value is global::Avalonia.Media.Imaging.Bitmap directBmp)
+            return directBmp;
+
         if (value is string path && !string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path))
         {
             try
             {
-                using var stream = System.IO.File.OpenRead(path);
-                return new global::Avalonia.Media.Imaging.Bitmap(stream);
+                return _bitmapCache.GetOrAdd(path, p => new global::Avalonia.Media.Imaging.Bitmap(p));
             }
             catch
             {

@@ -515,10 +515,10 @@
             <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
                 <!-- Top Header Bar -->
                 <Border Grid.Row="0" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="24,14">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <!-- Current Page Title & Status -->
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                    <Grid RowDefinitions="Auto,Auto">
+                        <!-- Row 0: Page Title, Version & Main Action Buttons -->
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
                                 <TextBlock Text="{Binding CurrentPageTitle}"
                                            FontSize="20"
                                            FontWeight="Bold"
@@ -531,82 +531,97 @@
                                         CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding AppVersion}" Foreground="{DynamicResource BrushBadgeText}" FontSize="11" FontWeight="SemiBold" />
                                 </Border>
+                            </StackPanel>
 
+                            <!-- Right CTA: Sync Swarm and Launch Swarm -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                <!-- Refresh / Sync Swarm Button with Loading Animation -->
+                                <Button Command="{Binding SyncSwarmCommand}"
+                                        Classes="outline"
+                                        Padding="12,8"
+                                        IsEnabled="{Binding !IsSyncing}"
+                                        ToolTip.Tip="Check profile tokens, detect model sessions, and verify quota limits">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="7">
+                                        <!-- Spinning Arrow Path when Syncing -->
+                                        <Path Data="{StaticResource HeroIconArrowPath}"
+                                              Stroke="{DynamicResource BrushAccent}"
+                                              StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"
+                                              IsVisible="{Binding IsSyncing}"
+                                              Classes="spin" />
+
+                                        <!-- Static Arrow Path when Idle -->
+                                        <Path Data="{StaticResource HeroIconArrowPath}"
+                                              Stroke="{DynamicResource BrushTextPrimary}"
+                                              StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"
+                                              IsVisible="{Binding !IsSyncing}" />
+
+                                        <TextBlock Text="Syncing Swarm..." FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" VerticalAlignment="Center" IsVisible="{Binding IsSyncing}" />
+                                        <TextBlock Text="Sync Swarm" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" IsVisible="{Binding !IsSyncing}" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Launch Swarm Button (When Swarm is Idle) -->
+                                <Button Command="{Binding LaunchSwarmCommand}"
+                                        Background="#059669"
+                                        BorderThickness="0"
+                                        CornerRadius="6"
+                                        Padding="14,8"
+                                        IsVisible="{Binding !IsSwarmRunning}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
+                                        <Path Data="{StaticResource HeroIconBolt}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding SelectedSwarmCount, StringFormat='Launch Swarm ({0})'}" Foreground="#FFFFFF" FontWeight="Bold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Stop Swarm Button (When Swarm is Active) -->
+                                <Button Command="{Binding StopSwarmCommand}"
+                                        Background="#DC2626"
+                                        BorderThickness="0"
+                                        CornerRadius="6"
+                                        Padding="14,8"
+                                        IsVisible="{Binding IsSwarmRunning}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
+                                        <Path Data="{StaticResource HeroIconStop}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding SelectedSwarmCount, StringFormat='Stop Swarm ({0} Active)'}" Foreground="#FFFFFF" FontWeight="Bold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Row 1: Subtitle & Dedicated Telemetry Sync Status Badges -->
+                        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                            <TextBlock Grid.Column="0"
+                                       Text="Isolated multi-session manager, rate-limit monitor &amp; quota tracker"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource BrushTextSecondary}"
+                                       VerticalAlignment="Center" />
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
                                 <!-- Live Green Sync Dot -->
-                                <Ellipse Width="8" Height="8" Fill="#10B981" VerticalAlignment="Center" Margin="4,0,0,0" />
+                                <Ellipse Width="8" Height="8" Fill="#10B981" VerticalAlignment="Center" Margin="0,0,2,0" />
 
                                 <!-- Auto-Sync Status Badge -->
                                 <Border Background="#1510B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                     <TextBlock Text="SUCCESS • AUTO-SYNC ACTIVE" Foreground="#10B981" FontSize="10" FontWeight="Bold" />
                                 </Border>
 
-                                <!-- Last Synced Tag -->
+                                <!-- Auto-Sync Countdown Tag -->
                                 <Border Background="{DynamicResource BrushSurfaceHover}"
                                         BorderBrush="{DynamicResource BrushCardBorder}"
                                         BorderThickness="1"
                                         CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding LastSyncedAtText}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                    <TextBlock Text="{Binding AutoSyncCountdown, StringFormat='⏱️ Next: {0}'}" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                </Border>
+
+                                <!-- Last Synced Tag with Timezone Indicator -->
+                                <Border Background="{DynamicResource BrushSurfaceHover}"
+                                        BorderBrush="{DynamicResource BrushCardBorder}"
+                                        BorderThickness="1"
+                                        CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding LastSyncedAtText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="Isolated multi-session manager, rate-limit monitor &amp; quota tracker"
-                                       FontSize="12"
-                                       Foreground="{DynamicResource BrushTextSecondary}"
-                                       Margin="0,3,0,0" />
-                        </StackPanel>
-
-                        <!-- Right CTA: Sync Swarm and Launch Swarm -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-                            <!-- Refresh / Sync Swarm Button with Loading Animation -->
-                            <Button Command="{Binding SyncSwarmCommand}"
-                                    Classes="outline"
-                                    Padding="12,8"
-                                    IsEnabled="{Binding !IsSyncing}"
-                                    ToolTip.Tip="Check profile tokens, detect model sessions, and verify quota limits">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="7">
-                                    <!-- Spinning Arrow Path when Syncing -->
-                                    <Path Data="{StaticResource HeroIconArrowPath}"
-                                          Stroke="{DynamicResource BrushAccent}"
-                                          StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"
-                                          IsVisible="{Binding IsSyncing}"
-                                          Classes="spin" />
-
-                                    <!-- Static Arrow Path when Idle -->
-                                    <Path Data="{StaticResource HeroIconArrowPath}"
-                                          Stroke="{DynamicResource BrushTextPrimary}"
-                                          StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"
-                                          IsVisible="{Binding !IsSyncing}" />
-
-                                    <TextBlock Text="Syncing Swarm..." FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" VerticalAlignment="Center" IsVisible="{Binding IsSyncing}" />
-                                    <TextBlock Text="Sync Swarm" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" IsVisible="{Binding !IsSyncing}" />
-                                </StackPanel>
-                            </Button>
-
-                            <!-- Launch Swarm Button (When Swarm is Idle) -->
-                            <Button Command="{Binding LaunchSwarmCommand}"
-                                    Background="#059669"
-                                    BorderThickness="0"
-                                    CornerRadius="6"
-                                    Padding="14,8"
-                                    IsVisible="{Binding !IsSwarmRunning}">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
-                                    <Path Data="{StaticResource HeroIconBolt}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding SelectedSwarmCount, StringFormat='Launch Swarm ({0})'}" Foreground="#FFFFFF" FontWeight="Bold" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-
-                            <!-- Stop Swarm Button (When Swarm is Active) -->
-                            <Button Command="{Binding StopSwarmCommand}"
-                                    Background="#DC2626"
-                                    BorderThickness="0"
-                                    CornerRadius="6"
-                                    Padding="14,8"
-                                    IsVisible="{Binding IsSwarmRunning}">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
-                                    <Path Data="{StaticResource HeroIconStop}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding SelectedSwarmCount, StringFormat='Stop Swarm ({0} Active)'}" Foreground="#FFFFFF" FontWeight="Bold" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
+                        </Grid>
                     </Grid>
                 </Border>
 
@@ -630,8 +645,14 @@
                               IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Dashboard}"
                               Padding="24,24,24,60">
                     <StackPanel Spacing="20">
-                        <!-- Top KPI Metrics Row -->
-                        <UniformGrid Columns="5">
+                        <!-- Top KPI Metrics Header & Fold Toggle -->
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="📊 FLEET KEY PERFORMANCE INDICATORS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Command="{Binding ToggleDashboardKpiCommand}" Classes="outline" Padding="8,4" CornerRadius="6" ToolTip.Tip="Fold / Unfold Fleet KPIs">
+                                <TextBlock Text="{Binding IsDashboardKpiExpanded, Converter={StaticResource BoolToChevronConverter}}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                            </Button>
+                        </Grid>
+                        <UniformGrid Columns="5" IsVisible="{Binding IsDashboardKpiExpanded}">
                             <!-- Card 1: Total Profiles -->
                             <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,10,0">
                                 <StackPanel Spacing="3">
@@ -691,19 +712,27 @@
                                         <TextBlock Text="Real-time telemetry parsed from local history.jsonl and session logs" FontSize="13" Foreground="{DynamicResource BrushTextSecondary}" />
                                     </StackPanel>
 
-                                    <!-- Download PDF Report Button -->
-                                    <Button Grid.Column="1" Command="{Binding ExportPdfReportCommand}"
-                                            Background="{DynamicResource BrushSurface}"
-                                            BorderBrush="{DynamicResource BrushCardBorder}"
-                                            BorderThickness="1" CornerRadius="6"
-                                            Padding="12,7" VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                                            <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="{DynamicResource BrushTextPrimary}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,1,0,0" />
-                                            <TextBlock Text="Download PDF Report" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
+                                    <!-- Action Strip: Download PDF Report & Fold Toggle Button -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Button Command="{Binding ExportPdfReportCommand}"
+                                                Background="{DynamicResource BrushSurface}"
+                                                BorderBrush="{DynamicResource BrushCardBorder}"
+                                                BorderThickness="1" CornerRadius="6"
+                                                Padding="12,7" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="{DynamicResource BrushTextPrimary}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,2.5,0,0" />
+                                                <TextBlock Text="Download PDF Report" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Command="{Binding ToggleDashboardChartCommand}"
+                                                Classes="outline" Padding="8,6" CornerRadius="6"
+                                                ToolTip.Tip="Fold / Unfold Analytics Chart">
+                                            <TextBlock Text="{Binding IsDashboardChartExpanded, Converter={StaticResource BoolToChevronConverter}}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                                        </Button>
+                                    </StackPanel>
                                 </Grid>
 
+                                <StackPanel IsVisible="{Binding IsDashboardChartExpanded}" Spacing="16">
                                 <!-- Dedicated Filter Toolbar Row -->
                                 <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14,10">
                                     <WrapPanel VerticalAlignment="Center">
@@ -850,6 +879,7 @@
                                         </Grid>
                                     </Grid>
                                 </Border>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
@@ -909,46 +939,57 @@
                         <!-- ACTIVE SWARM ACCOUNTS GRID PREVIEW                             -->
                         <!-- ============================================================== -->
                         <StackPanel Spacing="10">
-                            <TextBlock Text="Active Account Swarm Workers" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
-                            <ItemsControl ItemsSource="{Binding Profiles}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="vm:AvaloniaProfileItemViewModel">
-                                        <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
-                                            <Grid ColumnDefinitions="Auto,*,Auto">
-                                                <!-- Color Accent Indicator -->
-                                                <Border Grid.Column="0" Width="4" CornerRadius="2" Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" Margin="0,0,12,0" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="Active Account Swarm Workers" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Command="{Binding ToggleDashboardAccountsCommand}"
+                                        Classes="outline" Padding="8,4" CornerRadius="6"
+                                        ToolTip.Tip="Fold / Unfold Swarm Accounts">
+                                    <TextBlock Text="{Binding IsDashboardAccountsExpanded, Converter={StaticResource BoolToChevronConverter}}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                                </Button>
+                            </Grid>
+                            <Border IsVisible="{Binding IsDashboardAccountsExpanded}">
+                                <ItemsControl ItemsSource="{Binding Profiles}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:AvaloniaProfileItemViewModel">
+                                            <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                                    <!-- Color Accent Indicator -->
+                                                    <Border Grid.Column="0" Width="4" CornerRadius="2" Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" Margin="0,0,12,0" />
 
-                                                <!-- Info & Telemetry Column -->
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <!-- Row 1: Avatar, Name, Tier, Status, Model & Quota Badges -->
-                                                    <WrapPanel VerticalAlignment="Center">
-                                                        <Grid Width="40" Height="40" Margin="0,0,10,0" VerticalAlignment="Center">
-                                                            <!-- Google Profile Picture -->
-                                                            <Border Width="40" Height="40" CornerRadius="20"
-                                                                    BorderBrush="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                    BorderThickness="2"
-                                                                    IsVisible="{Binding HasAvatarUrl}">
-                                                                <Border.Clip>
-                                                                    <EllipseGeometry Rect="0,0,40,40" />
-                                                                </Border.Clip>
-                                                                <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                    <!-- Info & Telemetry Column -->
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <!-- Row 1: Avatar, Name, Tier, Status, Model & Quota Badges -->
+                                                        <WrapPanel VerticalAlignment="Center">
+                                                            <Grid Width="40" Height="40" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                                <!-- Google Profile Picture clipped inside Ellipse -->
+                                                                <Image Width="40" Height="40"
+                                                                       Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
                                                                        Stretch="UniformToFill"
-                                                                       RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                                            </Border>
+                                                                       RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                                       IsVisible="{Binding HasAvatarUrl}">
+                                                                    <Image.Clip>
+                                                                        <EllipseGeometry Rect="0,0,40,40" />
+                                                                    </Image.Clip>
+                                                                </Image>
+                                                                <Ellipse Width="40" Height="40"
+                                                                         Stroke="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                         StrokeThickness="1.5"
+                                                                         IsHitTestVisible="False"
+                                                                         IsVisible="{Binding HasAvatarUrl}" />
 
-                                                            <Border Width="40" Height="40" CornerRadius="20"
-                                                                    Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                    IsVisible="{Binding !HasAvatarUrl}">
-                                                                <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="17" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                            </Border>
+                                                                <Border Width="40" Height="40" CornerRadius="20"
+                                                                        Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                        IsVisible="{Binding !HasAvatarUrl}">
+                                                                    <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="17" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                </Border>
 
-                                                            <Border Width="13" Height="13" CornerRadius="6.5"
-                                                                    Background="#FFFFFF" BorderBrush="#4285F4" BorderThickness="1.2"
-                                                                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                                                                    Margin="0,0,-1,-1">
-                                                                <TextBlock Text="G" FontSize="8" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
-                                                            </Border>
-                                                        </Grid>
+                                                                <Border Width="13" Height="13" CornerRadius="6.5"
+                                                                        Background="#FFFFFF" BorderBrush="#4285F4" BorderThickness="1.2"
+                                                                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                                        Margin="0,0,-1,-1">
+                                                                    <TextBlock Text="G" FontSize="8" FontWeight="Bold" Foreground="#4285F4" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-1,0,0" />
+                                                                </Border>
+                                                            </Grid>
 
                                                         <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" />
 
@@ -1037,6 +1078,7 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+                            </Border>
                         </StackPanel>
 
                         <!-- Bottom Breathing Room Spacer -->
@@ -1189,24 +1231,32 @@
                                                 BorderThickness="1"
                                                 CornerRadius="10"
                                                 Margin="0,0,0,16"
-                                                Padding="18,16">
-                                            <StackPanel>
+                                                ClipToBounds="True">
+                                            <Grid ColumnDefinitions="5,*">
+                                                <!-- Left Accent Border Stripe matching profile ColorTag -->
+                                                <Border Grid.Column="0" Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" />
+
+                                                <Border Grid.Column="1" Padding="18,16">
+                                                <StackPanel>
                                                 <!-- Row 1: Profile Header + Top-Right Swarm Checkbox -->
                                                 <Grid Margin="0,0,0,10" ColumnDefinitions="Auto,*,Auto">
                                                     <!-- Col 0: Dedicated Circular Avatar (48x48) -->
                                                     <Grid Grid.Column="0" Width="48" Height="48" Margin="0,0,14,0" VerticalAlignment="Top">
                                                         <!-- Online Google Profile Picture clipped inside Ellipse -->
-                                                        <Border Width="48" Height="48" CornerRadius="24"
-                                                                BorderBrush="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                BorderThickness="2"
-                                                                IsVisible="{Binding HasAvatarUrl}">
-                                                            <Border.Clip>
+                                                        <Image Width="48" Height="48"
+                                                               Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                               Stretch="UniformToFill"
+                                                               RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                               IsVisible="{Binding HasAvatarUrl}">
+                                                            <Image.Clip>
                                                                 <EllipseGeometry Rect="0,0,48,48" />
-                                                            </Border.Clip>
-                                                            <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
-                                                                   Stretch="UniformToFill"
-                                                                   RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                                        </Border>
+                                                            </Image.Clip>
+                                                        </Image>
+                                                        <Ellipse Width="48" Height="48"
+                                                                 Stroke="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                 StrokeThickness="1.5"
+                                                                 IsHitTestVisible="False"
+                                                                 IsVisible="{Binding HasAvatarUrl}" />
 
                                                         <!-- Fallback Google Circular Initial Badge -->
                                                         <Border Width="48" Height="48" CornerRadius="24"
@@ -1301,8 +1351,20 @@
                                                                 <TextBlock Text="Swarm" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Border>
+                                                        <!-- Fold Toggle Button -->
+                                                        <Button Command="{Binding ToggleCardExpandedCommand}"
+                                                                Classes="outline"
+                                                                Padding="8,4"
+                                                                CornerRadius="6"
+                                                                ToolTip.Tip="Fold / Unfold Profile Card">
+                                                            <TextBlock Text="{Binding IsCardExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                                                       FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                                        </Button>
                                                     </StackPanel>
                                                 </Grid>
+
+                                                <!-- Collapsible Body Container (Row 2+: Description, Sandboxes, Accent line, Details fold, Quota bar, Actions, etc.) -->
+                                                <StackPanel IsVisible="{Binding IsCardExpanded}">
 
                                                 <!-- Row 2: Description & Sandbox Paths -->
                                                 <StackPanel Margin="0,0,0,8">
@@ -1768,7 +1830,10 @@
                                                         </StackPanel>
                                                     </Grid>
                                                 </StackPanel>
+                                                </StackPanel>
                                             </StackPanel>
+                                            </Border>
+                                            </Grid>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -2057,17 +2122,20 @@
                                                                                 <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="13.5" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                                             </Border>
 
-                                                                            <Border Width="34" Height="34" CornerRadius="17"
-                                                                                    BorderBrush="{Binding SenderColor, Converter={StaticResource HexBrushConverter}}"
-                                                                                    BorderThickness="1.5"
-                                                                                    IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                                                                <Border.Clip>
+                                                                            <Image Width="34" Height="34"
+                                                                                   Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                                                   Stretch="UniformToFill"
+                                                                                   RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                                                   IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                                                <Image.Clip>
                                                                                     <EllipseGeometry Rect="0,0,34,34" />
-                                                                                </Border.Clip>
-                                                                                <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
-                                                                                       Stretch="UniformToFill"
-                                                                                       RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                                                            </Border>
+                                                                                </Image.Clip>
+                                                                            </Image>
+                                                                            <Ellipse Width="34" Height="34"
+                                                                                     Stroke="{Binding SenderColor, Converter={StaticResource HexBrushConverter}}"
+                                                                                     StrokeThickness="1.2"
+                                                                                     IsHitTestVisible="False"
+                                                                                     IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                                                         </Grid>
 
                                                                         <!-- Content Body -->
@@ -2180,8 +2248,14 @@
                                 <!-- Dispatch Configuration & Workspace Definition -->
                                 <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
                                     <StackPanel Spacing="16">
-                                        <TextBlock Text="🎯 Dispatch Configuration &amp; Task Definition" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="🎯 Dispatch Configuration &amp; Task Definition" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                            <Button Grid.Column="1" Command="{Binding ToggleProjectContextCommand}" Classes="outline" Padding="8,4" CornerRadius="6" ToolTip.Tip="Fold / Unfold Task Definition">
+                                                <TextBlock Text="{Binding IsProjectContextExpanded, Converter={StaticResource BoolToChevronConverter}}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                                            </Button>
+                                        </Grid>
 
+                                        <StackPanel IsVisible="{Binding IsProjectContextExpanded}" Spacing="16">
                                         <!-- Target Workspace -->
                                         <StackPanel Spacing="6">
                                             <TextBlock Text="Target Repository Directory:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
@@ -2234,6 +2308,7 @@
                                             <TextBox Text="{Binding FleetTaskObjective}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="90" Padding="10,8"
                                                      PlaceholderText="Describe the objective to accomplish (e.g. 'Implement a clean payment gateway webhook with signature validation, mock testing, and OpenAPI documentation')..." />
                                         </StackPanel>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
 
@@ -2246,12 +2321,15 @@
                                                 <TextBlock Text="Workers selected below will receive tailored sub-task prompts in isolated environments" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                                                <Button Content="☑️ Select All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="{x:True}" Classes="outline" Padding="8,4" FontSize="11" />
-                                                <Button Content="⬜ Deselect All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="{x:False}" Classes="outline" Padding="8,4" FontSize="11" />
+                                                <Button Content="☑️ Select All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="{x:True}" Classes="outline" Padding="8,4" FontSize="11" IsVisible="{Binding IsProjectTasksExpanded}" />
+                                                <Button Content="⬜ Deselect All" Command="{Binding SelectAllSwarmCommand}" CommandParameter="{x:False}" Classes="outline" Padding="8,4" FontSize="11" IsVisible="{Binding IsProjectTasksExpanded}" />
+                                                <Button Command="{Binding ToggleProjectTasksCommand}" Classes="outline" Padding="8,4" CornerRadius="6" ToolTip.Tip="Fold / Unfold Participating Workers">
+                                                    <TextBlock Text="{Binding IsProjectTasksExpanded, Converter={StaticResource BoolToChevronConverter}}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                </Button>
                                             </StackPanel>
                                         </Grid>
 
-                                        <ItemsControl ItemsSource="{Binding Profiles}">
+                                        <ItemsControl ItemsSource="{Binding Profiles}" IsVisible="{Binding IsProjectTasksExpanded}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="vm:AvaloniaProfileItemViewModel">
                                                     <Border Background="{DynamicResource BrushSurface}" CornerRadius="8" Padding="12,10" Margin="0,0,0,8" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
@@ -2262,17 +2340,20 @@
                                                             <!-- Avatar / Google Account Profile Picture -->
                                                             <Grid Grid.Column="1" Width="36" Height="36" Margin="0,0,12,0" VerticalAlignment="Center">
                                                                 <!-- Image Avatar -->
-                                                                <Border Width="36" Height="36" CornerRadius="18"
-                                                                        BorderBrush="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                        BorderThickness="1.8"
-                                                                        IsVisible="{Binding HasAvatarUrl}">
-                                                                    <Border.Clip>
+                                                                <Image Width="36" Height="36"
+                                                                       Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                                       Stretch="UniformToFill"
+                                                                       RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                                       IsVisible="{Binding HasAvatarUrl}">
+                                                                    <Image.Clip>
                                                                         <EllipseGeometry Rect="0,0,36,36" />
-                                                                    </Border.Clip>
-                                                                    <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
-                                                                           Stretch="UniformToFill"
-                                                                           RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                                                </Border>
+                                                                    </Image.Clip>
+                                                                </Image>
+                                                                <Ellipse Width="36" Height="36"
+                                                                         Stroke="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                         StrokeThickness="1.5"
+                                                                         IsHitTestVisible="False"
+                                                                         IsVisible="{Binding HasAvatarUrl}" />
 
                                                                 <!-- Initials Circle Fallback -->
                                                                 <Border Width="36" Height="36" CornerRadius="18"
@@ -2412,17 +2493,19 @@
                                                                     <Border Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" CornerRadius="18">
                                                                         <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                                     </Border>
-                                                                    <Border Width="36" Height="36" CornerRadius="18"
-                                                                            BorderBrush="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                            BorderThickness="1.5"
-                                                                            IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                                                        <Border.Clip>
+                                                                    <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                                           Stretch="UniformToFill" Width="36" Height="36"
+                                                                           RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                                           IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                                        <Image.Clip>
                                                                             <EllipseGeometry Rect="0,0,36,36" />
-                                                                        </Border.Clip>
-                                                                        <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
-                                                                               Stretch="UniformToFill" Width="36" Height="36"
-                                                                               RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                                                    </Border>
+                                                                        </Image.Clip>
+                                                                    </Image>
+                                                                    <Ellipse Width="36" Height="36"
+                                                                             Stroke="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                             StrokeThickness="1.5"
+                                                                             IsHitTestVisible="False"
+                                                                             IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                                                                 </Grid>
 
                                                                 <!-- Profile Name & Role Info -->
@@ -2556,17 +2639,19 @@
                                                                                     Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}">
                                                                                 <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="12.5" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                                             </Border>
-                                                                            <Border Width="30" Height="30" CornerRadius="15"
-                                                                                    BorderBrush="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                                    BorderThickness="1.5"
-                                                                                    IsVisible="{Binding HasAvatarUrl}">
-                                                                                <Border.Clip>
+                                                                            <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                                                   Stretch="UniformToFill" Width="30" Height="30"
+                                                                                   RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                                                   IsVisible="{Binding HasAvatarUrl}">
+                                                                                <Image.Clip>
                                                                                     <EllipseGeometry Rect="0,0,30,30" />
-                                                                                </Border.Clip>
-                                                                                <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
-                                                                                       Stretch="UniformToFill" Width="30" Height="30"
-                                                                                       RenderOptions.BitmapInterpolationMode="HighQuality" />
-                                                                            </Border>
+                                                                                </Image.Clip>
+                                                                            </Image>
+                                                                            <Ellipse Width="30" Height="30"
+                                                                                     Stroke="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                                     StrokeThickness="1.2"
+                                                                                     IsHitTestVisible="False"
+                                                                                     IsVisible="{Binding HasAvatarUrl}" />
                                                                         </Grid>
 
                                                                         <!-- Branch & Path Info -->
@@ -2904,7 +2989,7 @@
                             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
                                 <Button Command="{Binding ExportPdfReportCommand}" Classes="primary" Padding="14,7">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
-                                        <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,1,0,0" />
+                                        <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,2.5,0,0" />
                                         <TextBlock Text="Download PDF Report" FontWeight="Bold" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
@@ -2989,7 +3074,7 @@
                                     <!-- Download PDF Report CTA -->
                                     <Button Grid.Column="1" Command="{Binding ExportPdfReportCommand}" Classes="outline" Padding="12,7" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                                            <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="{DynamicResource BrushTextPrimary}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,1,0,0" />
+                                            <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="{DynamicResource BrushTextPrimary}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,2.5,0,0" />
                                             <TextBlock Text="Download PDF Report" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
                                         </StackPanel>
                                     </Button>
@@ -3192,11 +3277,17 @@
                         <!-- Section 1: Model Efficiency Comparison Matrix (Opus & All Models) -->
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="18">
                             <StackPanel Spacing="10">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="Model Efficiency Comparison Matrix" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
-                                    <TextBlock Text="Comparison of inference speed, token output, and error rates across all agy models" FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" />
-                                </StackPanel>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="Model Efficiency Comparison Matrix" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Comparison of inference speed, token output, and error rates across all agy models" FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Command="{Binding ToggleAnalyticsEfficiencyCommand}" Classes="outline" Padding="8,4" CornerRadius="6" ToolTip.Tip="Fold / Unfold Model Efficiency">
+                                        <TextBlock Text="{Binding IsAnalyticsEfficiencyExpanded, Converter={StaticResource BoolToChevronConverter}}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                                    </Button>
+                                </Grid>
 
+                                <StackPanel IsVisible="{Binding IsAnalyticsEfficiencyExpanded}" Spacing="10">
                                 <!-- Table Header -->
                                 <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="4" Padding="12,8">
                                     <Grid ColumnDefinitions="200,100,110,110,110,90,*">
@@ -3230,25 +3321,31 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
                         <!-- Section 2: Real 24-Hour Swarm Hourly Activity Heatmap -->
                         <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
                             <StackPanel Spacing="14">
-                                <Grid ColumnDefinitions="*,Auto">
+                                <Grid ColumnDefinitions="*,Auto,Auto">
                                     <StackPanel Grid.Column="0" Spacing="2">
                                         <TextBlock Text="24-Hour Swarm Hourly Activity Heatmap" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
                                         <TextBlock Text="Actual timestamp frequency from local history files across all active instances" FontSize="12" Foreground="{DynamicResource BrushTextMuted}" />
                                     </StackPanel>
 
                                     <!-- Account Filter for Heatmap -->
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8" Margin="0,0,10,0" IsVisible="{Binding IsAnalyticsTrendsExpanded}">
                                         <TextBlock Text="Filter Account:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
                                         <ComboBox ItemsSource="{Binding HeatmapAccountOptions}" SelectedItem="{Binding SelectedHeatmapAccount}" Width="180" />
                                     </StackPanel>
+
+                                    <Button Grid.Column="2" Command="{Binding ToggleAnalyticsTrendsCommand}" Classes="outline" Padding="8,4" CornerRadius="6" ToolTip.Tip="Fold / Unfold Hourly Activity Heatmap">
+                                        <TextBlock Text="{Binding IsAnalyticsTrendsExpanded, Converter={StaticResource BoolToChevronConverter}}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" />
+                                    </Button>
                                 </Grid>
 
+                                <StackPanel IsVisible="{Binding IsAnalyticsTrendsExpanded}" Spacing="14">
                                 <!-- 24h KPI Summary Strip -->
                                 <UniformGrid Columns="4">
                                     <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,6,0">
@@ -3337,6 +3434,7 @@
                                         </Grid>
                                     </Grid>
                                 </Border>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
 
@@ -3533,13 +3631,13 @@
                                     <WrapPanel VerticalAlignment="Center">
                                         <Button Command="{Binding ExportPdfReportCommand}" Padding="16,8" Classes="primary" Margin="0,0,10,0" ToolTip.Tip="Generate and save an executive audit PDF report via Edge headless engine">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="7">
-                                                <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,1,0,0" />
+                                                <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,2.5,0,0" />
                                                 <TextBlock Text="Download PDF Report" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
                                             </StackPanel>
                                         </Button>
                                         <Button Command="{Binding ExportLogsExcelCommand}" Padding="16,8" Classes="emerald" Margin="0,0,10,0" ToolTip.Tip="Export authentic CSV/Excel spreadsheet of all interaction logs">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="7">
-                                                <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,1,0,0" />
+                                                <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,2.5,0,0" />
                                                 <TextBlock Text="Export to Excel (.xlsx)" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
                                             </StackPanel>
                                         </Button>
@@ -3729,9 +3827,15 @@
                                         <TextBlock Text="Prune Files (>7d)" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
+                                <Button Command="{Binding OpenLogsFolderCommand}" Classes="outline" Padding="14,8" Margin="0,0,8,0" ToolTip.Tip="Open the physical logs directory in file explorer">
+                                    <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconFolder}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.5" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,1,0,0" />
+                                        <TextBlock Text="Open Logs Folder" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                                 <Button Command="{Binding ExportLogsExcelAsync}" Classes="emerald" Padding="16,8" ToolTip.Tip="Prompt save dialog and export logs to Excel spreadsheet">
                                     <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                                        <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,1,0,0" />
+                                        <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" Margin="0,2.5,0,0" />
                                         <TextBlock Text="Export to Excel (.xlsx)" FontSize="11.5" FontWeight="Bold" VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
@@ -4270,6 +4374,57 @@
                         </Grid>
                     </Grid>
                 </Border>
+            </Grid>
+        </Border>
+
+        <!-- ============================================================== -->
+        <!-- 2-SECOND WELCOME OVERLAY / SPLASH SCREEN                       -->
+        <!-- ============================================================== -->
+        <Border Background="#F2090D16"
+                IsVisible="{Binding IsWelcomeOverlayVisible}"
+                ZIndex="9999"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Border.Transitions>
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.4" />
+                </Transitions>
+            </Border.Transitions>
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel HorizontalAlignment="Center" Spacing="24">
+                    <!-- Glowing App Icon & Swarm Orb -->
+                    <Grid Width="110" Height="110" HorizontalAlignment="Center">
+                        <Ellipse Width="110" Height="110" Fill="#153B82F6" />
+                        <Ellipse Width="86" Height="86" Fill="#253B82F6" />
+                        <Border Width="64" Height="64" CornerRadius="32" Background="#1E293B" BorderBrush="#3B82F6" BorderThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image Source="/Assets/favicon.ico" Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </Grid>
+
+                    <!-- Title & Tagline -->
+                    <StackPanel HorizontalAlignment="Center" Spacing="6">
+                        <TextBlock Text="Google Antigravity CLI Swarm"
+                                   FontSize="24"
+                                   FontWeight="ExtraBold"
+                                   Foreground="#FFFFFF"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Multi-Account Sandbox Orchestrator &amp; Telemetry Fleet"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="#94A3B8"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Animated Loading Indeterminate Bar -->
+                    <StackPanel HorizontalAlignment="Center" Width="260" Spacing="8">
+                        <ProgressBar IsIndeterminate="True" Height="4" CornerRadius="2"
+                                     Foreground="#3B82F6" Background="#1E293B" />
+                        <TextBlock Text="Initializing Fleet &amp; Quota Telemetry..."
+                                   FontSize="11"
+                                   Foreground="#64748B"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>
