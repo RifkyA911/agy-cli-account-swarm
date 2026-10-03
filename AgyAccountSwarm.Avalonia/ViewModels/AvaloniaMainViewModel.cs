@@ -50,8 +50,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
     public ObservableCollection<DashboardLanguageOption> LanguageOptions { get; } =
     [
-        new() { Code = "en", DisplayName = "🇬🇧 English" },
-        new() { Code = "id", DisplayName = "🇮🇩 Bahasa Indonesia" }
+        new() { Code = "en", DisplayName = "🇬🇧 English" }
+        // Indonesian disabled temporarily per user request
     ];
 
     private readonly ILocalizationService _localizationService;
@@ -862,12 +862,6 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [ObservableProperty]
     private string _selectedDocTab = "Architecture";
 
-    [ObservableProperty]
-    private string _logLevelFilter = "All";
-
-    [ObservableProperty]
-    private string _logSearchQuery = string.Empty;
-
     // Fleet Dispatcher (Experimental) Properties
     [ObservableProperty]
     private string _fleetTaskObjective = string.Empty;
@@ -1250,6 +1244,32 @@ public partial class AvaloniaMainViewModel : ObservableObject
     }
     public ObservableCollection<McpServerConfig> McpServers { get; } = new();
     public ObservableCollection<string> LogLines { get; } = new();
+    public ObservableCollection<LogEntryItem> FilteredLogEntries { get; } = new();
+    private readonly List<LogEntryItem> _allLogEntries = new();
+
+    public List<string> LogLevelFilterOptions { get; } = ["ALL", "INFO", "DEBUG", "WARN", "ERROR", "SUCCESS"];
+
+    [ObservableProperty]
+    private string _logSearchQuery = string.Empty;
+
+    partial void OnLogSearchQueryChanged(string value)
+    {
+        ApplyLogFilters();
+    }
+
+    [ObservableProperty]
+    private string _selectedLogLevelFilter = "ALL";
+
+    partial void OnSelectedLogLevelFilterChanged(string value)
+    {
+        ApplyLogFilters();
+    }
+
+    [ObservableProperty]
+    private bool _autoScrollLogs = true;
+
+    public Func<string, Task<string?>>? SaveExcelFileRequested;
+    public Func<Task<string?>>? BrowseCliBinaryFileRequested;
     public ObservableCollection<DispatchedWorkerTask> DispatchedTasks { get; } = new();
     public ObservableCollection<GitWorktreeInfo> ActiveWorktrees { get; } = new();
     public ObservableCollection<string> SwarmBranches { get; } = new();
@@ -1313,6 +1333,13 @@ public partial class AvaloniaMainViewModel : ObservableObject
             Settings = await _storageService.LoadSettingsAsync();
             SoundEnabled = Settings.SoundEnabled;
             _audioService.IsEnabled = SoundEnabled;
+            CloseToTray = Settings.CloseToTray;
+            MinimizeToTray = Settings.MinimizeToTray;
+            if (!string.IsNullOrWhiteSpace(Settings.CustomAgyExecutablePath))
+            {
+                DetectedAgyPath = Settings.CustomAgyExecutablePath;
+                IsAgyInstalled = true;
+            }
 
             var langCode = Settings.Language ?? "en";
             SelectedLanguageOption = LanguageOptions.FirstOrDefault(l => l.Code == langCode) ?? LanguageOptions[0];
@@ -1341,6 +1368,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
             _syncTimer.Start();
             ShowNotification("Agy Swarm Avalonia initialized successfully.");
+
+            // Automatic background swarm sync on launch with zero CLI flicker
+            _ = Task.Run(async () => await SyncSwarmAsync());
         }
         catch (Exception ex)
         {
@@ -2268,11 +2298,67 @@ public partial class AvaloniaMainViewModel : ObservableObject
     public void RefreshLogs()
     {
         LogLines.Clear();
+        _allLogEntries.Clear();
         var lines = Logger.GetRecentLogLines();
-        foreach (var l in lines.TakeLast(150))
+        foreach (var l in lines)
         {
             LogLines.Add(l);
+            _allLogEntries.Add(LogEntryItem.Parse(l));
         }
+        ApplyLogFilters();
+    }
+
+    public void ApplyLogFilters()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(ApplyLogFilters);
+            return;
+        }
+
+        var filterLevel = SelectedLogLevelFilter?.Trim().ToUpperInvariant() ?? "ALL";
+        var query = LogSearchQuery?.Trim() ?? string.Empty;
+
+        var matching = _allLogEntries.AsEnumerable();
+        if (filterLevel != "ALL")
+        {
+            matching = matching.Where(e => string.Equals(e.Level, filterLevel, StringComparison.OrdinalIgnoreCase)
+                                        || (filterLevel == "WARN" && string.Equals(e.Level, "WARNING", StringComparison.OrdinalIgnoreCase)));
+        }
+
+        if (!string.IsNullOrEmpty(query))
+        {
+            matching = matching.Where(e =>
+                e.Message.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                e.Level.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                e.TimestampFormatted.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+
+        FilteredLogEntries.Clear();
+        foreach (var item in matching.TakeLast(400))
+        {
+            FilteredLogEntries.Add(item);
+        }
+    }
+
+    [RelayCommand]
+    public void ClearLogs()
+    {
+        _audioService.PlayClick();
+        Logger.Clear();
+        _allLogEntries.Clear();
+        LogLines.Clear();
+        FilteredLogEntries.Clear();
+        ShowNotification("Logs buffer cleared.");
+    }
+
+    [RelayCommand]
+    public void PruneFileLogs()
+    {
+        _audioService.PlayClick();
+        int pruned = Logger.PruneOldLogFiles(7);
+        RefreshLogs();
+        ShowNotification($"Pruned {pruned} old log file(s) from disk.");
     }
 
     [RelayCommand]
@@ -2281,15 +2367,46 @@ public partial class AvaloniaMainViewModel : ObservableObject
         _audioService.PlayClick();
         try
         {
-            var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            var filePath = Path.Combine(desktop, $"agyswarm_logs_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+            string? destinationPath = null;
+            var defaultFileName = $"agyswarm_logs_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            if (SaveExcelFileRequested != null)
+            {
+                destinationPath = await SaveExcelFileRequested.Invoke(defaultFileName);
+            }
+            else
+            {
+                var desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                destinationPath = Path.Combine(desktop, defaultFileName);
+            }
+
+            if (string.IsNullOrWhiteSpace(destinationPath)) return;
+
             var lines = Logger.GetRecentLogLines();
-            await LogExcelExportService.ExportToFileAsync(filePath, lines);
-            ShowNotification($"Exported logs to Desktop: {Path.GetFileName(filePath)}");
+            await LogExcelExportService.ExportToFileAsync(destinationPath, lines);
+            ShowNotification($"Exported logs to: {Path.GetFileName(destinationPath)}");
         }
         catch (Exception ex)
         {
+            Logger.Error("[Logs] Excel export failed", ex);
             ShowNotification($"Excel export failed: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task BrowseCliBinaryPathAsync()
+    {
+        _audioService.PlayClick();
+        if (BrowseCliBinaryFileRequested != null)
+        {
+            var selected = await BrowseCliBinaryFileRequested.Invoke();
+            if (!string.IsNullOrWhiteSpace(selected))
+            {
+                DetectedAgyPath = selected;
+                Settings.CustomAgyExecutablePath = selected;
+                await _storageService.SaveSettingsAsync(Settings);
+                IsAgyInstalled = true;
+                ShowNotification($"Set Antigravity CLI path: {Path.GetFileName(selected)}");
+            }
         }
     }
 
@@ -2808,6 +2925,11 @@ public partial class AvaloniaMainViewModel : ObservableObject
             : SelectedChatTargetWorker;
 
         var msg = await _swarmAggregatorService.BroadcastUserInstructionAsync(SelectedProject, text, target);
+        var userAvatar = Profiles.FirstOrDefault(p => p.HasAvatarUrl)?.AvatarUrl;
+        if (!string.IsNullOrEmpty(userAvatar))
+        {
+            msg.AvatarUrl = userAvatar;
+        }
         SwarmChatMessages.Add(msg);
         HasSwarmChatMessages = SwarmChatMessages.Count > 0;
         ShowNotification("Broadcast instruction dispatched to swarm.");
@@ -2826,6 +2948,14 @@ public partial class AvaloniaMainViewModel : ObservableObject
         SwarmChatMessages.Clear();
         foreach (var m in messages)
         {
+            if (string.IsNullOrEmpty(m.AvatarUrl))
+            {
+                var match = Profiles.FirstOrDefault(p => string.Equals(p.Name, m.SenderName, StringComparison.OrdinalIgnoreCase));
+                if (match?.HasAvatarUrl == true)
+                {
+                    m.AvatarUrl = match.AvatarUrl;
+                }
+            }
             SwarmChatMessages.Add(m);
         }
         HasSwarmChatMessages = SwarmChatMessages.Count > 0;

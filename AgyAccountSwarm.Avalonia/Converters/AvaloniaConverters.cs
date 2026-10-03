@@ -222,7 +222,8 @@ public class PathToBitmapConverter : IValueConverter
         {
             try
             {
-                return new global::Avalonia.Media.Imaging.Bitmap(path);
+                using var stream = System.IO.File.OpenRead(path);
+                return new global::Avalonia.Media.Imaging.Bitmap(stream);
             }
             catch
             {
@@ -477,6 +478,168 @@ public class IntToBooleanConverter : IValueConverter
         if (string.Equals(parameter?.ToString(), "Inverse", StringComparison.OrdinalIgnoreCase))
             return !hasCount;
         return hasCount;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Maps a role name (Architect, Implementer, Reviewer, Commander, System, etc.) to a themed badge background brush.
+/// </summary>
+public class RoleToBackgroundConverter : IValueConverter
+{
+    public static readonly RoleToBackgroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var role = value?.ToString()?.Trim() ?? string.Empty;
+        bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                       || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
+        if (role.Contains("Architect", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#F5F3FF")) : new SolidColorBrush(Color.Parse("#241846"));
+        if (role.Contains("Implementer", StringComparison.OrdinalIgnoreCase) || role.Contains("Worker", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#ECFDF5")) : new SolidColorBrush(Color.Parse("#063327"));
+        if (role.Contains("Reviewer", StringComparison.OrdinalIgnoreCase) || role.Contains("Tester", StringComparison.OrdinalIgnoreCase) || role.Contains("QA", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#ECFEFF")) : new SolidColorBrush(Color.Parse("#082C36"));
+        if (role.Contains("Commander", StringComparison.OrdinalIgnoreCase) || role.Contains("User", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#EFF6FF")) : new SolidColorBrush(Color.Parse("#0C2548"));
+        if (role.Contains("System", StringComparison.OrdinalIgnoreCase) || role.Contains("Orchestrator", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#FEF3C7")) : new SolidColorBrush(Color.Parse("#2D1E05"));
+        if (role.Contains("Security", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#FFF1F2")) : new SolidColorBrush(Color.Parse("#380B13"));
+
+        return isLight ? new SolidColorBrush(Color.Parse("#F1F5F9")) : new SolidColorBrush(Color.Parse("#1E293B"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Maps a role name to a themed badge border brush.
+/// </summary>
+public class RoleToBorderConverter : IValueConverter
+{
+    public static readonly RoleToBorderConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var role = value?.ToString()?.Trim() ?? string.Empty;
+        if (role.Contains("Architect", StringComparison.OrdinalIgnoreCase)) return new SolidColorBrush(Color.Parse("#8B5CF6"));
+        if (role.Contains("Implementer", StringComparison.OrdinalIgnoreCase) || role.Contains("Worker", StringComparison.OrdinalIgnoreCase)) return new SolidColorBrush(Color.Parse("#10B981"));
+        if (role.Contains("Reviewer", StringComparison.OrdinalIgnoreCase) || role.Contains("Tester", StringComparison.OrdinalIgnoreCase) || role.Contains("QA", StringComparison.OrdinalIgnoreCase)) return new SolidColorBrush(Color.Parse("#06B6D4"));
+        if (role.Contains("Commander", StringComparison.OrdinalIgnoreCase) || role.Contains("User", StringComparison.OrdinalIgnoreCase)) return new SolidColorBrush(Color.Parse("#3B82F6"));
+        if (role.Contains("System", StringComparison.OrdinalIgnoreCase) || role.Contains("Orchestrator", StringComparison.OrdinalIgnoreCase)) return new SolidColorBrush(Color.Parse("#F59E0B"));
+        if (role.Contains("Security", StringComparison.OrdinalIgnoreCase)) return new SolidColorBrush(Color.Parse("#F43F5E"));
+
+        return new SolidColorBrush(Color.Parse("#94A3B8"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Maps a role name to a themed badge foreground brush.
+/// </summary>
+public class RoleToForegroundConverter : IValueConverter
+{
+    public static readonly RoleToForegroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var role = value?.ToString()?.Trim() ?? string.Empty;
+        bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                       || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
+        if (role.Contains("Architect", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#7C3AED")) : new SolidColorBrush(Color.Parse("#C4B5FD"));
+        if (role.Contains("Implementer", StringComparison.OrdinalIgnoreCase) || role.Contains("Worker", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#059669")) : new SolidColorBrush(Color.Parse("#34D399"));
+        if (role.Contains("Reviewer", StringComparison.OrdinalIgnoreCase) || role.Contains("Tester", StringComparison.OrdinalIgnoreCase) || role.Contains("QA", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#0891B2")) : new SolidColorBrush(Color.Parse("#67E8F9"));
+        if (role.Contains("Commander", StringComparison.OrdinalIgnoreCase) || role.Contains("User", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#2563EB")) : new SolidColorBrush(Color.Parse("#60A5FA"));
+        if (role.Contains("System", StringComparison.OrdinalIgnoreCase) || role.Contains("Orchestrator", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#B45309")) : new SolidColorBrush(Color.Parse("#FDE68A"));
+        if (role.Contains("Security", StringComparison.OrdinalIgnoreCase))
+            return isLight ? new SolidColorBrush(Color.Parse("#E11D48")) : new SolidColorBrush(Color.Parse("#FDA4AF"));
+
+        return isLight ? new SolidColorBrush(Color.Parse("#475569")) : new SolidColorBrush(Color.Parse("#CBD5E1"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Maps a log level (INFO, DEBUG, WARN, ERROR, SUCCESS) to a themed badge background brush.
+/// </summary>
+public class LogLevelToBackgroundConverter : IValueConverter
+{
+    public static readonly LogLevelToBackgroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var level = value?.ToString()?.Trim().ToUpperInvariant() ?? "INFO";
+        bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                       || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
+        return level switch
+        {
+            "ERROR" => isLight ? new SolidColorBrush(Color.Parse("#FEE2E2")) : new SolidColorBrush(Color.Parse("#380B13")),
+            "WARN" or "WARNING" => isLight ? new SolidColorBrush(Color.Parse("#FEF3C7")) : new SolidColorBrush(Color.Parse("#2D1E05")),
+            "SUCCESS" => isLight ? new SolidColorBrush(Color.Parse("#ECFDF5")) : new SolidColorBrush(Color.Parse("#063327")),
+            "DEBUG" => isLight ? new SolidColorBrush(Color.Parse("#F1F5F9")) : new SolidColorBrush(Color.Parse("#1E222A")),
+            _ => isLight ? new SolidColorBrush(Color.Parse("#EFF6FF")) : new SolidColorBrush(Color.Parse("#0C2548")) // INFO
+        };
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Maps a log level to a themed badge border brush.
+/// </summary>
+public class LogLevelToBorderConverter : IValueConverter
+{
+    public static readonly LogLevelToBorderConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var level = value?.ToString()?.Trim().ToUpperInvariant() ?? "INFO";
+        return level switch
+        {
+            "ERROR" => new SolidColorBrush(Color.Parse("#EF4444")),
+            "WARN" or "WARNING" => new SolidColorBrush(Color.Parse("#F59E0B")),
+            "SUCCESS" => new SolidColorBrush(Color.Parse("#10B981")),
+            "DEBUG" => new SolidColorBrush(Color.Parse("#64748B")),
+            _ => new SolidColorBrush(Color.Parse("#3B82F6")) // INFO
+        };
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Maps a log level to a themed badge foreground brush.
+/// </summary>
+public class LogLevelToForegroundConverter : IValueConverter
+{
+    public static readonly LogLevelToForegroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var level = value?.ToString()?.Trim().ToUpperInvariant() ?? "INFO";
+        bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                       || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
+        return level switch
+        {
+            "ERROR" => isLight ? new SolidColorBrush(Color.Parse("#DC2626")) : new SolidColorBrush(Color.Parse("#FCA5A5")),
+            "WARN" or "WARNING" => isLight ? new SolidColorBrush(Color.Parse("#B45309")) : new SolidColorBrush(Color.Parse("#FDE68A")),
+            "SUCCESS" => isLight ? new SolidColorBrush(Color.Parse("#059669")) : new SolidColorBrush(Color.Parse("#34D399")),
+            "DEBUG" => isLight ? new SolidColorBrush(Color.Parse("#64748B")) : new SolidColorBrush(Color.Parse("#94A3B8")),
+            _ => isLight ? new SolidColorBrush(Color.Parse("#2563EB")) : new SolidColorBrush(Color.Parse("#60A5FA")) // INFO
+        };
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();

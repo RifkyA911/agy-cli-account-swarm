@@ -2,6 +2,38 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.8-beta] - 2026-10-04
+### Added & Changed
+- **Consolidated Single Solid Executable (`AgyCliAccountSwarmGUI.exe`)**:
+  - Full migration to Avalonia UI as the single production desktop application, published directly to `publish\AgyCliAccountSwarmGUI.exe`.
+  - Archived legacy WPF codebase as pseudo-prototype only. Removed obsolete executable files from publish folder.
+- **Rendering & Avatar Crispness Overhaul**:
+  - Replaced `Ellipse.Fill` + `ImageBrush` with anti-aliased clipped borders (`CornerRadius` + `ClipToBounds="True"`) and `RenderOptions.BitmapInterpolationMode="HighQuality"`.
+  - Implemented non-locking image loading using memory streams in `PathToBitmapConverter`, preventing file lock collisions.
+- **Concurrent Swarm Orchestrator Refinement**:
+  - Reorganized Launch Mode selection and Launch/Stop Swarm actions into a dedicated controls row with clear visual separation.
+- **Live Swarm Chat & Inter-Agent Bus Upgrades**:
+  - Integrated profile avatars directly into message bubbles.
+  - Added distinct role badge styling (System, User/Commander, Architect, Implementer, Reviewer, Security) with color-coded foreground, background, and border converters.
+- **Real-Time Swarm Workflow Topology Canvas**:
+  - Implemented high-contrast dot-grid mesh background brush (`MeshGridBrush`).
+  - Added smooth mouse drag-to-move hand panning and horizontal mouse-wheel scrolling across the node topology graph.
+- **Logging Subsystem Complete Overhaul**:
+  - Daily rotating log files on disk (`agyswarm_YYYY-MM-DD.log`) under `%APPDATA%\AgyAccountSwarm\logs\`.
+  - Structured log parser (`LogEntryItem`) with color-coded badges for `INFO`, `DEBUG`, `WARN`, `ERROR`, and `SUCCESS`.
+  - Real-time search filter and level filter dropdown (`ALL`, `INFO`, `DEBUG`, `WARN`, `ERROR`, `SUCCESS`).
+  - Added `Clear Buffer` and `Prune Files (>7d)` maintenance actions.
+  - Modernized Excel export to prompt the user for target file destination via `SaveFilePickerAsync`.
+- **System Settings & Tray Hardening**:
+  - Added interactive `Browse...` file picker (`OpenFilePickerAsync`) for Antigravity CLI binary executable (`agy.exe`).
+  - Fixed minimize-to-tray toggle persistence (`Mode=TwoWay` and settings deserialization restore).
+- **Startup Auto-Sync & Visual Loading State**:
+  - Automatically triggers background swarm synchronization on application startup without terminal console flicker.
+  - Added rotating keyframe spin animation (`Path.spin`) to the navbar Sync Swarm button with clear loading indicator.
+- **Documentation & Visual Tour Expansion**:
+  - Overhauled `README.md` with an extensive 11-menu visual screenshot tour, comprehensive technical architecture breakdown, and data flow diagrams.
+  - Removed outdated versioning and release instructions.
+
 ## [v0.9.9-beta] - 2026-10-03
 ### Added & Changed
 - **Avalonia Flagship Edition & WPF Archived as Pseudo Prototype**:

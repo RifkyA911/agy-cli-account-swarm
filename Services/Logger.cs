@@ -8,7 +8,7 @@ namespace AgyAccountSwarm.Services;
 public static class Logger
 {
     private static readonly object LockObj = new();
-    private static readonly string LogFilePath;
+    private static readonly string LogDirPath;
     private static readonly Queue<string> RecentBuffer = new(1000);
     private const int MaxBufferSize = 1000;
 
@@ -19,15 +19,22 @@ public static class Logger
     static Logger()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var dir = Path.Combine(appData, "AgyAccountSwarm");
-        if (!Directory.Exists(dir))
+        LogDirPath = Path.Combine(appData, "AgyAccountSwarm");
+        if (!Directory.Exists(LogDirPath))
         {
-            Directory.CreateDirectory(dir);
+            Directory.CreateDirectory(LogDirPath);
         }
-        LogFilePath = Path.Combine(dir, "app.log");
     }
 
-    public static string LogPath => LogFilePath;
+    public static string LogDirectory => LogDirPath;
+
+    public static string GetDailyLogFilePath(DateTime? date = null)
+    {
+        var targetDate = date ?? DateTime.Now;
+        return Path.Combine(LogDirPath, $"agyswarm_{targetDate:yyyy-MM-dd}.log");
+    }
+
+    public static string LogPath => GetDailyLogFilePath();
 
     public static string RedactSensitive(string input)
     {
@@ -49,6 +56,11 @@ public static class Logger
     public static void Info(string message)
     {
         Write("INFO", message);
+    }
+
+    public static void Success(string message)
+    {
+        Write("SUCCESS", message);
     }
 
     public static void Warn(string message)
@@ -84,7 +96,6 @@ public static class Logger
         Write("ERROR", sb.ToString());
     }
 
-
     public static IReadOnlyList<string> GetRecentLogLines()
     {
         lock (LockObj)
@@ -97,9 +108,15 @@ public static class Logger
 
         try
         {
-            if (File.Exists(LogFilePath))
+            var dailyPath = GetDailyLogFilePath();
+            if (File.Exists(dailyPath))
             {
-                return File.ReadAllLines(LogFilePath);
+                return File.ReadAllLines(dailyPath);
+            }
+            var legacyPath = Path.Combine(LogDirPath, "app.log");
+            if (File.Exists(legacyPath))
+            {
+                return File.ReadAllLines(legacyPath);
             }
         }
         catch
@@ -117,7 +134,11 @@ public static class Logger
             RecentBuffer.Clear();
             try
             {
-                File.WriteAllText(LogFilePath, string.Empty);
+                var dailyPath = GetDailyLogFilePath();
+                if (File.Exists(dailyPath))
+                {
+                    File.WriteAllText(dailyPath, string.Empty);
+                }
             }
             catch
             {
@@ -126,10 +147,55 @@ public static class Logger
         }
     }
 
+    public static int PruneOldLogFiles(int daysToKeep = 7)
+    {
+        lock (LockObj)
+        {
+            int deletedCount = 0;
+            try
+            {
+                if (!Directory.Exists(LogDirPath)) return 0;
+                var cutoff = DateTime.Now.Date.AddDays(-daysToKeep);
+                var dirInfo = new DirectoryInfo(LogDirPath);
+                var files = dirInfo.GetFiles("agyswarm_*.log")
+                    .Concat(dirInfo.GetFiles("app*.log"));
+
+                foreach (var file in files)
+                {
+                    bool shouldDelete = file.LastWriteTime < cutoff;
+                    var match = System.Text.RegularExpressions.Regex.Match(file.Name, @"agyswarm_(\d{4}-\d{2}-\d{2})\.log");
+                    if (match.Success && DateTime.TryParse(match.Groups[1].Value, out var fileDate))
+                    {
+                        shouldDelete = fileDate < cutoff;
+                    }
+
+                    if (shouldDelete)
+                    {
+                        try
+                        {
+                            file.Delete();
+                            deletedCount++;
+                        }
+                        catch
+                        {
+                            // File might be in use
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Warn($"[Logger] Error pruning old log files: {ex.Message}");
+            }
+            return deletedCount;
+        }
+    }
+
     private static void Write(string level, string message)
     {
         var safeMessage = RedactSensitive(message);
-        var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {safeMessage}";
+        var timestamp = DateTime.Now;
+        var line = $"[{timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{level}] {safeMessage}";
         lock (LockObj)
         {
             if (RecentBuffer.Count >= MaxBufferSize)
@@ -140,7 +206,8 @@ public static class Logger
 
             try
             {
-                File.AppendAllText(LogFilePath, line + Environment.NewLine);
+                var dailyPath = GetDailyLogFilePath(timestamp);
+                File.AppendAllText(dailyPath, line + Environment.NewLine);
             }
             catch
             {

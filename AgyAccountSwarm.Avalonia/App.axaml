@@ -25,6 +25,12 @@
             <conv:NullOrEmptyToBooleanConverter x:Key="NullOrEmptyToBoolConverter" />
             <conv:InverseBooleanConverter x:Key="InverseBoolConverter" />
             <conv:IntToBooleanConverter x:Key="IntToBoolConverter" />
+            <conv:RoleToBackgroundConverter x:Key="RoleToBgConverter" />
+            <conv:RoleToBorderConverter x:Key="RoleToBorderConverter" />
+            <conv:RoleToForegroundConverter x:Key="RoleToFgConverter" />
+            <conv:LogLevelToBackgroundConverter x:Key="LogLevelToBgConverter" />
+            <conv:LogLevelToBorderConverter x:Key="LogLevelToBorderConverter" />
+            <conv:LogLevelToForegroundConverter x:Key="LogLevelToFgConverter" />
 
             <StreamGeometry x:Key="HeroIconChatBubble">M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a.75.75 0 0 1-.974-.94 5.95 5.95 0 0 0 .974-2.82C3.593 15.688 3 13.935 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z</StreamGeometry>
             <StreamGeometry x:Key="HeroIconChatBubbleOvalLeftEllipsis">M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a.75.75 0 0 1-.974-.94 5.95 5.95 0 0 0 .974-2.82C3.593 15.688 3 13.935 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z</StreamGeometry>
@@ -53,6 +59,19 @@
             <StreamGeometry x:Key="HeroIconFunnel">M12 3c2.755 0 5.455.232 8.083.678.539.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.41A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.378-1.007.917-1.096A48.32 48.32 0 0 1 12 3Z</StreamGeometry>
             <StreamGeometry x:Key="HeroIconArrowsRightLeft">M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5</StreamGeometry>
             <StreamGeometry x:Key="HeroIconMagnifyingGlass">M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z</StreamGeometry>
+
+            <!-- Mesh Dot-Grid Canvas Background Brush -->
+            <DrawingBrush x:Key="MeshGridBrush" TileMode="Tile" SourceRect="0,0,24,24" DestinationRect="0,0,24,24">
+                <DrawingBrush.Drawing>
+                    <DrawingGroup>
+                        <GeometryDrawing Brush="{DynamicResource BrushCardBorder}">
+                            <GeometryDrawing.Geometry>
+                                <EllipseGeometry Center="12,12" RadiusX="1.2" RadiusY="1.2" />
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingGroup>
+                </DrawingBrush.Drawing>
+            </DrawingBrush>
 
             <ResourceDictionary.ThemeDictionaries>
                 <!-- LIGHT THEME (Matches WPF layout.png 1:1) -->
@@ -227,5 +246,33 @@
         <Style Selector="Button.emerald:pointerover">
             <Setter Property="Opacity" Value="0.9" />
         </Style>
+
+        <!-- Keyframe Spin Animation for Sync Loading State -->
+        <Style Selector="Path.spin">
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="360"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
     </Application.Styles>
+
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon Icon="/Assets/favicon.ico" ToolTipText="Agy CLI Account Swarm" Clicked="OnTrayIconClicked">
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Open Agy Swarm" Click="OnTrayOpenClicked" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Exit Application" Click="OnTrayExitClicked" />
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
 </Application>

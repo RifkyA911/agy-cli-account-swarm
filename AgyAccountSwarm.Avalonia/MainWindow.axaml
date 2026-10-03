@@ -556,16 +556,28 @@
 
                         <!-- Right CTA: Sync Swarm and Launch Swarm -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-                            <!-- Refresh / Sync Swarm Button -->
+                            <!-- Refresh / Sync Swarm Button with Loading Animation -->
                             <Button Command="{Binding SyncSwarmCommand}"
                                     Classes="outline"
                                     Padding="12,8"
+                                    IsEnabled="{Binding !IsSyncing}"
                                     ToolTip.Tip="Check profile tokens, detect model sessions, and verify quota limits">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="7">
+                                    <!-- Spinning Arrow Path when Syncing -->
+                                    <Path Data="{StaticResource HeroIconArrowPath}"
+                                          Stroke="{DynamicResource BrushAccent}"
+                                          StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"
+                                          IsVisible="{Binding IsSyncing}"
+                                          Classes="spin" />
+
+                                    <!-- Static Arrow Path when Idle -->
                                     <Path Data="{StaticResource HeroIconArrowPath}"
                                           Stroke="{DynamicResource BrushTextPrimary}"
-                                          StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
-                                    <TextBlock Text="Sync Swarm" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                          StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"
+                                          IsVisible="{Binding !IsSyncing}" />
+
+                                    <TextBlock Text="Syncing Swarm..." FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" VerticalAlignment="Center" IsVisible="{Binding IsSyncing}" />
+                                    <TextBlock Text="Sync Swarm" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" IsVisible="{Binding !IsSyncing}" />
                                 </StackPanel>
                             </Button>
 
@@ -845,35 +857,52 @@
                         <!-- SWARM QUICK LAUNCH ORCHESTRATOR CARD                           -->
                         <!-- ============================================================== -->
                         <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="20">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <StackPanel Grid.Column="0">
+                            <StackPanel Spacing="16">
+                                <!-- Orchestrator Header & Description -->
+                                <StackPanel Spacing="4">
                                     <TextBlock Text="⚡ Concurrent Swarm Orchestrator" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
                                     <TextBlock Text="Launch multiple Antigravity AI accounts in parallel. Each session is completely isolated with its own credentials and workspace directory."
-                                               FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,4,0,12" TextWrapping="Wrap" />
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="Launch Mode: " FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
-                                        <ComboBox SelectedItem="{Binding SelectedSwarmMode}" Width="160">
+                                               FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <!-- Dedicated Controls & Actions Row -->
+                                <Border Background="{DynamicResource BrushCardBorder}" Opacity="0.4" Height="1" />
+                                <Grid ColumnDefinitions="Auto,Auto,*,Auto" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="Launch Mode:" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                        <ComboBox SelectedItem="{Binding SelectedSwarmMode}" Width="190" VerticalAlignment="Center">
                                             <models:SwarmLaunchMode>SplitPanes</models:SwarmLaunchMode>
                                             <models:SwarmLaunchMode>SeparateTabs</models:SwarmLaunchMode>
                                             <models:SwarmLaunchMode>SeparateWindows</models:SwarmLaunchMode>
                                         </ComboBox>
                                     </StackPanel>
-                                </StackPanel>
-                                <Button Grid.Column="1" Command="{Binding LaunchSwarmCommand}" Classes="emerald" Padding="20,12" VerticalAlignment="Center"
-                                        IsVisible="{Binding !IsSwarmRunning}">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Path Data="{StaticResource HeroIconBolt}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
-                                        <TextBlock Text="⚡ Run Swarm Now" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" />
+
+                                    <!-- Status / Info Badge in Middle -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="16,0" VerticalAlignment="Center">
+                                        <Border Background="{DynamicResource BrushBadgeBg}" BorderBrush="{DynamicResource BrushBadgeBorder}" BorderThickness="1" CornerRadius="4" Padding="8,4" IsVisible="{Binding IsSwarmRunning}">
+                                            <TextBlock Text="● Swarm Active" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushEmerald}" />
+                                        </Border>
                                     </StackPanel>
-                                </Button>
-                                <Button Grid.Column="1" Command="{Binding StopSwarmCommand}" Classes="danger" Padding="20,12" VerticalAlignment="Center"
-                                        IsVisible="{Binding IsSwarmRunning}">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Path Data="{StaticResource HeroIconStop}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
-                                        <TextBlock Text="⏹ Stop Swarm Execution" FontWeight="Bold" FontSize="13" VerticalAlignment="Center" />
+
+                                    <!-- Action Buttons Row Column -->
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <Button Command="{Binding LaunchSwarmCommand}" Classes="emerald" Padding="18,10" VerticalAlignment="Center"
+                                                IsVisible="{Binding !IsSwarmRunning}">
+                                            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource HeroIconBolt}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                                <TextBlock Text="⚡ Run Swarm Now" FontWeight="Bold" FontSize="12.5" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Command="{Binding StopSwarmCommand}" Classes="danger" Padding="18,10" VerticalAlignment="Center"
+                                                IsVisible="{Binding IsSwarmRunning}">
+                                            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource HeroIconStop}" Fill="#FFFFFF" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                                <TextBlock Text="⏹ Stop Swarm Execution" FontWeight="Bold" FontSize="12.5" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
                                     </StackPanel>
-                                </Button>
-                            </Grid>
+                                </Grid>
+                            </StackPanel>
                         </Border>
 
                         <!-- ============================================================== -->
@@ -894,14 +923,15 @@
                                                     <!-- Row 1: Avatar, Name, Tier, Status, Model & Quota Badges -->
                                                     <WrapPanel VerticalAlignment="Center">
                                                         <Grid Width="40" Height="40" Margin="0,0,10,0" VerticalAlignment="Center">
-                                                            <Ellipse Width="40" Height="40"
-                                                                     Stroke="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                     StrokeThickness="2"
-                                                                     IsVisible="{Binding HasAvatarUrl}">
-                                                                <Ellipse.Fill>
-                                                                    <ImageBrush Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}" Stretch="UniformToFill" />
-                                                                </Ellipse.Fill>
-                                                            </Ellipse>
+                                                            <!-- Google Profile Picture -->
+                                                            <Border Width="40" Height="40" CornerRadius="20" ClipToBounds="True"
+                                                                    BorderBrush="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                    BorderThickness="2"
+                                                                    IsVisible="{Binding HasAvatarUrl}">
+                                                                <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                                       Stretch="UniformToFill"
+                                                                       RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                                            </Border>
 
                                                             <Border Width="40" Height="40" CornerRadius="20"
                                                                     Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
@@ -1163,14 +1193,14 @@
                                                     <!-- Col 0: Dedicated Circular Avatar (48x48) -->
                                                     <Grid Grid.Column="0" Width="48" Height="48" Margin="0,0,14,0" VerticalAlignment="Top">
                                                         <!-- Online Google Profile Picture clipped inside Ellipse -->
-                                                        <Ellipse Width="48" Height="48"
-                                                                 Stroke="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                 StrokeThickness="2"
-                                                                 IsVisible="{Binding HasAvatarUrl}">
-                                                            <Ellipse.Fill>
-                                                                <ImageBrush Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}" Stretch="UniformToFill" />
-                                                            </Ellipse.Fill>
-                                                        </Ellipse>
+                                                        <Border Width="48" Height="48" CornerRadius="24" ClipToBounds="True"
+                                                                BorderBrush="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                BorderThickness="2"
+                                                                IsVisible="{Binding HasAvatarUrl}">
+                                                            <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                                   Stretch="UniformToFill"
+                                                                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                                        </Border>
 
                                                         <!-- Fallback Google Circular Initial Badge -->
                                                         <Border Width="48" Height="48" CornerRadius="24"
@@ -1994,18 +2024,33 @@
                                                                         BorderBrush="{Binding Type, Converter={StaticResource SwarmMsgBorderConverter}}"
                                                                         BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
                                                                     <Grid ColumnDefinitions="Auto,*,Auto">
-                                                                        <!-- Sender Avatar -->
-                                                                        <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16" Background="{Binding SenderColor, Converter={StaticResource HexBrushConverter}}" Margin="0,0,10,0" VerticalAlignment="Top">
-                                                                            <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                                        </Border>
+                                                                        <!-- Sender Avatar with Profile Picture & Fallback -->
+                                                                        <Grid Grid.Column="0" Width="34" Height="34" Margin="0,0,10,0" VerticalAlignment="Top">
+                                                                            <Border Width="34" Height="34" CornerRadius="17"
+                                                                                    Background="{Binding SenderColor, Converter={StaticResource HexBrushConverter}}">
+                                                                                <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="13.5" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                                            </Border>
+
+                                                                            <Border Width="34" Height="34" CornerRadius="17" ClipToBounds="True"
+                                                                                    BorderBrush="{Binding SenderColor, Converter={StaticResource HexBrushConverter}}"
+                                                                                    BorderThickness="1.5"
+                                                                                    IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                                                <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                                                       Stretch="UniformToFill"
+                                                                                       RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                                                            </Border>
+                                                                        </Grid>
 
                                                                         <!-- Content Body -->
                                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                                                                             <WrapPanel VerticalAlignment="Center">
                                                                                 <TextBlock Text="{Binding SenderName}" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" Margin="0,0,8,0" VerticalAlignment="Center" />
-                                                                                <!-- Role Badge -->
-                                                                                <Border Background="{DynamicResource BrushSurface}" CornerRadius="3" Padding="5,1.5" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                                                    <TextBlock Text="{Binding SenderRole}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                                <!-- Differentiated Role Badge -->
+                                                                                <Border Background="{Binding SenderRole, Converter={StaticResource RoleToBgConverter}}"
+                                                                                        BorderBrush="{Binding SenderRole, Converter={StaticResource RoleToBorderConverter}}"
+                                                                                        BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                                                    <TextBlock Text="{Binding SenderRole}" FontSize="10" FontWeight="Bold"
+                                                                                               Foreground="{Binding SenderRole, Converter={StaticResource RoleToFgConverter}}" />
                                                                                 </Border>
                                                                                 <!-- Target Badge if direct message -->
                                                                                 <Border IsVisible="{Binding TargetWorker, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
@@ -2188,14 +2233,14 @@
                                                             <!-- Avatar / Google Account Profile Picture -->
                                                             <Grid Grid.Column="1" Width="36" Height="36" Margin="0,0,12,0" VerticalAlignment="Center">
                                                                 <!-- Image Avatar -->
-                                                                <Ellipse Width="36" Height="36"
-                                                                         Stroke="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
-                                                                         StrokeThickness="1.8"
-                                                                         IsVisible="{Binding HasAvatarUrl}">
-                                                                    <Ellipse.Fill>
-                                                                        <ImageBrush Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}" Stretch="UniformToFill" />
-                                                                    </Ellipse.Fill>
-                                                                </Ellipse>
+                                                                <Border Width="36" Height="36" CornerRadius="18" ClipToBounds="True"
+                                                                        BorderBrush="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}"
+                                                                        BorderThickness="1.8"
+                                                                        IsVisible="{Binding HasAvatarUrl}">
+                                                                    <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}"
+                                                                           Stretch="UniformToFill"
+                                                                           RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                                                </Border>
 
                                                                 <!-- Initials Circle Fallback -->
                                                                 <Border Width="36" Height="36" CornerRadius="18"
@@ -2518,11 +2563,24 @@
                                             </StackPanel>
                                         </Grid>
 
-                                        <!-- n8n Canvas Wrapper -->
-                                        <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
-                                                CornerRadius="10" Padding="24,20" MinHeight="380">
-                                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="0">
+                                        <!-- n8n Canvas Wrapper with Mesh Grid Background and Drag-To-Move Hand -->
+                                        <Border Name="WorkflowCanvasBorder" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1"
+                                                CornerRadius="10" MinHeight="420" ClipToBounds="True">
+                                            <Panel>
+                                                <!-- Mesh Dot Grid Pattern -->
+                                                <Border Background="{DynamicResource MeshGridBrush}" Opacity="0.6" />
+
+                                                <!-- Drag-to-Move Pan-enabled ScrollViewer -->
+                                                <ScrollViewer Name="WorkflowScrollViewer"
+                                                              HorizontalScrollBarVisibility="Auto"
+                                                              VerticalScrollBarVisibility="Auto"
+                                                              Cursor="Hand"
+                                                              PointerPressed="OnWorkflowPointerPressed"
+                                                              PointerMoved="OnWorkflowPointerMoved"
+                                                              PointerReleased="OnWorkflowPointerReleased"
+                                                              PointerWheelChanged="OnWorkflowPointerWheelChanged"
+                                                              Padding="30,24">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="0" MinWidth="1380">
 
                                                     <!-- NODE 1: Project Trigger Node (Root Repo Context) -->
                                                     <Border Background="{DynamicResource BrushCard}" BorderBrush="#3B82F6" BorderThickness="2"
@@ -2710,7 +2768,8 @@
 
                                                 </StackPanel>
                                             </ScrollViewer>
-                                        </Border>
+                                        </Panel>
+                                    </Border>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -3507,26 +3566,131 @@
                 <!-- ====================================================== -->
                 <Grid Grid.Row="2"
                       IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Logs}"
-                      RowDefinitions="Auto,*">
-                    <Border Grid.Row="0" Background="{DynamicResource BrushSurfaceHover}" Padding="24,12" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1">
+                      RowDefinitions="Auto,Auto,*">
+                    <!-- Top Action Header Bar -->
+                    <Border Grid.Row="0" Background="{DynamicResource BrushSurface}" Padding="24,14" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1">
                         <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0" Text="Real-Time Application &amp; Terminal Execution Logs" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10">
-                                <Button Content="🔄 Refresh" Command="{Binding RefreshLogsCommand}" Classes="outline" Padding="12,6" />
-                                <Button Content="📊 Export to Excel" Command="{Binding ExportLogsExcelCommand}" Padding="12,6" Background="{DynamicResource BrushEmerald}" Foreground="#FFFFFF" FontWeight="Bold" />
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <TextBlock Text="📜 Real-Time Execution Logs" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource BrushBadgeBg}" BorderBrush="{DynamicResource BrushBadgeBorder}" BorderThickness="1" CornerRadius="4" Padding="7,2" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding FilteredLogEntries.Count, StringFormat='{}{0} Log Entries'}" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="Authentic event bus, terminal orchestration output, and system diagnostics recorded daily (agyswarm_YYYY-MM-DD.log)" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Button Command="{Binding RefreshLogsCommand}" Classes="outline" Padding="12,7" ToolTip.Tip="Re-read current day's log file">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconArrowPath}" Stroke="{DynamicResource BrushTextPrimary}" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="Refresh" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding ClearLogsCommand}" Classes="outline" Padding="12,7" ToolTip.Tip="Clear in-memory buffer and truncate today's log file">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconTrash}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.5" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="Clear Buffer" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding PruneFileLogsCommand}" Classes="outline" Padding="12,7" ToolTip.Tip="Clean up older log files (>7 days) on disk to save space">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconShieldCheck}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.5" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="Prune Files (>7d)" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding ExportLogsExcelAsync}" Classes="emerald" Padding="14,7" ToolTip.Tip="Prompt save dialog and export logs to Excel spreadsheet">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="Export to Excel" FontSize="11.5" FontWeight="Bold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Grid>
                     </Border>
 
-                    <ScrollViewer Grid.Row="1" Padding="20">
-                        <ItemsControl ItemsSource="{Binding LogLines}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}" FontFamily="Consolas, Monaco, monospace" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                    <!-- Filter & Search Bar Row -->
+                    <Border Grid.Row="1" Background="{DynamicResource BrushSurfaceHover}" Padding="24,10" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                            <!-- Search Box -->
+                            <Grid Grid.Column="0" ColumnDefinitions="Auto,*" Margin="0,0,16,0" VerticalAlignment="Center">
+                                <Border Background="{DynamicResource BrushCard}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,0">
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <Path Grid.Column="0" Data="{StaticResource HeroIconMagnifyingGlass}" Stroke="{DynamicResource BrushTextMuted}" StrokeThickness="1.7" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <TextBox Grid.Column="1" Text="{Binding LogSearchQuery, Mode=TwoWay}"
+                                                 PlaceholderText="Search logs by keyword, exception, message, timestamp..."
+                                                 Background="Transparent" BorderThickness="0" Padding="0,7" FontSize="12" />
+                                    </Grid>
+                                </Border>
+                            </Grid>
+
+                            <!-- Level Filter Controls -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="Level Filter:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                <ComboBox ItemsSource="{Binding LogLevelFilterOptions}" SelectedItem="{Binding SelectedLogLevelFilter}" Width="120" VerticalAlignment="Center" Padding="8,5" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Logs Table Area -->
+                    <Border Grid.Row="2" Background="{DynamicResource BrushCard}" Padding="24,16">
+                        <Grid RowDefinitions="Auto,*">
+                            <!-- Table Header -->
+                            <Border Grid.Row="0" Background="{DynamicResource BrushSurface}" CornerRadius="6,6,0,0" Padding="14,8" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1,1,1,0">
+                                <Grid ColumnDefinitions="110,95,*">
+                                    <TextBlock Grid.Column="0" Text="TIMESTAMP" FontFamily="Cascadia Code, Consolas, monospace" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                    <TextBlock Grid.Column="1" Text="LEVEL" FontFamily="Cascadia Code, Consolas, monospace" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                    <TextBlock Grid.Column="2" Text="DIAGNOSTIC LOG MESSAGE" FontFamily="Cascadia Code, Consolas, monospace" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Scrollable Log List -->
+                            <Border Grid.Row="1" Background="{DynamicResource BrushSurface}" CornerRadius="0,0,6,6" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1">
+                                <ScrollViewer Padding="10">
+                                    <StackPanel Spacing="3">
+                                        <!-- Empty Notice -->
+                                        <Border IsVisible="{Binding !FilteredLogEntries.Count}" Padding="40" HorizontalAlignment="Center">
+                                            <StackPanel HorizontalAlignment="Center" Spacing="6">
+                                                <TextBlock Text="🔍 No matching log entries found." FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Adjust your search query or log level filter, or click 'Refresh' to re-read files." FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Log Rows -->
+                                        <ItemsControl ItemsSource="{Binding FilteredLogEntries}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="models:LogEntryItem">
+                                                    <Border Padding="6,5" CornerRadius="4" Margin="0,1">
+                                                        <Grid ColumnDefinitions="110,95,*">
+                                                            <!-- Timestamp -->
+                                                            <TextBlock Grid.Column="0" Text="{Binding TimestampFormatted}" FontFamily="Cascadia Code, Consolas, monospace" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+
+                                                            <!-- Level Badge -->
+                                                            <Border Grid.Column="1" HorizontalAlignment="Left"
+                                                                    Background="{Binding Level, Converter={StaticResource LogLevelToBgConverter}}"
+                                                                    BorderBrush="{Binding Level, Converter={StaticResource LogLevelToBorderConverter}}"
+                                                                    BorderThickness="1" CornerRadius="4" Padding="6,1.5" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Level}" FontSize="9.5" FontWeight="Bold"
+                                                                           Foreground="{Binding Level, Converter={StaticResource LogLevelToFgConverter}}" />
+                                                            </Border>
+
+                                                            <!-- Message -->
+                                                            <SelectableTextBlock Grid.Column="2" Text="{Binding Message}"
+                                                                                 FontFamily="Cascadia Code, Consolas, monospace"
+                                                                                 FontSize="11.5"
+                                                                                 Foreground="{DynamicResource BrushTextPrimary}"
+                                                                                 TextWrapping="Wrap"
+                                                                                 VerticalAlignment="Center" />
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+                    </Border>
                 </Grid>
 
                 <!-- ====================================================== -->
@@ -3685,7 +3849,15 @@
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="Antigravity CLI Binary Path" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
                                     <TextBlock Text="Automatically discovered or custom path to the 'agy' executable." FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
-                                    <TextBox Text="{Binding DetectedAgyPath, Mode=TwoWay}" PlaceholderText="Default: auto-detected from system PATH" Margin="0,2,0,0" />
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+                                        <TextBox Grid.Column="0" Text="{Binding DetectedAgyPath, Mode=TwoWay}" PlaceholderText="Default: auto-detected from system PATH" Margin="0,0,8,0" />
+                                        <Button Grid.Column="1" Command="{Binding BrowseCliBinaryPathCommand}" Classes="outline" Padding="12,6" ToolTip.Tip="Browse for agy CLI binary file">
+                                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource HeroIconFolder}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.6" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                                                <TextBlock Text="📁 Browse..." FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -3724,7 +3896,7 @@
 
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="Window Minimize [🗕] Behavior" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
-                                    <CheckBox IsChecked="{Binding MinimizeToTray}"
+                                    <CheckBox IsChecked="{Binding MinimizeToTray, Mode=TwoWay}"
                                               Content="Minimize button [🗕] hides window to system tray instead of taskbar" Margin="0,4,0,0" />
                                 </StackPanel>
                             </StackPanel>

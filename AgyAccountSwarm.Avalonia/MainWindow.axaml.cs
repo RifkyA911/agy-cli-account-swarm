@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using AgyAccountSwarm.Avalonia.ViewModels;
@@ -47,6 +49,37 @@ public partial class MainWindow : Window
                 ]
             });
             return file?.Path.LocalPath;
+        };
+
+        _viewModel.SaveExcelFileRequested += async (defaultFileName) =>
+        {
+            var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Export Swarm Execution Logs to Excel",
+                DefaultExtension = "xlsx",
+                SuggestedFileName = defaultFileName,
+                FileTypeChoices =
+                [
+                    new FilePickerFileType("Excel Spreadsheet (*.xlsx)") { Patterns = ["*.xlsx"] },
+                    new FilePickerFileType("All Files (*.*)") { Patterns = ["*"] }
+                ]
+            });
+            return file?.Path.LocalPath;
+        };
+
+        _viewModel.BrowseCliBinaryFileRequested += async () =>
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Select Antigravity CLI Executable (agy.exe)",
+                AllowMultiple = false,
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("Executable Files (*.exe;*.*)") { Patterns = ["*.exe", "*"] },
+                    new FilePickerFileType("All Files (*.*)") { Patterns = ["*"] }
+                ]
+            });
+            return files.Count > 0 ? files[0].Path.LocalPath : null;
         };
 
         _viewModel.ShowAddProfileRequested += async () =>
@@ -102,6 +135,95 @@ public partial class MainWindow : Window
         if (sender is Button { DataContext: AvaloniaProfileItemViewModel item })
         {
             await _viewModel.EditProfileAsync(item);
+        }
+    }
+
+    private Point _workflowDragStart;
+    private Vector _workflowStartOffset;
+    private bool _isWorkflowDragging;
+
+    private void OnWorkflowPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var scrollViewer = this.FindControl<ScrollViewer>("WorkflowScrollViewer");
+        if (scrollViewer == null) return;
+
+        var currentPoint = e.GetCurrentPoint(scrollViewer);
+        if (currentPoint.Properties.IsLeftButtonPressed)
+        {
+            _isWorkflowDragging = true;
+            _workflowDragStart = e.GetPosition(scrollViewer);
+            _workflowStartOffset = scrollViewer.Offset;
+            e.Pointer.Capture(scrollViewer);
+            scrollViewer.Cursor = new Cursor(StandardCursorType.SizeAll);
+        }
+    }
+
+    private void OnWorkflowPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_isWorkflowDragging) return;
+        var scrollViewer = this.FindControl<ScrollViewer>("WorkflowScrollViewer");
+        if (scrollViewer == null) return;
+
+        var currentPos = e.GetPosition(scrollViewer);
+        var delta = _workflowDragStart - currentPos;
+
+        var maxX = Math.Max(0, scrollViewer.Extent.Width - scrollViewer.Viewport.Width);
+        var maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
+
+        scrollViewer.Offset = new Vector(
+            Math.Clamp(_workflowStartOffset.X + delta.X, 0, maxX),
+            Math.Clamp(_workflowStartOffset.Y + delta.Y, 0, maxY));
+    }
+
+    private void OnWorkflowPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (_isWorkflowDragging)
+        {
+            _isWorkflowDragging = false;
+            var scrollViewer = this.FindControl<ScrollViewer>("WorkflowScrollViewer");
+            if (scrollViewer != null)
+            {
+                e.Pointer.Capture(null);
+                scrollViewer.Cursor = new Cursor(StandardCursorType.Hand);
+            }
+        }
+    }
+
+    private void OnWorkflowPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        var scrollViewer = this.FindControl<ScrollViewer>("WorkflowScrollViewer");
+        if (scrollViewer == null) return;
+
+        var scrollDelta = e.Delta.Y != 0 ? -e.Delta.Y * 60 : -e.Delta.X * 60;
+        var maxX = Math.Max(0, scrollViewer.Extent.Width - scrollViewer.Viewport.Width);
+        scrollViewer.Offset = new Vector(
+            Math.Clamp(scrollViewer.Offset.X + scrollDelta, 0, maxX),
+            scrollViewer.Offset.Y);
+        e.Handled = true;
+    }
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        if (_viewModel.CloseToTray)
+        {
+            e.Cancel = true;
+            Hide();
+        }
+        else
+        {
+            base.OnClosing(e);
+        }
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == WindowStateProperty)
+        {
+            if (WindowState == WindowState.Minimized && _viewModel.MinimizeToTray)
+            {
+                Hide();
+            }
         }
     }
 }
