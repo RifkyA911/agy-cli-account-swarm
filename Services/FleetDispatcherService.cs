@@ -502,25 +502,20 @@ public class FleetDispatcherService : IFleetDispatcherService
             {
                 try
                 {
-                    if (task.ExecutionMode == FleetExecutionMode.HeadlessSilent)
+                    var proc = Process.GetProcessById(task.ProcessId.Value);
+                    if (!proc.HasExited)
                     {
-                        var proc = Process.GetProcessById(task.ProcessId.Value);
-                        if (!proc.HasExited)
-                        {
-                            proc.Kill(entireProcessTree: true);
-                            Logger.Info($"[FleetDispatcher] Stopped headless task process PID {task.ProcessId}");
-                        }
-                    }
-                    else
-                    {
-                        // VisibleTerminal: NEVER kill the shell window! Only terminate agy.exe and its child worker processes
-                        StopTerminalWorkerProcesses(task);
+                        proc.Kill(entireProcessTree: true);
+                        Logger.Info($"[FleetDispatcher] Stopped task process tree PID {task.ProcessId} for '{task.ProfileName}'");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn($"[FleetDispatcher] Error stopping task {task.ProfileName} PID {task.ProcessId}: {ex.Message}");
+                    Logger.Debug($"[FleetDispatcher] Root process {task.ProcessId} already exited or inaccessible: {ex.Message}");
                 }
+
+                // In addition, ensure all descendant processes (terminal windows, agy CLI instances) are terminated
+                StopTerminalWorkerProcesses(task);
             }
             task.Status = "Stopped";
             task.StatusColor = "#EF4444";
@@ -541,10 +536,8 @@ public class FleetDispatcherService : IFleetDispatcherService
                 var allProcs = Win32ProcessHelper.GetAllProcesses();
                 var descendants = Win32ProcessHelper.GetDescendantProcesses(task.ProcessId.Value, allProcs);
 
-                // Find non-shell processes in the tree (agy.exe and its children)
-                var nonShells = descendants.Where(d => !ShellProcessNames.Contains(d.Name)).ToList();
-
-                foreach (var procNode in nonShells)
+                // Terminate all descendants (both terminal windows and agy worker processes)
+                foreach (var procNode in descendants)
                 {
                     try
                     {
@@ -553,7 +546,7 @@ public class FleetDispatcherService : IFleetDispatcherService
                         {
                             p.Kill(entireProcessTree: true);
                             killedCount++;
-                            Logger.Info($"[FleetDispatcher] Terminated child worker process '{procNode.Name}' (PID: {procNode.ProcessId}) for '{task.ProfileName}'");
+                            Logger.Info($"[FleetDispatcher] Terminated worker process/terminal '{procNode.Name}' (PID: {procNode.ProcessId}) for '{task.ProfileName}'");
                         }
                     }
                     catch (Exception ex)

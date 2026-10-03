@@ -15,6 +15,7 @@
         <conv:SwarmMessageTypeToBackgroundConverter x:Key="SwarmMsgBgConverter" />
         <conv:SwarmMessageTypeToBorderConverter x:Key="SwarmMsgBorderConverter" />
         <conv:ActiveTabBackgroundConverter x:Key="ActiveTabBgConverter" />
+        <conv:ActiveTabForegroundConverter x:Key="ActiveTabFgConverter" />
         <conv:CountToBooleanConverter x:Key="CountToBoolConverter" />
 
         <!-- Theme Color Brushes -->

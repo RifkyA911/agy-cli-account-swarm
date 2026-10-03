@@ -222,7 +222,7 @@ public class SwarmMessageTypeToBorderConverter : IValueConverter
 }
 
 /// <summary>
-/// Compares SelectedProjectTabIndex with parameter. Returns #1E293B if active, otherwise Transparent.
+/// Compares SelectedProjectTabIndex with parameter. Returns themed background if active, otherwise Transparent.
 /// </summary>
 public class ActiveTabBackgroundConverter : IValueConverter
 {
@@ -231,7 +231,39 @@ public class ActiveTabBackgroundConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
-        return isActive ? new SolidColorBrush(Color.Parse("#1E293B")) : Brushes.Transparent;
+        if (!isActive) return Brushes.Transparent;
+
+        if (global::Avalonia.Application.Current?.Resources.TryGetResource("BrushSurfaceHover", null, out var res) == true && res is IBrush brush)
+        {
+            return brush;
+        }
+
+        return new SolidColorBrush(Color.Parse("#1E293B"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Compares SelectedProjectTabIndex with parameter. Returns BrushAccent if active, otherwise BrushTextSecondary.
+/// </summary>
+public class ActiveTabForegroundConverter : IValueConverter
+{
+    public static readonly ActiveTabForegroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        if (isActive)
+        {
+            if (global::Avalonia.Application.Current?.Resources.TryGetResource("BrushAccent", null, out var res) == true && res is IBrush b)
+                return b;
+            return new SolidColorBrush(Color.Parse("#38BDF8"));
+        }
+
+        if (global::Avalonia.Application.Current?.Resources.TryGetResource("BrushTextSecondary", null, out var sec) == true && sec is IBrush bSec)
+            return bSec;
+        return new SolidColorBrush(Color.Parse("#9CA3AF"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();

@@ -31,6 +31,7 @@
             <converters:SwarmMessageTypeToBorderConverter x:Key="SwarmMsgBorderConverter" />
             <converters:TabToActiveForegroundConverter x:Key="TabToActiveFgConverter" />
             <converters:TabToActiveBorderConverter x:Key="TabToActiveBorderConverter" />
+            <converters:TabToActiveBackgroundConverter x:Key="TabToActiveBgConverter" />
         </ResourceDictionary>
 
     </Application.Resources>
