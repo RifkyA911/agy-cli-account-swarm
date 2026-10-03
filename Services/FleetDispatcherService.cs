@@ -376,9 +376,24 @@ public class FleetDispatcherService : IFleetDispatcherService
                             }
                             else
                             {
-                                workerTask.Status = $"Exited ({proc.ExitCode})";
-                                workerTask.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
-                                workerTask.CurrentActivity = $"⚠️ Process exited with code {proc.ExitCode}";
+                                bool isQuotaExhausted = workerTask.FullOutputLog.Contains("RESOURCE_EXHAUSTED", StringComparison.OrdinalIgnoreCase) ||
+                                                        workerTask.FullOutputLog.Contains("quota exceeded", StringComparison.OrdinalIgnoreCase) ||
+                                                        workerTask.FullOutputLog.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ||
+                                                        workerTask.FullOutputLog.Contains("Quota exhausted", StringComparison.OrdinalIgnoreCase);
+
+                                if (isQuotaExhausted)
+                                {
+                                    workerTask.Status = "Quota Exceeded";
+                                    workerTask.StatusColor = "#EF4444";
+                                    workerTask.CurrentActivity = "🚨 Quota Exceeded / Rate Limit";
+                                    worker.IsQuotaExhausted = true;
+                                }
+                                else
+                                {
+                                    workerTask.Status = $"Exited ({proc.ExitCode})";
+                                    workerTask.StatusColor = "#EF4444";
+                                    workerTask.CurrentActivity = $"⚠️ Process exited with code {proc.ExitCode}";
+                                }
                             }
 
                             if (project != null)
@@ -621,7 +636,7 @@ public class FleetDispatcherService : IFleetDispatcherService
         int killed = 0;
         foreach (var task in activeTasks)
         {
-            if (task.Status == "Running" || task.Status == "Launching")
+            if (task.Status != "Completed" && task.Status != "Stopped")
             {
                 if (await StopTaskAsync(task))
                 {
@@ -636,6 +651,12 @@ public class FleetDispatcherService : IFleetDispatcherService
     {
         if (string.IsNullOrWhiteSpace(line)) return string.Empty;
         var trimmed = line.Trim();
+
+        if (trimmed.Contains("RESOURCE_EXHAUSTED", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Contains("quota exceeded", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Contains("rate limit", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Contains("Quota exhausted", StringComparison.OrdinalIgnoreCase))
+            return "🚨 Quota Exceeded / Rate Limit";
 
         if (trimmed.Contains("thinking", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("Analyzing", StringComparison.OrdinalIgnoreCase))
             return "🧠 Thinking & analyzing...";

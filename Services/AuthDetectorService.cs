@@ -724,8 +724,13 @@ public class AuthDetectorService : IAuthDetectorService
     public static string UpgradeGoogleAvatarResolution(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return url;
-        // Upgrade low-res =s96-c, =s64, =s32 etc to crisp =s256-c
-        return System.Text.RegularExpressions.Regex.Replace(url, @"=s\d+(-c)?$", "=s256-c");
+        // Upgrade low-res =s96-c, =s64, =s32, /s96-c/ etc to crisp high-res =s384-c
+        string upgraded = System.Text.RegularExpressions.Regex.Replace(url, @"=s\d+[^/?#]*", "=s384-c");
+        if (upgraded == url)
+        {
+            upgraded = System.Text.RegularExpressions.Regex.Replace(url, @"/s\d+(-c)?/", "/s384-c/");
+        }
+        return upgraded;
     }
 
     public static string GetSafeAvatarFileName(string identifier)
@@ -775,7 +780,8 @@ public class AuthDetectorService : IAuthDetectorService
                 try { File.Copy(oldFilePath, filePath, true); } catch { }
             }
 
-            if (File.Exists(filePath) && new FileInfo(filePath).Length > 0)
+            // Reuse cached file only if it is already high-res (> 12KB)
+            if (File.Exists(filePath) && new FileInfo(filePath).Length > 12000)
             {
                 return filePath;
             }

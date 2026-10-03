@@ -1,58 +1,231 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:conv="using:AgyAccountSwarm.Avalonia.Converters"
-             x:Class="AgyAccountSwarm.Avalonia.App"
-             RequestedThemeVariant="Dark">
+             x:Class="AgyAccountSwarm.Avalonia.App">
 
     <Application.Resources>
-        <conv:EqualityToBooleanConverter x:Key="EqualityConverter" />
-        <conv:TierToBrushConverter x:Key="TierBrushConverter" />
-        <conv:QuotaToBrushConverter x:Key="QuotaBrushConverter" />
-        <conv:HexToBrushConverter x:Key="HexBrushConverter" />
-        <conv:ActiveNavBackgroundConverter x:Key="ActiveNavBgConverter" />
-        <conv:ActiveNavForegroundConverter x:Key="ActiveNavFgConverter" />
-        <conv:PathToBitmapConverter x:Key="PathToBitmapConverter" />
-        <conv:SwarmMessageTypeToBackgroundConverter x:Key="SwarmMsgBgConverter" />
-        <conv:SwarmMessageTypeToBorderConverter x:Key="SwarmMsgBorderConverter" />
-        <conv:ActiveTabBackgroundConverter x:Key="ActiveTabBgConverter" />
-        <conv:ActiveTabForegroundConverter x:Key="ActiveTabFgConverter" />
-        <conv:CountToBooleanConverter x:Key="CountToBoolConverter" />
+        <ResourceDictionary>
+            <conv:EqualityToBooleanConverter x:Key="EqualityConverter" />
+            <conv:TierToBrushConverter x:Key="TierBrushConverter" />
+            <conv:QuotaToBrushConverter x:Key="QuotaBrushConverter" />
+            <conv:HexToBrushConverter x:Key="HexBrushConverter" />
+            <conv:HexToBrushConverter x:Key="HexToBrushConverter" />
+            <conv:ActiveNavBackgroundConverter x:Key="ActiveNavBgConverter" />
+            <conv:ActiveNavBorderConverter x:Key="ActiveNavBorderConverter" />
+            <conv:ActiveNavForegroundConverter x:Key="ActiveNavFgConverter" />
+            <conv:PageToFontWeightConverter x:Key="PageToFontWeightConverter" />
+            <conv:PathToBitmapConverter x:Key="PathToBitmapConverter" />
+            <conv:SwarmMessageTypeToBackgroundConverter x:Key="SwarmMsgBgConverter" />
+            <conv:SwarmMessageTypeToBorderConverter x:Key="SwarmMsgBorderConverter" />
+            <conv:ActiveTabBackgroundConverter x:Key="ActiveTabBgConverter" />
+            <conv:ActiveTabForegroundConverter x:Key="ActiveTabFgConverter" />
+            <conv:CountToBooleanConverter x:Key="CountToBoolConverter" />
+            <conv:BoolToChevronConverter x:Key="BoolToChevronConverter" />
+            <conv:BoolToFilterAccentConverter x:Key="BoolToFilterAccentConverter" />
+            <conv:NullOrEmptyToBooleanConverter x:Key="NullOrEmptyToBoolConverter" />
+            <conv:InverseBooleanConverter x:Key="InverseBoolConverter" />
+            <conv:IntToBooleanConverter x:Key="IntToBoolConverter" />
 
-        <!-- Theme Color Brushes -->
-        <SolidColorBrush x:Key="BrushBg" Color="#0B0F19" />
-        <SolidColorBrush x:Key="BrushSidebar" Color="#0F172A" />
-        <SolidColorBrush x:Key="BrushCard" Color="#111827" />
-        <SolidColorBrush x:Key="BrushCardBorder" Color="#1F2937" />
-        <SolidColorBrush x:Key="BrushSurface" Color="#162032" />
-        <SolidColorBrush x:Key="BrushSurfaceHover" Color="#1E293B" />
-        <SolidColorBrush x:Key="BrushTextPrimary" Color="#F9FAFB" />
-        <SolidColorBrush x:Key="BrushTextSecondary" Color="#9CA3AF" />
-        <SolidColorBrush x:Key="BrushAccent" Color="#38BDF8" />
-        <SolidColorBrush x:Key="BrushEmerald" Color="#10B981" />
-        <SolidColorBrush x:Key="BrushAmber" Color="#F59E0B" />
-        <SolidColorBrush x:Key="BrushCrimson" Color="#EF4444" />
-        <SolidColorBrush x:Key="BrushViolet" Color="#A855F7" />
+            <StreamGeometry x:Key="HeroIconChatBubble">M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a.75.75 0 0 1-.974-.94 5.95 5.95 0 0 0 .974-2.82C3.593 15.688 3 13.935 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconChatBubbleOvalLeftEllipsis">M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a.75.75 0 0 1-.974-.94 5.95 5.95 0 0 0 .974-2.82C3.593 15.688 3 13.935 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconSquares2x2">M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconUsers">M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconChartBar">M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconCpuChip">M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconBookOpen">M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconCommandLine">M6.75 7.5l3.75 3.75-3.75 3.75m6 0h4.5m-15-10.5h16.5a2.25 2.25 0 0 1 2.25 2.25v10.5a2.25 2.25 0 0 1-2.25 2.25H3.75a2.25 2.25 0 0 1-2.25-2.25V6.75A2.25 2.25 0 0 1 3.75 4.5Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconClipboard">M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconCog6Tooth">M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconInformationCircle">M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconBars3">M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconArrowPath">M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconBolt">m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconStop">M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconPlay">M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconFolder">M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconPencil">m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconTrash">m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconArrowDownTray">M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconPlus">M12 4.5v15m7.5-7.5h-15</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconCheck">m4.5 12.75 6 6 9-13.5</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconDocumentDuplicate">M16.5 8.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v8.25A2.25 2.25 0 0 0 6 16.5h2.25m8.25-8.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-7.5A2.25 2.25 0 0 1 8.25 18v-1.5m8.25-8.25h-6a2.25 2.25 0 0 0-2.25 2.25v6</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconShieldCheck">M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconFunnel">M12 3c2.755 0 5.455.232 8.083.678.539.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.41A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.378-1.007.917-1.096A48.32 48.32 0 0 1 12 3Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconArrowsRightLeft">M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconMagnifyingGlass">M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z</StreamGeometry>
 
-        <!-- Theme Alert Brushes -->
-        <SolidColorBrush x:Key="BrushWarningAlertBg" Color="#241A06" />
-        <SolidColorBrush x:Key="BrushWarningAlertBorder" Color="#D97706" />
-        <SolidColorBrush x:Key="BrushWarningAlertText" Color="#FDE68A" />
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- LIGHT THEME (Matches WPF layout.png 1:1) -->
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="BrushBg" Color="#F8FAFC" />
+                    <SolidColorBrush x:Key="BrushSidebar" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushSurface" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushSurfaceHover" Color="#F1F5F9" />
+                    <SolidColorBrush x:Key="BrushSurfacePressed" Color="#E2E8F0" />
+                    <SolidColorBrush x:Key="BrushDangerHoverBg" Color="#FEE2E2" />
+                    <SolidColorBrush x:Key="BrushCard" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushCardBorder" Color="#E2E8F0" />
+                    <SolidColorBrush x:Key="BrushTextPrimary" Color="#0F172A" />
+                    <SolidColorBrush x:Key="BrushTextSecondary" Color="#475569" />
+                    <SolidColorBrush x:Key="BrushTextMuted" Color="#94A3B8" />
+                    <SolidColorBrush x:Key="BrushPopupBg" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="BrushPrimary" Color="#2563EB" />
+                    <SolidColorBrush x:Key="BrushPrimaryHover" Color="#1D4ED8" />
+                    <SolidColorBrush x:Key="BrushAccent" Color="#0284C7" />
+                    <SolidColorBrush x:Key="BrushEmerald" Color="#059669" />
+                    <SolidColorBrush x:Key="BrushAmber" Color="#D97706" />
+                    <SolidColorBrush x:Key="BrushCrimson" Color="#DC2626" />
+                    <SolidColorBrush x:Key="BrushViolet" Color="#7C3AED" />
+                    <SolidColorBrush x:Key="BrushBadgeBg" Color="#EFF6FF" />
+                    <SolidColorBrush x:Key="BrushBadgeBorder" Color="#DBEAFE" />
+                    <SolidColorBrush x:Key="BrushBadgeText" Color="#2563EB" />
+                    <SolidColorBrush x:Key="BrushModelBadgeBg" Color="#F0FDFA" />
+                    <SolidColorBrush x:Key="BrushModelBadgeBorder" Color="#99F6E4" />
+                    <SolidColorBrush x:Key="BrushModelBadgeText" Color="#0F766E" />
+                    <SolidColorBrush x:Key="BrushWarningAlertBg" Color="#FEF3C7" />
+                    <SolidColorBrush x:Key="BrushWarningAlertBorder" Color="#F59E0B" />
+                    <SolidColorBrush x:Key="BrushWarningAlertText" Color="#B45309" />
+                    <SolidColorBrush x:Key="BrushErrorAlertBg" Color="#FEE2E2" />
+                    <SolidColorBrush x:Key="BrushErrorAlertBorder" Color="#EF4444" />
+                    <SolidColorBrush x:Key="BrushErrorAlertText" Color="#991B1B" />
+                    <SolidColorBrush x:Key="BrushNavActiveBg" Color="#EEF2FF" />
+                    <SolidColorBrush x:Key="BrushNavActiveBorder" Color="#C7D2FE" />
+                    <SolidColorBrush x:Key="BrushNavActiveText" Color="#1E3A8A" />
+                    <SolidColorBrush x:Key="BrushNavHoverBg" Color="#F1F5F9" />
+                    <SolidColorBrush x:Key="BrushNavInactiveText" Color="#475569" />
+                    <SolidColorBrush x:Key="BrushProgressTrack" Color="#E2E8F0" />
+                    <SolidColorBrush x:Key="BrushMonoPath" Color="#2563EB" />
+                    <SolidColorBrush x:Key="BrushQuotaExhaustedBg" Color="#FEF2F2" />
+                    <SolidColorBrush x:Key="BrushQuotaExhaustedBorder" Color="#F87171" />
+                    <SolidColorBrush x:Key="BrushQuotaExhaustedText" Color="#B91C1C" />
+                    <SolidColorBrush x:Key="BrushAlertBg" Color="#EFF6FF" />
+                    <SolidColorBrush x:Key="BrushAlertBorder" Color="#BFDBFE" />
+                    <SolidColorBrush x:Key="BrushAlertText" Color="#1D4ED8" />
+                </ResourceDictionary>
 
-        <SolidColorBrush x:Key="BrushErrorAlertBg" Color="#2A0E13" />
-        <SolidColorBrush x:Key="BrushErrorAlertBorder" Color="#DC2626" />
-        <SolidColorBrush x:Key="BrushErrorAlertText" Color="#FCA5A5" />
-
-        <SolidColorBrush x:Key="BrushBadgeBg" Color="#1E293B" />
-        <SolidColorBrush x:Key="BrushBadgeBorder" Color="#334155" />
-        <SolidColorBrush x:Key="BrushBadgeText" Color="#93C5FD" />
-
-        <StreamGeometry x:Key="HeroIconChatBubble">M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a.75.75 0 0 1-.974-.94 5.95 5.95 0 0 0 .974-2.82C3.593 15.688 3 13.935 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z</StreamGeometry>
+                <!-- DARK THEME (Obsidian Dark) -->
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="BrushBg" Color="#0F1115" />
+                    <SolidColorBrush x:Key="BrushSidebar" Color="#0F172A" />
+                    <SolidColorBrush x:Key="BrushSurface" Color="#17191E" />
+                    <SolidColorBrush x:Key="BrushSurfaceHover" Color="#1F222A" />
+                    <SolidColorBrush x:Key="BrushSurfacePressed" Color="#252936" />
+                    <SolidColorBrush x:Key="BrushDangerHoverBg" Color="#331418" />
+                    <SolidColorBrush x:Key="BrushCard" Color="#13151A" />
+                    <SolidColorBrush x:Key="BrushCardBorder" Color="#252832" />
+                    <SolidColorBrush x:Key="BrushTextPrimary" Color="#F3F4F6" />
+                    <SolidColorBrush x:Key="BrushTextSecondary" Color="#9CA3AF" />
+                    <SolidColorBrush x:Key="BrushTextMuted" Color="#6B7280" />
+                    <SolidColorBrush x:Key="BrushPopupBg" Color="#17191E" />
+                    <SolidColorBrush x:Key="BrushPrimary" Color="#2563EB" />
+                    <SolidColorBrush x:Key="BrushPrimaryHover" Color="#1D4ED8" />
+                    <SolidColorBrush x:Key="BrushAccent" Color="#38BDF8" />
+                    <SolidColorBrush x:Key="BrushEmerald" Color="#10B981" />
+                    <SolidColorBrush x:Key="BrushAmber" Color="#F59E0B" />
+                    <SolidColorBrush x:Key="BrushCrimson" Color="#EF4444" />
+                    <SolidColorBrush x:Key="BrushViolet" Color="#A855F7" />
+                    <SolidColorBrush x:Key="BrushBadgeBg" Color="#1E293B" />
+                    <SolidColorBrush x:Key="BrushBadgeBorder" Color="#334155" />
+                    <SolidColorBrush x:Key="BrushBadgeText" Color="#93C5FD" />
+                    <SolidColorBrush x:Key="BrushModelBadgeBg" Color="#1E293B" />
+                    <SolidColorBrush x:Key="BrushModelBadgeBorder" Color="#334155" />
+                    <SolidColorBrush x:Key="BrushModelBadgeText" Color="#93C5FD" />
+                    <SolidColorBrush x:Key="BrushWarningAlertBg" Color="#241A06" />
+                    <SolidColorBrush x:Key="BrushWarningAlertBorder" Color="#D97706" />
+                    <SolidColorBrush x:Key="BrushWarningAlertText" Color="#FDE68A" />
+                    <SolidColorBrush x:Key="BrushErrorAlertBg" Color="#2A0E13" />
+                    <SolidColorBrush x:Key="BrushErrorAlertBorder" Color="#DC2626" />
+                    <SolidColorBrush x:Key="BrushErrorAlertText" Color="#FCA5A5" />
+                    <SolidColorBrush x:Key="BrushNavActiveBg" Color="#1E293B" />
+                    <SolidColorBrush x:Key="BrushNavActiveBorder" Color="#3B82F6" />
+                    <SolidColorBrush x:Key="BrushNavActiveText" Color="#F8FAFC" />
+                    <SolidColorBrush x:Key="BrushNavHoverBg" Color="#1F222A" />
+                    <SolidColorBrush x:Key="BrushNavInactiveText" Color="#9CA3AF" />
+                    <SolidColorBrush x:Key="BrushProgressTrack" Color="#1F2430" />
+                    <SolidColorBrush x:Key="BrushMonoPath" Color="#60A5FA" />
+                    <SolidColorBrush x:Key="BrushQuotaExhaustedBg" Color="#311118" />
+                    <SolidColorBrush x:Key="BrushQuotaExhaustedBorder" Color="#DC2626" />
+                    <SolidColorBrush x:Key="BrushQuotaExhaustedText" Color="#FCA5A5" />
+                    <SolidColorBrush x:Key="BrushAlertBg" Color="#1E293B" />
+                    <SolidColorBrush x:Key="BrushAlertBorder" Color="#3B82F6" />
+                    <SolidColorBrush x:Key="BrushAlertText" Color="#93C5FD" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
         <Style Selector="TextBlock">
             <Setter Property="FontFamily" Value="Inter, Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" />
+        </Style>
+
+        <!-- Modern Clean Outline Button Style (1:1 with WPF ModernButton) -->
+        <Style Selector="Button.outline, Button.modern">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="11,6" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.outline:pointerover, Button.modern:pointerover">
+            <Setter Property="Background" Value="{DynamicResource BrushSurfaceHover}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushCardBorder}" />
+        </Style>
+        <Style Selector="Button.outline:pressed, Button.modern:pressed">
+            <Setter Property="Background" Value="{DynamicResource BrushSurfacePressed}" />
+        </Style>
+
+        <!-- Danger Outline Button Style -->
+        <Style Selector="Button.dangerOutline, Button.danger">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#EF4444" />
+            <Setter Property="BorderBrush" Value="#EF4444" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="11,6" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.dangerOutline:pointerover, Button.danger:pointerover">
+            <Setter Property="Background" Value="{DynamicResource BrushDangerHoverBg}" />
+            <Setter Property="BorderBrush" Value="#DC2626" />
+            <Setter Property="Foreground" Value="#DC2626" />
+        </Style>
+
+        <!-- Primary Solid Button Style -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimary}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="14,7" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.primary:pointerover">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimaryHover}" />
+        </Style>
+
+        <!-- Emerald Solid Button Style (Launch agy / Swarm) -->
+        <Style Selector="Button.emerald">
+            <Setter Property="Background" Value="{DynamicResource BrushEmerald}" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="14,7" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.emerald:pointerover">
+            <Setter Property="Opacity" Value="0.9" />
         </Style>
     </Application.Styles>
 </Application>

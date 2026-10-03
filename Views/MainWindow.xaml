@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:AgyAccountSwarm.ViewModels"
         xmlns:models="clr-namespace:AgyAccountSwarm.Models"
-        Title="Agy CLI Account Swarm — Antigravity CLI Orchestrator"
+        Title="Agy CLI Account Swarm [Archived Prototype — Use Avalonia Edition]"
         Icon="../Resources/favicon.ico"
         Height="760" Width="1240"
         MinHeight="640" MinWidth="1050"
@@ -3911,10 +3911,10 @@
                                                         </StackPanel>
 
                                                         <!-- Assigned Swarm Accounts -->
-                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <TextBlock Text="Connected accounts: " FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" />
-                                                            <TextBlock Text="{Binding AssignedAccountsList}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
-                                                        </StackPanel>
+                                                        <WrapPanel VerticalAlignment="Center" Margin="0,3,14,0">
+                                                            <TextBlock Text="Connected accounts: " FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                                            <TextBlock Text="{Binding AssignedAccountsList}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                                                        </WrapPanel>
                                                     </StackPanel>
 
                                                     <!-- Right: Pool Capacity, Burn Rate & Status Badge -->

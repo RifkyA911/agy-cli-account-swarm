@@ -7,12 +7,13 @@
 > **A high-performance desktop orchestrator & sandbox session manager for Google Antigravity CLI (`agy`).**  
 > Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing.
 
-[![Version](https://img.shields.io/badge/Version-0.9.8--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.9.9--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
-[![UI: WPF & Avalonia](https://img.shields.io/badge/UI-WPF%20%26%20Avalonia%20Cross--Platform-0078D4?style=flat&logo=avaloniaui)](https://avaloniaui.net/)
+[![Primary UI: Avalonia Cross-Platform](https://img.shields.io/badge/Primary%20UI-Avalonia%20Cross--Platform-10B981?style=flat&logo=avaloniaui)](https://avaloniaui.net/)
+[![WPF: Archived Prototype](https://img.shields.io/badge/WPF-Archived%20Prototype-gray?style=flat&logo=windows)]()
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
 [![Platform: Windows | Linux](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-0078D7?style=flat&logo=linux)](https://github.com/RifkyA911/agy-cli-account-swarm)
-[![Tests: 91 Passed](https://img.shields.io/badge/Tests-91%20Passed-brightgreen?logo=xunit)]()
+[![Tests: 151 Passed](https://img.shields.io/badge/Tests-151%20Passed-brightgreen?logo=xunit)]()
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
@@ -23,12 +24,11 @@
 > ### ⚠️ NOT THE ANTIGRAVITY IDE
 > **Agy CLI Account Swarm** is specifically designed as a multi-account manager for the **Google Antigravity CLI (`agy`)** command-line interface. It is **NOT** the Antigravity IDE! It manages separate terminal CLI workers and sessions without modifying or interfering with your IDE setup.
 
-> [!WARNING]
-> ### 🖥️ GUI DESKTOP APPLICATION ONLY (STANDALONE CLI COMING IN 'agy-swarm')
-> **Agy CLI Account Swarm** operates **strictly as a GUI Desktop Application** (built with WPF for Windows and Avalonia UI for cross-platform Linux/macOS on .NET 9).  
-> **This repository is GUI-only and intentionally does not include a command-line interface.**  
-> A standalone headless CLI orchestration interface will be published in a separate dedicated project named **`agy-swarm`**.  
-> The desktop application serves as a visual control tower: you manage accounts, inspect live telemetry, filter profiles, migrate conversations, and launch separate terminal-based Antigravity CLI instances with a single click.
+> [!NOTE]
+> ### 🖥️ PRIMARY EDITION: AVALONIA UI CROSS-PLATFORM (WPF ARCHIVED AS PROTOTYPE)
+> **Agy CLI Account Swarm (Avalonia Edition)** is the primary, active flagship desktop application (`AgyAccountSwarm.Avalonia.exe`), featuring cross-platform rendering (Windows, Linux, macOS), modern transparent outline controls, high-contrast executive audit reports, and responsive MVVM architecture.  
+> The legacy Windows Presentation Foundation (WPF) edition is **archived as a pseudo prototype** for historical reference and legacy inspection.
+> A standalone headless CLI orchestration interface will be published in a separate dedicated project named **`agy-swarm`**.
 
 ---
 

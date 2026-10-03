@@ -62,7 +62,7 @@ public class QuotaToBrushConverter : IValueConverter
     {
         if (value is bool b)
         {
-            return b ? new SolidColorBrush(Color.Parse("#EF4444")) : new SolidColorBrush(Color.Parse("#10B981"));
+            return b ? new SolidColorBrush(Color.Parse("#10B981")) : new SolidColorBrush(Color.Parse("#EF4444"));
         }
 
         double percent = 0;
@@ -112,7 +112,8 @@ public class HexToBrushConverter : IValueConverter
 }
 
 /// <summary>
-/// Compares CurrentPage with parameter. Returns #1E293B if active, otherwise Transparent.
+/// <summary>
+/// Compares CurrentPage with parameter. Returns theme-aware background brush if active, otherwise Transparent.
 /// </summary>
 public class ActiveNavBackgroundConverter : IValueConverter
 {
@@ -121,14 +122,46 @@ public class ActiveNavBackgroundConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
-        return isActive ? new SolidColorBrush(Color.Parse("#1E293B")) : Brushes.Transparent;
+        if (!isActive) return Brushes.Transparent;
+
+        if (global::Avalonia.Application.Current?.Resources.TryGetResource("BrushNavActiveBg", null, out var res) == true && res is IBrush brush)
+            return brush;
+
+        bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                       || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
+        return isLight ? new SolidColorBrush(Color.Parse("#EEF2FF")) : new SolidColorBrush(Color.Parse("#1E293B"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
 }
 
 /// <summary>
-/// Compares CurrentPage with parameter. Returns #38BDF8 if active, otherwise #E2E8F0.
+/// Compares CurrentPage with parameter. Returns theme-aware border brush if active, otherwise Transparent.
+/// </summary>
+public class ActiveNavBorderConverter : IValueConverter
+{
+    public static readonly ActiveNavBorderConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        if (!isActive) return Brushes.Transparent;
+
+        if (global::Avalonia.Application.Current?.Resources.TryGetResource("BrushNavActiveBorder", null, out var res) == true && res is IBrush brush)
+            return brush;
+
+        bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                       || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
+        return isLight ? new SolidColorBrush(Color.Parse("#C7D2FE")) : new SolidColorBrush(Color.Parse("#3B82F6"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Compares CurrentPage with parameter. Returns theme-aware foreground brush.
 /// </summary>
 public class ActiveNavForegroundConverter : IValueConverter
 {
@@ -137,7 +170,40 @@ public class ActiveNavForegroundConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
-        return isActive ? new SolidColorBrush(Color.Parse("#38BDF8")) : new SolidColorBrush(Color.Parse("#E2E8F0"));
+        if (isActive)
+        {
+            if (global::Avalonia.Application.Current?.Resources.TryGetResource("BrushNavActiveText", null, out var res) == true && res is IBrush brush)
+                return brush;
+
+            bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                           || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
+            return isLight ? new SolidColorBrush(Color.Parse("#1E3A8A")) : new SolidColorBrush(Color.Parse("#38BDF8"));
+        }
+
+        if (global::Avalonia.Application.Current?.Resources.TryGetResource("BrushNavInactiveText", null, out var inact) == true && inact is IBrush inactBrush)
+            return inactBrush;
+
+        bool isLightInact = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                            || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
+        return isLightInact ? new SolidColorBrush(Color.Parse("#475569")) : new SolidColorBrush(Color.Parse("#94A3B8"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Compares CurrentPage with parameter. Returns FontWeight.Bold if active, otherwise FontWeight.Normal.
+/// </summary>
+public class PageToFontWeightConverter : IValueConverter
+{
+    public static readonly PageToFontWeightConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        return isActive ? FontWeight.Bold : FontWeight.Normal;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
@@ -315,6 +381,102 @@ public class CountToBooleanConverter : IValueConverter
         bool isInverse = string.Equals(parameter?.ToString(), "Inverse", StringComparison.OrdinalIgnoreCase);
         bool hasItems = count > 0;
         return isInverse ? !hasItems : hasItems;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Converts a boolean into a chevron string (▴ for true, ▾ for false).
+/// </summary>
+public class BoolToChevronConverter : IValueConverter
+{
+    public static readonly BoolToChevronConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool b)
+        {
+            return b ? "▴" : "▾";
+        }
+        return "▾";
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Maps a boolean hasActiveFilters to an accent brush or muted text brush.
+/// </summary>
+public class BoolToFilterAccentConverter : IValueConverter
+{
+    public static readonly BoolToFilterAccentConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool b && b)
+        {
+            return new SolidColorBrush(Color.Parse("#3B82F6"));
+        }
+        if (global::Avalonia.Application.Current?.Resources.TryGetResource("BrushTextSecondary", null, out var res) == true && res is IBrush brush)
+            return brush;
+        return new SolidColorBrush(Color.Parse("#94A3B8"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Checks whether a string or object is null or empty.
+/// </summary>
+public class NullOrEmptyToBooleanConverter : IValueConverter
+{
+    public static readonly NullOrEmptyToBooleanConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool hasValue = !string.IsNullOrWhiteSpace(value?.ToString());
+        if (string.Equals(parameter?.ToString(), "Inverse", StringComparison.OrdinalIgnoreCase))
+            return !hasValue;
+        return hasValue;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Inverts a boolean value.
+/// </summary>
+public class InverseBooleanConverter : IValueConverter
+{
+    public static readonly InverseBooleanConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool b) return !b;
+        return true;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Converts an integer count into a boolean (true if count > 0).
+/// </summary>
+public class IntToBooleanConverter : IValueConverter
+{
+    public static readonly IntToBooleanConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        int count = 0;
+        if (value is int i) count = i;
+        else if (int.TryParse(value?.ToString(), out var p)) count = p;
+
+        bool hasCount = count > 0;
+        if (string.Equals(parameter?.ToString(), "Inverse", StringComparison.OrdinalIgnoreCase))
+            return !hasCount;
+        return hasCount;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();

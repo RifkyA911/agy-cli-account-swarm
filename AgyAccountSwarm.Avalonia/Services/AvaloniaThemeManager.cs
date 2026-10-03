@@ -182,22 +182,22 @@ public static class AvaloniaThemeManager
     {
         app.RequestedThemeVariant = ThemeVariant.Light;
 
-        // Surfaces & Text (Daylight Clean)
-        SetBrush(app, "BrushBg", Color.FromRgb(248, 250, 252));        // Slate 50
-        SetBrush(app, "BrushSidebar", Color.FromRgb(241, 245, 249));   // Slate 100
-        SetBrush(app, "BrushSurface", Color.FromRgb(255, 255, 255));   // Pure White
-        SetBrush(app, "BrushSurfaceHover", Color.FromRgb(241, 245, 249)); // Slate 100
-        SetBrush(app, "BrushSurfacePressed", Color.FromRgb(226, 232, 240)); // Slate 200
-        SetBrush(app, "BrushDangerHoverBg", Color.FromRgb(254, 226, 226)); // Red 100
-        SetBrush(app, "BrushCard", Color.FromRgb(255, 255, 255));      // White Card
-        SetBrush(app, "BrushCardBorder", Color.FromRgb(226, 232, 240)); // Slate 200
-        SetBrush(app, "BrushTextPrimary", Color.FromRgb(15, 23, 42));  // Slate 900
-        SetBrush(app, "BrushTextSecondary", Color.FromRgb(71, 85, 105)); // Slate 600
-        SetBrush(app, "BrushTextMuted", Color.FromRgb(148, 163, 184)); // Slate 400
+        // Surfaces & Text (Daylight Clean - Pure White Sidebar and Cards)
+        SetBrush(app, "BrushBg", Color.FromRgb(248, 250, 252));        // Slate 50 (#F8FAFC)
+        SetBrush(app, "BrushSidebar", Color.FromRgb(255, 255, 255));   // Pure White (#FFFFFF)
+        SetBrush(app, "BrushSurface", Color.FromRgb(255, 255, 255));   // Pure White (#FFFFFF)
+        SetBrush(app, "BrushSurfaceHover", Color.FromRgb(241, 245, 249)); // Slate 100 (#F1F5F9)
+        SetBrush(app, "BrushSurfacePressed", Color.FromRgb(226, 232, 240)); // Slate 200 (#E2E8F0)
+        SetBrush(app, "BrushDangerHoverBg", Color.FromRgb(254, 226, 226)); // Red 100 (#FEE2E2)
+        SetBrush(app, "BrushCard", Color.FromRgb(255, 255, 255));      // White Card (#FFFFFF)
+        SetBrush(app, "BrushCardBorder", Color.FromRgb(226, 232, 240)); // Slate 200 (#E2E8F0)
+        SetBrush(app, "BrushTextPrimary", Color.FromRgb(15, 23, 42));  // Slate 900 (#0F172A)
+        SetBrush(app, "BrushTextSecondary", Color.FromRgb(71, 85, 105)); // Slate 600 (#475569)
+        SetBrush(app, "BrushTextMuted", Color.FromRgb(148, 163, 184)); // Slate 400 (#94A3B8)
         SetBrush(app, "BrushPopupBg", Color.FromRgb(255, 255, 255));
 
         // Primary Accent
-        SetBrush(app, "BrushPrimary", Color.FromRgb(37, 99, 235));
+        SetBrush(app, "BrushPrimary", Color.FromRgb(37, 99, 235));     // Blue 600 (#2563EB)
         SetBrush(app, "BrushPrimaryHover", Color.FromRgb(29, 78, 216));
         SetBrush(app, "BrushAccent", Color.FromRgb(2, 132, 199));     // Sky 600
         SetBrush(app, "BrushEmerald", Color.FromRgb(5, 150, 105));    // Emerald 600
@@ -205,10 +205,10 @@ public static class AvaloniaThemeManager
         SetBrush(app, "BrushCrimson", Color.FromRgb(220, 38, 38));    // Red 600
         SetBrush(app, "BrushViolet", Color.FromRgb(124, 58, 237));    // Violet 600
 
-        // Nav Sidebar (Crisp High-Contrast)
-        SetBrush(app, "BrushNavActiveBg", Color.FromRgb(224, 231, 255));   // Indigo 100
-        SetBrush(app, "BrushNavActiveBorder", Color.FromRgb(59, 130, 246));
-        SetBrush(app, "BrushNavActiveText", Color.FromRgb(30, 58, 138));   // Indigo 900
+        // Nav Sidebar (Crisp High-Contrast layout.png parity)
+        SetBrush(app, "BrushNavActiveBg", Color.FromRgb(238, 242, 255));   // Indigo 50 (#EEF2FF)
+        SetBrush(app, "BrushNavActiveBorder", Color.FromRgb(199, 210, 254)); // Indigo 200 (#C7D2FE)
+        SetBrush(app, "BrushNavActiveText", Color.FromRgb(30, 58, 138));   // Indigo 900 (#1E3A8A)
         SetBrush(app, "BrushNavHoverBg", Color.FromRgb(241, 245, 249));    // Slate 100
         SetBrush(app, "BrushNavInactiveText", Color.FromRgb(71, 85, 105)); // Slate 600
 
@@ -217,10 +217,10 @@ public static class AvaloniaThemeManager
         SetBrush(app, "BrushAlertBorder", Color.FromRgb(191, 219, 254));   // Blue 200
         SetBrush(app, "BrushAlertText", Color.FromRgb(29, 78, 216));       // Blue 700
 
-        // Badges
-        SetBrush(app, "BrushBadgeBg", Color.FromRgb(241, 245, 249));       // Slate 100
-        SetBrush(app, "BrushBadgeBorder", Color.FromRgb(203, 213, 225));   // Slate 300
-        SetBrush(app, "BrushBadgeText", Color.FromRgb(37, 99, 235));       // Blue 600
+        // Badges (Crisp pastel badges)
+        SetBrush(app, "BrushBadgeBg", Color.FromRgb(239, 246, 255));       // Soft light blue #EFF6FF
+        SetBrush(app, "BrushBadgeBorder", Color.FromRgb(219, 234, 254));   // Blue 100 #DBEAFE
+        SetBrush(app, "BrushBadgeText", Color.FromRgb(37, 99, 235));       // Blue 600 #2563EB
 
         SetBrush(app, "BrushModelBadgeBg", Color.FromRgb(240, 253, 250));  // Teal 50
         SetBrush(app, "BrushModelBadgeBorder", Color.FromRgb(153, 246, 228));
@@ -238,7 +238,7 @@ public static class AvaloniaThemeManager
         // Preflight & General Warning / Error Alerts (Soft Light Tint, High Contrast Text)
         SetBrush(app, "BrushWarningAlertBg", Color.FromRgb(254, 243, 199));   // Amber 100 (#FEF3C7)
         SetBrush(app, "BrushWarningAlertBorder", Color.FromRgb(245, 158, 11)); // Amber 500 (#F59E0B)
-        SetBrush(app, "BrushWarningAlertText", Color.FromRgb(146, 64, 14));    // Amber 800 (#92400E)
+        SetBrush(app, "BrushWarningAlertText", Color.FromRgb(180, 83, 9));     // Amber 700 (#B45309)
 
         SetBrush(app, "BrushErrorAlertBg", Color.FromRgb(254, 226, 226));     // Red 100 (#FEE2E2)
         SetBrush(app, "BrushErrorAlertBorder", Color.FromRgb(239, 68, 68));     // Red 500 (#EF4444)

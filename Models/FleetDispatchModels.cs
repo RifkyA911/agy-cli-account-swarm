@@ -67,7 +67,12 @@ public partial class DispatchedWorkerTask : ObservableObject
     private string _branchName = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsActive))]
+    [NotifyPropertyChangedFor(nameof(CanStop))]
     private string _status = "Ready";
+
+    public bool IsActive => Status is "Running" or "Launching" or "Active" or "Dispatched" or "Detached";
+    public bool CanStop => IsActive;
 
     [ObservableProperty]
     private string _statusColor = "#10B981";

@@ -2549,7 +2549,7 @@ public partial class MainViewModel : ObservableObject
                     var psi = new ProcessStartInfo
                     {
                         FileName = edgePath,
-                        Arguments = $"--headless --disable-gpu --run-all-compositor-stages-before-draw --print-to-pdf=\"{targetPath}\" \"{tempHtml}\"",
+                        Arguments = $"--headless --disable-gpu --run-all-compositor-stages-before-draw --no-pdf-header-footer --print-to-pdf=\"{targetPath}\" \"{tempHtml}\"",
                         UseShellExecute = false,
                         CreateNoWindow = true
                     };
@@ -2586,76 +2586,150 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private string GenerateExecutiveReportHtml()
+    public string GenerateExecutiveReportHtml()
     {
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Agy CLI Account Swarm - Telemetry Report</title>");
+        sb.AppendLine("<!DOCTYPE html>");
+        sb.AppendLine("<html lang='en'>");
+        sb.AppendLine("<head>");
+        sb.AppendLine("<meta charset='utf-8'>");
+        sb.AppendLine("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+        sb.AppendLine("<title>Agy CLI Account Swarm - Executive Telemetry Report</title>");
         sb.AppendLine("<style>");
-        sb.AppendLine("body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; line-height: 1.5; }");
-        sb.AppendLine(".card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 18px; margin-bottom: 20px; }");
-        sb.AppendLine(".header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #38bdf8; padding-bottom: 12px; margin-bottom: 20px; }");
-        sb.AppendLine(".title { font-size: 22px; font-weight: 800; color: #38bdf8; }");
-        sb.AppendLine(".kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }");
-        sb.AppendLine(".kpi { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 12px; text-align: center; }");
-        sb.AppendLine(".kpi-val { font-size: 20px; font-weight: 800; color: #38bdf8; }");
-        sb.AppendLine(".kpi-lbl { font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-top: 4px; }");
-        sb.AppendLine("table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }");
-        sb.AppendLine("th, td { border: 1px solid #334155; padding: 9px 12px; text-align: left; }");
-        sb.AppendLine("th { background: #0f172a; color: #94a3b8; }");
-        sb.AppendLine(".badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; }");
-        sb.AppendLine("@media print { body { background: #fff; color: #000; padding: 0; } .card { border: 1px solid #ccc; background: #fff; } th, td { border-color: #ddd; color: #000; } .kpi { background: #f8f9fa; border-color: #ccc; } .kpi-val { color: #0284c7; } .header { border-color: #0284c7; } .title { color: #0284c7; } }");
-        sb.AppendLine("</style></head><body>");
+        sb.AppendLine("  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; }");
+        sb.AppendLine("  @page { size: A4 portrait; margin: 12mm 10mm; }");
+        sb.AppendLine("  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #ffffff !important; color: #0f172a !important; margin: 0; padding: 16px; line-height: 1.45; font-size: 12px; }");
+        sb.AppendLine("  .report-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 18px; }");
+        sb.AppendLine("  .brand-title { font-size: 20px; font-weight: 800; color: #0369a1; letter-spacing: -0.3px; }");
+        sb.AppendLine("  .brand-sub { font-size: 11.5px; color: #64748b; margin-top: 3px; font-weight: 500; }");
+        sb.AppendLine("  .report-meta { text-align: right; font-size: 11px; color: #64748b; line-height: 1.4; }");
+        sb.AppendLine("  .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 18px; page-break-inside: avoid; }");
+        sb.AppendLine("  .kpi-box { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 6px; padding: 10px 8px; text-align: center; }");
+        sb.AppendLine("  .kpi-val { font-size: 16px; font-weight: 800; }");
+        sb.AppendLine("  .kpi-lbl { font-size: 9.5px; color: #64748b; text-transform: uppercase; font-weight: 700; margin-top: 2px; }");
+        sb.AppendLine("  .card { background: #ffffff !important; border: 1px solid #cbd5e1 !important; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; page-break-inside: avoid; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }");
+        sb.AppendLine("  .card-title { font-size: 13.5px; font-weight: 700; color: #0f172a; margin: 0 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid #f1f5f9; }");
+        sb.AppendLine("  .hero-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; background: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 6px; padding: 12px; }");
+        sb.AppendLine("  .hero-lbl { font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase; }");
+        sb.AppendLine("  .hero-val { font-size: 14px; font-weight: 800; color: #0369a1; margin-top: 2px; }");
+        sb.AppendLine("  table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11.5px; table-layout: auto; }");
+        sb.AppendLine("  th { background: #f1f5f9 !important; color: #334155 !important; font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid #cbd5e1 !important; padding: 8px 10px; text-align: left; }");
+        sb.AppendLine("  td { border: 1px solid #e2e8f0 !important; color: #1e293b !important; padding: 7px 10px; vertical-align: middle; background: #ffffff; }");
+        sb.AppendLine("  tr:nth-child(even) td { background: #f8fafc !important; }");
+        sb.AppendLine("  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; color: #ffffff !important; }");
+        sb.AppendLine("  .tool-pill { display: inline-block; background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; border-radius: 3px; padding: 1px 5px; font-family: Consolas, Monaco, monospace; font-size: 9.5px; margin: 1px 2px; color: #0369a1 !important; word-break: break-all; }");
+        sb.AppendLine("  .footer { text-align: center; font-size: 10.5px; color: #94a3b8; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; }");
+        sb.AppendLine("  @media print {");
+        sb.AppendLine("    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }");
+        sb.AppendLine("    body { background: #ffffff !important; color: #0f172a !important; padding: 0 !important; }");
+        sb.AppendLine("    .card { background: #ffffff !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; }");
+        sb.AppendLine("    th { background: #f1f5f9 !important; color: #1e293b !important; border: 1px solid #cbd5e1 !important; }");
+        sb.AppendLine("    td { background: #ffffff !important; color: #1e293b !important; border: 1px solid #e2e8f0 !important; }");
+        sb.AppendLine("    tr:nth-child(even) td { background: #f8fafc !important; }");
+        sb.AppendLine("  }");
+        sb.AppendLine("</style>");
+        sb.AppendLine("</head>");
+        sb.AppendLine("<body>");
 
-        sb.AppendLine("<div class='header'>");
-        sb.AppendLine("  <div><div class='title'>⚡ Agy CLI Account Swarm - Executive Telemetry Report</div><div style='color:#94a3b8; font-size:12px; margin-top:4px;'>Google Antigravity CLI Multi-Account Orchestration & Telemetry Audit</div></div>");
+        // Header
+        sb.AppendLine("<div class='report-header'>");
+        sb.AppendLine("  <div>");
+        sb.AppendLine("    <div class='brand-title'>⚡ Agy CLI Account Swarm • Executive Telemetry Report</div>");
+        sb.AppendLine("    <div class='brand-sub'>Google Antigravity CLI Multi-Account Orchestration &amp; Telemetry Audit</div>");
+        sb.AppendLine("  </div>");
         var primaryOperator = Profiles.FirstOrDefault(p => !string.IsNullOrEmpty(p.AccountEmail))?.AccountEmail ?? "Local Swarm Operator";
-        sb.AppendLine($"  <div style='text-align:right; font-size:12px; color:#94a3b8;'>Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}<br>Operator: {primaryOperator}</div>");
+        sb.AppendLine("  <div class='report-meta'>");
+        sb.AppendLine($"    Generated: <strong>{DateTime.Now:yyyy-MM-dd HH:mm:ss}</strong><br>");
+        sb.AppendLine($"    Operator: <strong>{primaryOperator}</strong><br>");
+        sb.AppendLine($"    Active Sandboxes: <strong>{Profiles.Count}</strong>");
+        sb.AppendLine("  </div>");
         sb.AppendLine("</div>");
 
-        // KPI Row
-        sb.AppendLine("<div class='kpi-row'>");
-        sb.AppendLine($"  <div class='kpi'><div class='kpi-val'>{TotalCount}</div><div class='kpi-lbl'>Total Accounts</div></div>");
-        sb.AppendLine($"  <div class='kpi'><div class='kpi-val'>{AuthenticatedCount}</div><div class='kpi-lbl'>Authenticated</div></div>");
-        sb.AppendLine($"  <div class='kpi'><div class='kpi-val'>{TotalInteractionsCount}</div><div class='kpi-lbl'>Real Prompts</div></div>");
-        sb.AppendLine($"  <div class='kpi'><div class='kpi-val'>{TotalEstimatedTokens}</div><div class='kpi-lbl'>Est. Tokens</div></div>");
+        // 6 Executive KPI summary boxes
+        sb.AppendLine("<div class='kpi-grid'>");
+        sb.AppendLine($"  <div class='kpi-box'><div class='kpi-val' style='color:#0284c7;'>{TotalEstimatedTokens}</div><div class='kpi-lbl'>Est. Tokens</div></div>");
+        sb.AppendLine($"  <div class='kpi-box'><div class='kpi-val' style='color:#0891b2;'>{EstimatedInputTokens}</div><div class='kpi-lbl'>Input Tokens</div></div>");
+        sb.AppendLine($"  <div class='kpi-box'><div class='kpi-val' style='color:#7c3aed;'>{EstimatedOutputTokens}</div><div class='kpi-lbl'>Output Tokens</div></div>");
+        sb.AppendLine($"  <div class='kpi-box'><div class='kpi-val' style='color:#059669;'>{AverageLatencyMs}</div><div class='kpi-lbl'>Avg Latency</div></div>");
+        sb.AppendLine($"  <div class='kpi-box'><div class='kpi-val' style='color:#059669;'>{SwarmSuccessRate}</div><div class='kpi-lbl'>Uptime / Success</div></div>");
+        sb.AppendLine($"  <div class='kpi-box'><div class='kpi-val' style='color:#d97706;'>{SwarmHealthScore}</div><div class='kpi-lbl'>Swarm Status</div></div>");
+        sb.AppendLine("</div>");
+
+        // Swarm Fleet Capacity & Burn Rate Hero Strip
+        sb.AppendLine("<div class='card'>");
+        sb.AppendLine("  <div class='card-title'>🚀 Swarm Fleet Intelligence &amp; Aggregate Quota Pool</div>");
+        sb.AppendLine("  <div class='hero-grid'>");
+        sb.AppendLine($"    <div class='hero-item'><div class='hero-lbl'>DAILY POOL CAPACITY</div><div class='hero-val'>{SwarmDailyCapacityTotal:N0} prompts</div></div>");
+        sb.AppendLine($"    <div class='hero-item'><div class='hero-lbl'>PROMPTS TODAY</div><div class='hero-val' style='color:#059669;'>{SwarmTodayPromptsTotal:N0} prompts ({SwarmPoolRemainingPercent:F1}% left)</div></div>");
+        sb.AppendLine($"    <div class='hero-item'><div class='hero-lbl'>AGGREGATE BURN-RATE</div><div class='hero-val' style='color:#d97706;'>{SwarmAggregateBurnRate:F1} p/hr</div></div>");
+        sb.AppendLine($"    <div class='hero-item'><div class='hero-lbl'>EXHAUSTION FORECAST</div><div class='hero-val' style='color:#334155; font-size:12.5px;'>{SwarmExhaustionForecast}</div></div>");
+        sb.AppendLine("  </div>");
         sb.AppendLine("</div>");
 
         // Accounts Table
         sb.AppendLine("<div class='card'>");
-        sb.AppendLine("  <h3 style='margin:0 0 10px 0; font-size:15px; color:#f8fafc;'>Swarm Account Sandboxes & Subscription Status</h3>");
-        sb.AppendLine("  <table><thead><tr><th>Account Name</th><th>Status</th><th>Email</th><th>Tier</th><th>Current Model</th><th>Prompts</th><th>Daily Quota</th></tr></thead><tbody>");
+        sb.AppendLine("  <div class='card-title'>👥 Swarm Account Sandboxes &amp; Quota Health</div>");
+        sb.AppendLine("  <table>");
+        sb.AppendLine("    <thead><tr><th>Account Name</th><th>Status</th><th>Email</th><th>Tier</th><th>Current Model</th><th>Prompts</th><th>Daily Quota</th></tr></thead>");
+        sb.AppendLine("    <tbody>");
         foreach (var p in Profiles)
         {
             string tierBg = p.TierBadgeBackground;
-            sb.AppendLine($"<tr><td><strong>{p.Name}</strong></td><td>{p.AuthStatus.StatusMessage}</td><td>{p.AuthStatus.AccountEmail ?? "Pending Auth"}</td><td><span class='badge' style='background:{tierBg}'>{p.TierBadgeText}</span></td><td>{p.CurrentModel}</td><td>{p.UsageLabel}</td><td>{p.QuotaLimit:N0}</td></tr>");
+            sb.AppendLine($"      <tr><td><strong>{p.Name}</strong></td><td>{p.StatusBadgeText}</td><td>{p.AccountEmail ?? "Pending Auth"}</td><td><span class='badge' style='background:{tierBg};'>{p.TierBadgeText}</span></td><td>{p.CurrentModel}</td><td>{p.UsageLabel}</td><td>{p.DailyQuotaLimit:N0}</td></tr>");
         }
-        sb.AppendLine("  </tbody></table>");
+        sb.AppendLine("    </tbody>");
+        sb.AppendLine("  </table>");
         sb.AppendLine("</div>");
+
+        // Model Efficiency Comparison Matrix
+        if (ModelEfficiencies.Count > 0)
+        {
+            sb.AppendLine("<div class='card'>");
+            sb.AppendLine("  <div class='card-title'>📊 Model Efficiency Comparison Matrix</div>");
+            sb.AppendLine("  <table>");
+            sb.AppendLine("    <thead><tr><th>Model</th><th>Tier</th><th>Requests</th><th>Est. Tokens</th><th>Avg Speed</th><th>Error Rate</th><th>Status</th></tr></thead>");
+            sb.AppendLine("    <tbody>");
+            foreach (var m in ModelEfficiencies)
+            {
+                sb.AppendLine($"      <tr><td><strong>{m.ModelName}</strong></td><td>{m.Tier}</td><td>{m.Requests}</td><td><strong style='color:#0284c7;'>{m.Tokens}</strong></td><td><strong style='color:#059669;'>{m.AvgSpeed}</strong></td><td>{m.ErrorRate}</td><td><span class='badge' style='background:#f1f5f9; color:{m.StatusColor}; border:1px solid #cbd5e1;'>{m.Status}</span></td></tr>");
+            }
+            sb.AppendLine("    </tbody>");
+            sb.AppendLine("  </table>");
+            sb.AppendLine("</div>");
+        }
 
         // Daily Trend Breakdown
         sb.AppendLine("<div class='card'>");
-        sb.AppendLine($"  <h3 style='margin:0 0 10px 0; font-size:15px; color:#f8fafc;'>Telemetry Activity ({SelectedTimeframe} - {SelectedModelFilter})</h3>");
-        sb.AppendLine("  <table><thead><tr><th>Time Bucket</th><th>Prompt Count</th><th>Est. Token Volume</th></tr></thead><tbody>");
+        sb.AppendLine($"  <div class='card-title'>📈 Telemetry Activity Distribution ({SelectedTimeframe} • {SelectedModelFilter})</div>");
+        sb.AppendLine("  <table>");
+        sb.AppendLine("    <thead><tr><th>Time Bucket</th><th>Prompt Count</th><th>Est. Token Volume</th></tr></thead>");
+        sb.AppendLine("    <tbody>");
         foreach (var pt in DashboardChartPoints)
         {
-            sb.AppendLine($"<tr><td>{pt.Label}</td><td><strong>{pt.Value}</strong></td><td>{pt.TokensLabel}</td></tr>");
+            sb.AppendLine($"      <tr><td>{pt.Label}</td><td><strong>{pt.Value}</strong></td><td>{pt.TokensLabel}</td></tr>");
         }
-        sb.AppendLine("  </tbody></table>");
+        sb.AppendLine("    </tbody>");
+        sb.AppendLine("  </table>");
         sb.AppendLine("</div>");
 
         // MCP Server Audit
         sb.AppendLine("<div class='card'>");
-        sb.AppendLine($"  <h3 style='margin:0 0 10px 0; font-size:15px; color:#f8fafc;'>Model Context Protocol (MCP) Tools ({McpServersCount} Servers, {McpToolsTotalCount} Tools)</h3>");
-        sb.AppendLine("  <table><thead><tr><th>Server Name</th><th>Tools Count</th><th>Status</th><th>Discovered Tools</th></tr></thead><tbody>");
+        sb.AppendLine($"  <div class='card-title'>🧩 Model Context Protocol (MCP) Tools ({McpServersCount} Servers, {McpToolsTotalCount} Tools)</div>");
+        sb.AppendLine("  <table>");
+        sb.AppendLine("    <thead><tr><th style='width:22%;'>Server Name</th><th style='width:12%;'>Tools Count</th><th style='width:14%;'>Status</th><th>Discovered Tools</th></tr></thead>");
+        sb.AppendLine("    <tbody>");
         foreach (var mcp in McpServers)
         {
-            string toolsList = string.Join(", ", mcp.Tools);
-            sb.AppendLine($"<tr><td><strong>{mcp.Name}</strong></td><td>{mcp.ToolsCount}</td><td>{mcp.Status}</td><td><code>{toolsList}</code></td></tr>");
+            var toolPills = (mcp.Tools != null && mcp.Tools.Count > 0)
+                ? string.Join(" ", mcp.Tools.Select(t => $"<span class='tool-pill'>{t}</span>"))
+                : "<span style='color:#94a3b8;'>No tools detected</span>";
+            sb.AppendLine($"      <tr><td><strong>{mcp.Name}</strong></td><td>{mcp.ToolsCount}</td><td>{mcp.Status}</td><td>{toolPills}</td></tr>");
         }
-        sb.AppendLine("  </tbody></table>");
+        sb.AppendLine("    </tbody>");
+        sb.AppendLine("  </table>");
         sb.AppendLine("</div>");
 
-        sb.AppendLine("<div style='text-align:center; font-size:11px; color:#64748b; margin-top:30px;'>Agy CLI Account Swarm v0.9.3-beta • Authored by RifkyA911 • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
+        sb.AppendLine("<div class='footer'>Agy CLI Account Swarm • https://github.com/RifkyA911/agy-cli-account-swarm</div>");
         sb.AppendLine("</body></html>");
         return sb.ToString();
     }

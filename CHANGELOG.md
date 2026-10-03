@@ -2,7 +2,31 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
-## [v0.9.8-beta] - 2026-10-01
+## [v0.9.9-beta] - 2026-10-03
+### Added & Changed
+- **Avalonia Flagship Edition & WPF Archived as Pseudo Prototype**:
+  - Promoted Avalonia cross-platform UI (`AgyAccountSwarm.Avalonia`) to the primary active production application for Windows, Linux, and macOS.
+  - Formally archived the legacy Windows Presentation Foundation (WPF) edition as a reference pseudo prototype (`[Archived Prototype — Use Avalonia Edition]`).
+  - Aligned window dimensions to exact 1:1 parity: `Width="1240" Height="760"` (min `1050 × 640`).
+- **High-Resolution Avatar Rendering & Google CDN Upgrade**:
+  - Eliminated pixelated/blurry profile pictures across Dashboard, Accounts, Task & Dispatch, and Swarm Worker cards.
+  - Upgraded Google profile photo CDN resolution from low-res `=s96-c` to crisp `=s384-c` Super Retina.
+  - Enabled `RenderOptions.BitmapInterpolationMode="HighQuality"` globally across all avatar `Image` and `Ellipse` elements.
+  - Implemented self-healing cache re-downloading to replace stale low-res thumbnails (< 12KB) with crisp high-res profile photos.
+- **Active Fleet Engine Layout & Connected Accounts Collision Fix**:
+  - Replaced unconstrained horizontal stack with a responsive `WrapPanel` featuring `TextWrapping="Wrap"` and ample column separation (`Margin="0,0,16,0"`).
+  - Multi-account rosters now wrap cleanly without overlapping or colliding into Pool Capacity, Burn Rate, or Status badges.
+- **Executive Telemetry Reports - Dedicated Action Toolbar Row**:
+  - Transformed the report export card from a cramped single-row layout into a generous multi-row card structure.
+  - Created a dedicated action toolbar row housing `Download PDF Report`, `Export to Excel (.xlsx)`, and `Refresh Telemetry` with generous breathing room.
+  - Hardened PDF export stylesheet with high-contrast `#334155` headers, `#ffffff` print paper backgrounds, exact color preservation, and `--no-pdf-header-footer` Edge print flags.
+- **Robust Abort Fleet & Stop Worker Lifecycle with Responsive Button States**:
+  - Added dynamic `IsEnabled="{Binding CanAbortFleet}"` and `IsEnabled="{Binding CanStop}"` to prevent user confusion and dead clicks.
+  - Enhanced `AbortFleetAsync` in `FleetDispatcherService` to reliably terminate all active, dispatched, and detached worker process trees.
+  - Prominently captures and highlights `RESOURCE_EXHAUSTED` / `quota exceeded` / `rate limit` errors in headless silent mode, setting worker status to red `"Quota Exceeded"` and `CurrentActivity` to `"🚨 Quota Exceeded / Rate Limit"`.
+  - Added pre-dispatch quota warnings informing users when selected accounts have exhausted daily allowances before launch.
+
+
 ### Added
 - **Fleet Prompt Dispatcher &amp; Git Worktree Orchestration [EXPERIMENTAL]**:
   - Orchestrate multiple authentic `agy` CLI accounts simultaneously from a single high-level prompt objective without LangChain or LangGraph dependencies.

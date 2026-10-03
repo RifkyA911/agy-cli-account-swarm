@@ -3,16 +3,17 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Avalonia.Media.Imaging;
+using Avalonia.Input.Platform;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgyAccountSwarm.Models;
 using AgyAccountSwarm.Services;
 
-namespace AgyAccountSwarm.ViewModels;
+namespace AgyAccountSwarm.Avalonia.ViewModels;
 
-public partial class ProfileItemViewModel : ObservableObject
+public partial class AvaloniaProfileItemViewModel : ObservableObject
 {
     private readonly ITerminalLauncherService _launcherService;
     private readonly IAuthDetectorService _authDetector;
@@ -43,7 +44,7 @@ public partial class ProfileItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSelectedForSwarm;
 
-    public event Action<ProfileItemViewModel, bool>? SelectionChanged;
+    public event Action<AvaloniaProfileItemViewModel, bool>? SelectionChanged;
 
     partial void OnIsSelectedForSwarmChanged(bool value)
     {
@@ -85,13 +86,13 @@ public partial class ProfileItemViewModel : ObservableObject
         IsDetailsExpanded = !IsDetailsExpanded;
     }
 
-    public event Action<ProfileItemViewModel>? OnEditRequested;
-    public event Action<ProfileItemViewModel>? OnDeleteRequested;
-    public event Action<ProfileItemViewModel>? OnDuplicateRequested;
-    public event Action<ProfileItemViewModel>? OnImportChatRequested;
+    public event Action<AvaloniaProfileItemViewModel>? OnEditRequested;
+    public event Action<AvaloniaProfileItemViewModel>? OnDeleteRequested;
+    public event Action<AvaloniaProfileItemViewModel>? OnDuplicateRequested;
+    public event Action<AvaloniaProfileItemViewModel>? OnImportChatRequested;
     public event Action<string>? OnNotificationRequested;
 
-    public ProfileItemViewModel(
+    public AvaloniaProfileItemViewModel(
         AccountProfile profile,
         ITerminalLauncherService launcherService,
         IAuthDetectorService authDetector,
@@ -112,7 +113,7 @@ public partial class ProfileItemViewModel : ObservableObject
         _extraArguments = profile.ExtraArguments;
         _dangerouslySkipPermissions = profile.DangerouslySkipPermissions;
         _isSelectedForSwarm = profile.IsSelectedForSwarm;
-        _authStatus = profile.AuthStatus;
+        _authStatus = profile.AuthStatus ?? new ProfileAuthStatus();
         _tier = profile.Tier;
         _preferredModel = profile.PreferredModel;
         _quotaLimit = profile.QuotaLimit;
@@ -405,7 +406,7 @@ public partial class ProfileItemViewModel : ObservableObject
         }
     }
 
-    public ImageSource? AvatarImageSource
+    public Bitmap? AvatarImageSource
     {
         get
         {
@@ -415,43 +416,15 @@ public partial class ProfileItemViewModel : ObservableObject
             {
                 if (File.Exists(path))
                 {
-                    var bi = new BitmapImage();
-                    bi.BeginInit();
-                    bi.CacheOption = BitmapCacheOption.OnLoad;
-                    bi.DecodePixelWidth = 256;
-                    using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        var ms = new MemoryStream();
-                        fs.CopyTo(ms);
-                        ms.Position = 0;
-                        bi.StreamSource = ms;
-                        bi.EndInit();
-                    }
-                    bi.Freeze();
-                    return bi;
-                }
-                else if (Uri.TryCreate(path, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-                {
-                    var bi = new BitmapImage();
-                    bi.BeginInit();
-                    bi.UriSource = uri;
-                    bi.CacheOption = BitmapCacheOption.OnLoad;
-                    bi.DecodePixelWidth = 256;
-                    bi.EndInit();
-                    bi.Freeze();
-                    return bi;
+                    return new Bitmap(path);
                 }
             }
-            catch (Exception ex)
-            {
-                Logger.Debug($"[ProfileItem] Failed loading avatar image from '{path}': {ex.Message}");
-            }
+            catch { }
             return null;
         }
     }
 
     public bool HasAvatarUrl => AvatarImageSource != null;
-
 
     public int DailyQuotaLimit => AuthStatus.DailyQuotaLimit > 0 ? AuthStatus.DailyQuotaLimit : AuthDetectorService.GetDailyQuotaForTier(TierBadgeText);
     public int TodayTurnsCount => AuthStatus.TodayTurnsCount;
@@ -470,7 +443,6 @@ public partial class ProfileItemViewModel : ObservableObject
 
     public bool IsDefaultProfile => Profile.IsMainDefaultProfile();
     public bool IsDefaultPrimary => IsDefaultProfile;
-
     public bool CanDelete => !IsDefaultProfile;
 
     // Burn-Rate & Quota Exhaustion Forecasting
@@ -574,7 +546,7 @@ public partial class ProfileItemViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Logger.Error($"[ProfileItemViewModel] Doctor failed for '{Name}'", ex);
+            Logger.Error($"[AvaloniaProfileItemViewModel] Doctor failed for '{Name}'", ex);
             OnNotificationRequested?.Invoke($"Failed to diagnose '{Name}': {ex.Message}");
         }
         finally
@@ -595,7 +567,7 @@ public partial class ProfileItemViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Logger.Error($"[ProfileItemViewModel] CleanLocks failed for '{Name}'", ex);
+            Logger.Error($"[AvaloniaProfileItemViewModel] CleanLocks failed for '{Name}'", ex);
         }
     }
 
@@ -614,7 +586,7 @@ public partial class ProfileItemViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Logger.Error($"[ProfileItemViewModel] TrustWorkspace failed for '{Name}'", ex);
+            Logger.Error($"[AvaloniaProfileItemViewModel] TrustWorkspace failed for '{Name}'", ex);
         }
     }
 
@@ -634,23 +606,12 @@ public partial class ProfileItemViewModel : ObservableObject
     public string WeeklyRemainingFormatted => $"{WeeklyRemainingPercentage:F0}% remaining";
     public string WeeklySummary => $"Weekly Quota: {WeeklyRemainingPercentage:F0}% remaining ({Math.Max(0, WeeklyQuotaLimit - WeeklyTurnsCount):N0} / {WeeklyQuotaLimit:N0} left)";
 
-    // Context Metrics
-    public long ModelContextLimit => AuthStatus.ModelContextLimit;
-    public long EstimatedContextTokens => AuthStatus.EstimatedContextTokens;
-    public double ContextUsagePercentage => AuthStatus.ContextUsagePercentage;
-    public string ContextWindowLabel => AuthStatus.ContextWindowLabel;
-    public string ContextUsageSummary => AuthStatus.ContextUsageSummary;
-    public string ContextHeadroomSummary => AuthStatus.ContextHeadroomSummary;
-
     // Foldable Section States for Account Cards
     [ObservableProperty]
     private bool _isDailyQuotaExpanded = true;
 
     [ObservableProperty]
     private bool _isModelQuotasExpanded = true;
-
-    [ObservableProperty]
-    private bool _isCliInspectorExpanded = false;
 
     [RelayCommand]
     public void ToggleDailyQuotaSection()
@@ -664,13 +625,6 @@ public partial class ProfileItemViewModel : ObservableObject
     {
         _audioService.PlayClick();
         IsModelQuotasExpanded = !IsModelQuotasExpanded;
-    }
-
-    [RelayCommand]
-    public void ToggleCliInspectorSection()
-    {
-        _audioService.PlayClick();
-        IsCliInspectorExpanded = !IsCliInspectorExpanded;
     }
 
     // Antigravity Model Group Quotas (Gemini, Claude & GPT)
@@ -693,64 +647,6 @@ public partial class ProfileItemViewModel : ObservableObject
     private static string GetRemainingColor(double remaining) =>
         remaining > 50.0 ? "#10B981" : (remaining > 20.0 ? "#F59E0B" : "#EF4444");
 
-    // CLI Inspection & Drawer
-    [ObservableProperty]
-    private bool _isInspectorOpen;
-
-    [ObservableProperty]
-    private string _inspectorTitle = "AGY CLI /usage";
-
-    [ObservableProperty]
-    private string _inspectorContent = string.Empty;
-
-    [ObservableProperty]
-    private string _inspectorMode = "usage";
-
-    [RelayCommand]
-    public void ToggleUsageInspection()
-    {
-        _audioService.PlayClick();
-        if (IsInspectorOpen && InspectorMode == "usage")
-        {
-            IsInspectorOpen = false;
-        }
-        else
-        {
-            InspectorTitle = $"⚡ AGY CLI /usage: {Name} ({AuthStatus.AccountEmail ?? "Local User"})";
-            InspectorContent = string.IsNullOrEmpty(AuthStatus.InspectionUsageText)
-                ? "No usage telemetry recorded yet."
-                : AuthStatus.InspectionUsageText;
-            InspectorMode = "usage";
-            IsInspectorOpen = true;
-        }
-    }
-
-    [RelayCommand]
-    public void ToggleContextInspection()
-    {
-        _audioService.PlayClick();
-        if (IsInspectorOpen && InspectorMode == "context")
-        {
-            IsInspectorOpen = false;
-        }
-        else
-        {
-            InspectorTitle = $"🧠 AGY CLI /context: {CurrentModel} ({ContextWindowLabel})";
-            InspectorContent = string.IsNullOrEmpty(AuthStatus.InspectionContextText)
-                ? "No context telemetry recorded yet."
-                : AuthStatus.InspectionContextText;
-            InspectorMode = "context";
-            IsInspectorOpen = true;
-        }
-    }
-
-    [RelayCommand]
-    public void CloseInspector()
-    {
-        _audioService.PlayClick();
-        IsInspectorOpen = false;
-    }
-
     public async Task RefreshAuthStatusAsync(bool allowCliSpawn = true)
     {
         IsBusy = true;
@@ -759,19 +655,22 @@ public partial class ProfileItemViewModel : ObservableObject
             AuthStatus = await _authDetector.DetectAuthStatusAsync(Profile, allowCliSpawn: allowCliSpawn);
             Profile.AuthStatus = AuthStatus;
 
-            // Refresh available conversation sessions
+            // Collection mutations MUST run on UI thread to prevent InvalidOperationException
             var sessions = _authDetector.GetAvailableSessions(Profile);
-            AvailableSessions.Clear();
-            foreach (var s in sessions)
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                AvailableSessions.Add(s);
-            }
-            ApplySessionFilter();
-            OnPropertyChanged(nameof(HasMultipleSessions));
-            if (SelectedSession == null && AvailableSessions.Count > 0)
-            {
-                SelectedSession = AvailableSessions[0];
-            }
+                AvailableSessions.Clear();
+                foreach (var s in sessions)
+                {
+                    AvailableSessions.Add(s);
+                }
+                ApplySessionFilter();
+                OnPropertyChanged(nameof(HasMultipleSessions));
+                if (SelectedSession == null && AvailableSessions.Count > 0)
+                {
+                    SelectedSession = AvailableSessions[0];
+                }
+            });
 
             OnPropertyChanged(nameof(StatusBadgeColor));
             OnPropertyChanged(nameof(StatusBadgeText));
@@ -810,12 +709,6 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(WeeklyRemainingLabel));
             OnPropertyChanged(nameof(WeeklyRemainingFormatted));
             OnPropertyChanged(nameof(WeeklySummary));
-            OnPropertyChanged(nameof(ModelContextLimit));
-            OnPropertyChanged(nameof(EstimatedContextTokens));
-            OnPropertyChanged(nameof(ContextUsagePercentage));
-            OnPropertyChanged(nameof(ContextWindowLabel));
-            OnPropertyChanged(nameof(ContextUsageSummary));
-            OnPropertyChanged(nameof(ContextHeadroomSummary));
             OnPropertyChanged(nameof(GeminiWeeklyRemainingPercent));
             OnPropertyChanged(nameof(GeminiWeeklyRefreshesIn));
             OnPropertyChanged(nameof(Gemini5HourRemainingPercent));
@@ -840,15 +733,12 @@ public partial class ProfileItemViewModel : ObservableObject
             OnPropertyChanged(nameof(IsAuthenticated));
             OnPropertyChanged(nameof(NeedsLogin));
             OnPropertyChanged(nameof(DetailsButtonTooltip));
+            OnPropertyChanged(nameof(DetailsToggleText));
 
-            // If account is unauthenticated, collapse details and remove from swarm selection
             if (!IsAuthenticated)
             {
                 IsDetailsExpanded = false;
-                if (IsSelectedForSwarm)
-                {
-                    IsSelectedForSwarm = false;
-                }
+                IsSelectedForSwarm = false;
             }
         }
         finally
@@ -908,7 +798,6 @@ public partial class ProfileItemViewModel : ObservableObject
             }
             await _launcherService.LaunchProfileAsync(Profile, terminal, forceLoginPrompt: false, sessionArgs: sessionArgs);
             OnNotificationRequested?.Invoke($"Launched session for '{Name}' {(sessionArgs != null ? $"({sessionArgs})" : "")}");
-            // Delay and refresh status in background
             _ = Task.Run(async () =>
             {
                 await Task.Delay(3000);
@@ -927,11 +816,18 @@ public partial class ProfileItemViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void CopyCliSnippet(TerminalType terminal)
+    public async Task CopyCliSnippetAsync(TerminalType terminal)
     {
         _audioService.PlayClick();
         var snippet = _launcherService.GetCliSnippet(Profile, terminal);
-        System.Windows.Clipboard.SetText(snippet);
+        try
+        {
+            if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow?.Clipboard != null)
+            {
+                await desktop.MainWindow.Clipboard.SetTextAsync(snippet);
+            }
+        }
+        catch { }
         OnNotificationRequested?.Invoke($"Copied CLI command for '{Name}' to clipboard");
     }
 
@@ -993,16 +889,36 @@ public partial class ProfileItemViewModel : ObservableObject
         try
         {
             var sessions = _authDetector.GetAvailableSessions(Profile);
-            AvailableSessions.Clear();
-            foreach (var s in sessions)
+            if (Dispatcher.UIThread.CheckAccess())
             {
-                AvailableSessions.Add(s);
+                AvailableSessions.Clear();
+                foreach (var s in sessions)
+                {
+                    AvailableSessions.Add(s);
+                }
+                ApplySessionFilter();
+                OnPropertyChanged(nameof(HasMultipleSessions));
+                if (AvailableSessions.Count > 0)
+                {
+                    SelectedSession = AvailableSessions[0];
+                }
             }
-            ApplySessionFilter();
-            OnPropertyChanged(nameof(HasMultipleSessions));
-            if (AvailableSessions.Count > 0)
+            else
             {
-                SelectedSession = AvailableSessions[0];
+                Dispatcher.UIThread.Post(() =>
+                {
+                    AvailableSessions.Clear();
+                    foreach (var s in sessions)
+                    {
+                        AvailableSessions.Add(s);
+                    }
+                    ApplySessionFilter();
+                    OnPropertyChanged(nameof(HasMultipleSessions));
+                    if (AvailableSessions.Count > 0)
+                    {
+                        SelectedSession = AvailableSessions[0];
+                    }
+                });
             }
         }
         catch { }
@@ -1021,5 +937,21 @@ public partial class ProfileItemViewModel : ObservableObject
         Profile.PreferredModel = PreferredModel;
         Profile.QuotaLimit = QuotaLimit;
         Profile.IsQuotaExhausted = IsQuotaExhausted;
+    }
+
+    public void SyncFromModel()
+    {
+        Name = Profile.Name;
+        Description = Profile.Description;
+        ColorTag = Profile.ColorTag;
+        CustomProfilePath = Profile.CustomProfilePath;
+        DefaultWorkspace = Profile.DefaultWorkspace;
+        ExtraArguments = Profile.ExtraArguments;
+        IsSelectedForSwarm = Profile.IsSelectedForSwarm;
+        Tier = Profile.Tier;
+        PreferredModel = Profile.PreferredModel;
+        QuotaLimit = Profile.QuotaLimit;
+        IsQuotaExhausted = Profile.IsQuotaExhausted;
+        OnPropertyChanged(string.Empty);
     }
 }
