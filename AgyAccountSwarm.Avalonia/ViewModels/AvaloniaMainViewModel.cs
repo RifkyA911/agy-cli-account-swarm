@@ -931,6 +931,12 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
         foreach (var task in DispatchedTasks)
         {
+            // If already stopped by user, do not let process watcher overwrite its status!
+            if (task.Status == "Stopped")
+            {
+                continue;
+            }
+
             // Update live elapsed duration for active tasks
             if (task.StartedAt.HasValue && task.Status is "Running" or "Launching" or "Active")
             {
@@ -948,9 +954,12 @@ public partial class AvaloniaMainViewModel : ObservableObject
                     if (proc.HasExited)
                     {
                         task.CompletedAt = DateTime.UtcNow;
-                        task.Status = proc.ExitCode == 0 ? "Completed" : $"Exited ({proc.ExitCode})";
-                        task.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
-                        task.CurrentActivity = proc.ExitCode == 0 ? "✅ Completed successfully" : $"⚠️ Process exited with code {proc.ExitCode}";
+                        if (task.Status != "Stopped")
+                        {
+                            task.Status = proc.ExitCode == 0 ? "Completed" : $"Exited ({proc.ExitCode})";
+                            task.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
+                            task.CurrentActivity = proc.ExitCode == 0 ? "✅ Completed successfully" : $"⚠️ Process exited with code {proc.ExitCode}";
+                        }
                         task.ProcessId = null;
                         stateChanged = true;
                     }
@@ -961,10 +970,13 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 }
                 catch
                 {
-                    task.CompletedAt = DateTime.UtcNow;
-                    task.Status = "Completed";
-                    task.StatusColor = "#10B981";
-                    task.CurrentActivity = "✅ Completed successfully";
+                    if (task.Status != "Stopped")
+                    {
+                        task.CompletedAt = DateTime.UtcNow;
+                        task.Status = "Completed";
+                        task.StatusColor = "#10B981";
+                        task.CurrentActivity = "✅ Completed successfully";
+                    }
                     task.ProcessId = null;
                     stateChanged = true;
                 }
