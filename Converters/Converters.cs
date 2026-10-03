@@ -212,7 +212,6 @@ public class BoolToFilterAccentConverter : IValueConverter
 }
 
 public class PageToActiveBarConverter : IValueConverter
-
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
@@ -222,5 +221,48 @@ public class PageToActiveBarConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
+
+public class SwarmMessageTypeToBackgroundConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is Models.SwarmMessageType type)
+        {
+            return type switch
+            {
+                Models.SwarmMessageType.UserBroadcast => (SolidColorBrush)new BrushConverter().ConvertFromString("#1E3A8A")!,
+                Models.SwarmMessageType.AgentAction => (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!,
+                Models.SwarmMessageType.SystemEvent => (SolidColorBrush)new BrushConverter().ConvertFromString("#064E3B")!,
+                Models.SwarmMessageType.Handoff => (SolidColorBrush)new BrushConverter().ConvertFromString("#581C87")!,
+                _ => (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!
+            };
+        }
+        return (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+public class SwarmMessageTypeToBorderConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is Models.SwarmMessageType type)
+        {
+            return type switch
+            {
+                Models.SwarmMessageType.UserBroadcast => (SolidColorBrush)new BrushConverter().ConvertFromString("#3B82F6")!,
+                Models.SwarmMessageType.AgentAction => (SolidColorBrush)new BrushConverter().ConvertFromString("#475569")!,
+                Models.SwarmMessageType.SystemEvent => (SolidColorBrush)new BrushConverter().ConvertFromString("#10B981")!,
+                Models.SwarmMessageType.Handoff => (SolidColorBrush)new BrushConverter().ConvertFromString("#A855F7")!,
+                _ => (SolidColorBrush)new BrushConverter().ConvertFromString("#334155")!
+            };
+        }
+        return (SolidColorBrush)new BrushConverter().ConvertFromString("#334155")!;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
 
 

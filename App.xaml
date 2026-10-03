@@ -27,6 +27,8 @@
             <converters:PageToActiveBarConverter x:Key="PageToActiveBarConverter" />
             <converters:NullOrEmptyToVisibilityConverter x:Key="StringToVisConverter" Invert="False" />
             <converters:PositiveIntToVisibilityConverter x:Key="NumberToVisConverter" />
+            <converters:SwarmMessageTypeToBackgroundConverter x:Key="SwarmMsgBgConverter" />
+            <converters:SwarmMessageTypeToBorderConverter x:Key="SwarmMsgBorderConverter" />
         </ResourceDictionary>
 
     </Application.Resources>

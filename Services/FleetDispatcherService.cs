@@ -12,13 +12,16 @@ public class FleetDispatcherService : IFleetDispatcherService
 {
     private readonly IGitWorktreeService _gitWorktreeService;
     private readonly ITerminalLauncherService _terminalLauncherService;
+    private readonly ISwarmAggregatorService _swarmAggregatorService;
 
     public FleetDispatcherService(
         IGitWorktreeService? gitWorktreeService = null,
-        ITerminalLauncherService? terminalLauncherService = null)
+        ITerminalLauncherService? terminalLauncherService = null,
+        ISwarmAggregatorService? swarmAggregatorService = null)
     {
         _gitWorktreeService = gitWorktreeService ?? new GitWorktreeService();
         _terminalLauncherService = terminalLauncherService ?? new TerminalLauncherService();
+        _swarmAggregatorService = swarmAggregatorService ?? new SwarmAggregatorService();
     }
 
     public async Task<ResourceCheckResult> CheckPreflightResourcesAsync(string workspacePath)
@@ -76,9 +79,75 @@ public class FleetDispatcherService : IFleetDispatcherService
         return result;
     }
 
-    public string SynthesizePrompt(string baseObjective, string role, DispatchMode mode, int workerIndex, int totalWorkers)
+    public string SynthesizePrompt(
+        string baseObjective,
+        string role,
+        DispatchMode mode,
+        int workerIndex,
+        int totalWorkers,
+        SwarmProject? project = null,
+        IEnumerable<AccountProfile>? allParticipatingWorkers = null)
     {
         if (string.IsNullOrWhiteSpace(baseObjective)) return string.Empty;
+
+        if (project != null)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"[SWARM CHAT - PROJECT: {project.Name.ToUpperInvariant()}]");
+            sb.AppendLine($"Tech Stack: {project.TechStack}");
+            if (!string.IsNullOrWhiteSpace(project.Description))
+            {
+                sb.AppendLine($"Context: {project.Description}");
+            }
+            sb.AppendLine($"Worker Assignment: {role} (Member {workerIndex + 1}/{totalWorkers})");
+
+            if (allParticipatingWorkers != null)
+            {
+                var workersList = allParticipatingWorkers.ToList();
+                if (workersList.Count > 1)
+                {
+                    sb.AppendLine("Fleet Roster:");
+                    for (int wIdx = 0; wIdx < workersList.Count; wIdx++)
+                    {
+                        var w = workersList[wIdx];
+                        var wRole = ResolveWorkerRole(w, wIdx);
+                        sb.AppendLine($" - {w.Name}: {wRole}{(wIdx == workerIndex ? " (YOU)" : "")}");
+                    }
+                }
+            }
+
+            sb.AppendLine();
+            sb.AppendLine($"[OBJECTIVE]");
+            sb.AppendLine(baseObjective.Trim());
+            sb.AppendLine();
+            sb.AppendLine($"[INTER-CLI COMMUNICATION & BLACKBOARD]");
+            sb.AppendLine("- A shared `.swarm/bus.jsonl` message bus and `.swarm/blackboard.md` exist in the project root.");
+            sb.AppendLine("- Consult `.swarm/blackboard.md` for shared API specifications and component contracts.");
+            sb.AppendLine("- Document your architecture decisions and public signatures clearly so peers can coordinate.");
+            sb.AppendLine();
+
+            switch (mode)
+            {
+                case DispatchMode.Broadcast:
+                    sb.AppendLine($"[DIRECTIVE: {role.ToUpperInvariant()}]");
+                    sb.AppendLine("Implement all aspects of this objective relevant to your specialization.");
+                    break;
+                case DispatchMode.Consensus:
+                    sb.AppendLine(workerIndex switch
+                    {
+                        0 => "[DIRECTIVE: Primary Implementer - Approach A]\nImplement the primary architecture cleanly using idiomatic patterns.",
+                        1 => "[DIRECTIVE: Alternative Implementer - Approach B]\nImplement the architecture with alternate optimizations, resilience, and edge-case handling.",
+                        _ => "[DIRECTIVE: QA Reviewer & Critic]\nReview code produced by peers, test for regressions, and provide unit tests and verification."
+                    });
+                    break;
+                default:
+                    sb.AppendLine($"[DIRECTIVE: {role.ToUpperInvariant()}]");
+                    sb.AppendLine($"Focus on your designated responsibilities ({role}). Maintain modular boundaries.");
+                    break;
+            }
+
+            return sb.ToString().Trim();
+        }
 
         return mode switch
         {
@@ -99,7 +168,8 @@ public class FleetDispatcherService : IFleetDispatcherService
         FleetDispatchConfig config,
         IEnumerable<AccountProfile> selectedWorkers,
         TerminalType terminal,
-        IProgress<FleetProgressReport>? progress = null)
+        IProgress<FleetProgressReport>? progress = null,
+        SwarmProject? project = null)
     {
         var workerList = selectedWorkers.ToList();
         var tasks = new List<DispatchedWorkerTask>();
@@ -107,6 +177,20 @@ public class FleetDispatcherService : IFleetDispatcherService
         if (workerList.Count == 0 || string.IsNullOrWhiteSpace(config.TaskObjective))
         {
             return tasks;
+        }
+
+        if (project != null)
+        {
+            _swarmAggregatorService.EnsureProjectSwarmWorkspace(project, workerList);
+            _ = _swarmAggregatorService.PostMessageAsync(project, new SwarmChatMessage
+            {
+                ProjectId = project.Id,
+                SenderName = "Swarm Orchestrator",
+                SenderRole = "System",
+                SenderColor = "#10B981",
+                Content = $"🚀 Swarm launched for project '{project.Name}' with {workerList.Count} worker(s). Mode: {config.Mode}. Execution: {config.ExecutionMode}.",
+                Type = SwarmMessageType.SystemEvent
+            });
         }
 
         progress?.Report(new FleetProgressReport
@@ -134,7 +218,7 @@ public class FleetDispatcherService : IFleetDispatcherService
         {
             var worker = workerList[i];
             var role = ResolveWorkerRole(worker, i);
-            var tailoredPrompt = SynthesizePrompt(config.TaskObjective, role, config.Mode, i, workerList.Count);
+            var tailoredPrompt = SynthesizePrompt(config.TaskObjective, role, config.Mode, i, workerList.Count, project, workerList);
 
             int workerBasePercent = 25 + (int)((i / (double)workerList.Count) * 65);
 
@@ -172,8 +256,14 @@ public class FleetDispatcherService : IFleetDispatcherService
                 else
                 {
                     Logger.Warn($"[FleetDispatcher] Worktree failed for {worker.Name}. Falling back to default workspace.");
-                    targetWorkDir = TerminalLauncherService.GetValidWorkingDirectory(worker);
+                    targetWorkDir = project != null
+                        ? _swarmAggregatorService.ResolveWorkerProjectDirectory(worker, project)
+                        : TerminalLauncherService.GetValidWorkingDirectory(worker);
                 }
+            }
+            else if (project != null)
+            {
+                targetWorkDir = _swarmAggregatorService.ResolveWorkerProjectDirectory(worker, project);
             }
             else
             {
@@ -241,6 +331,18 @@ public class FleetDispatcherService : IFleetDispatcherService
                             {
                                 workerTask.CurrentActivity = activity;
                             }
+
+                            if (project != null)
+                            {
+                                _ = _swarmAggregatorService.PostAgentActionTelemetryAsync(
+                                    project,
+                                    worker.Name,
+                                    role,
+                                    line,
+                                    worker.ColorTag,
+                                    worker.AvatarUrl,
+                                    worker.AvatarInitial);
+                            }
                         },
                         onErrorLine: err =>
                         {
@@ -277,6 +379,21 @@ public class FleetDispatcherService : IFleetDispatcherService
                                 workerTask.Status = $"Exited ({proc.ExitCode})";
                                 workerTask.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
                                 workerTask.CurrentActivity = $"⚠️ Process exited with code {proc.ExitCode}";
+                            }
+
+                            if (project != null)
+                            {
+                                _ = _swarmAggregatorService.PostMessageAsync(project, new SwarmChatMessage
+                                {
+                                    ProjectId = project.Id,
+                                    SenderName = worker.Name,
+                                    SenderRole = role,
+                                    SenderColor = string.IsNullOrWhiteSpace(worker.ColorTag) ? "#10B981" : worker.ColorTag,
+                                    AvatarUrl = worker.AvatarUrl,
+                                    AvatarInitial = !string.IsNullOrEmpty(worker.AvatarInitial) ? worker.AvatarInitial : "W",
+                                    Content = proc.ExitCode == 0 ? "✅ Task finished successfully" : $"⚠️ Process exited with code {proc.ExitCode}",
+                                    Type = proc.ExitCode == 0 ? SwarmMessageType.Handoff : SwarmMessageType.SystemEvent
+                                });
                             }
                         };
                     }
@@ -316,6 +433,21 @@ public class FleetDispatcherService : IFleetDispatcherService
                         workerTask.Status = "Running";
                         workerTask.StatusColor = "#10B981";
                         workerTask.CurrentActivity = "Interactive terminal active";
+
+                        if (project != null)
+                        {
+                            _ = _swarmAggregatorService.PostMessageAsync(project, new SwarmChatMessage
+                            {
+                                ProjectId = project.Id,
+                                SenderName = worker.Name,
+                                SenderRole = role,
+                                SenderColor = string.IsNullOrWhiteSpace(worker.ColorTag) ? "#4285F4" : worker.ColorTag,
+                                AvatarUrl = worker.AvatarUrl,
+                                AvatarInitial = !string.IsNullOrEmpty(worker.AvatarInitial) ? worker.AvatarInitial : "W",
+                                Content = $"⚡ Interactive terminal session active in '{targetWorkDir}'",
+                                Type = SwarmMessageType.SystemEvent
+                            });
+                        }
                     }
                     else
                     {

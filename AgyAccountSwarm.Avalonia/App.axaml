@@ -12,6 +12,10 @@
         <conv:ActiveNavBackgroundConverter x:Key="ActiveNavBgConverter" />
         <conv:ActiveNavForegroundConverter x:Key="ActiveNavFgConverter" />
         <conv:PathToBitmapConverter x:Key="PathToBitmapConverter" />
+        <conv:SwarmMessageTypeToBackgroundConverter x:Key="SwarmMsgBgConverter" />
+        <conv:SwarmMessageTypeToBorderConverter x:Key="SwarmMsgBorderConverter" />
+        <conv:ActiveTabBackgroundConverter x:Key="ActiveTabBgConverter" />
+        <conv:CountToBooleanConverter x:Key="CountToBoolConverter" />
 
         <!-- Theme Color Brushes -->
         <SolidColorBrush x:Key="BrushBg" Color="#0B0F19" />

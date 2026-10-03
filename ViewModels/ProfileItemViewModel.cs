@@ -20,6 +20,7 @@ public partial class ProfileItemViewModel : ObservableObject
     private readonly IProfileDoctorService _doctorService;
 
     public AccountProfile Profile { get; }
+    public string Id => Profile.Id;
 
     [ObservableProperty]
     private string _name;

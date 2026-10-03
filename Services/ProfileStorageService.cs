@@ -12,6 +12,7 @@ public class ProfileStorageService : IProfileStorageService
     private readonly string _storageDir;
     private readonly string _profilesFile;
     private readonly string _settingsFile;
+    private readonly string _projectsFile;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -19,12 +20,13 @@ public class ProfileStorageService : IProfileStorageService
         PropertyNameCaseInsensitive = true
     };
 
-    public ProfileStorageService()
+    public ProfileStorageService(string? customStorageDir = null)
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        _storageDir = Path.Combine(appData, "AgyAccountSwarm");
+        _storageDir = !string.IsNullOrWhiteSpace(customStorageDir) ? customStorageDir : Path.Combine(appData, "AgyAccountSwarm");
         _profilesFile = Path.Combine(_storageDir, "profiles.json");
         _settingsFile = Path.Combine(_storageDir, "settings.json");
+        _projectsFile = Path.Combine(_storageDir, "projects.json");
 
         if (!Directory.Exists(_storageDir))
         {
@@ -108,6 +110,35 @@ public class ProfileStorageService : IProfileStorageService
         var json = JsonSerializer.Serialize(settings, JsonOptions);
         await File.WriteAllTextAsync(_settingsFile, json);
         Logger.Debug($"[ProfileStorage] Saved application settings to {_settingsFile}");
+    }
+
+    public async Task<List<SwarmProject>> LoadProjectsAsync()
+    {
+        if (!File.Exists(_projectsFile))
+        {
+            return new List<SwarmProject>();
+        }
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(_projectsFile);
+            var projects = JsonSerializer.Deserialize<List<SwarmProject>>(json, JsonOptions);
+            Logger.Info($"[ProfileStorage] Loaded {projects?.Count ?? 0} projects from {_projectsFile}");
+            return projects ?? new List<SwarmProject>();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"[ProfileStorage] Failed to read projects from {_projectsFile}", ex);
+            return new List<SwarmProject>();
+        }
+    }
+
+    public async Task SaveProjectsAsync(IEnumerable<SwarmProject> projects)
+    {
+        var list = projects is List<SwarmProject> l ? l : new List<SwarmProject>(projects);
+        var json = JsonSerializer.Serialize(list, JsonOptions);
+        await File.WriteAllTextAsync(_projectsFile, json);
+        Logger.Info($"[ProfileStorage] Successfully saved {list.Count} projects to {_projectsFile}");
     }
 
     private static List<AccountProfile> CreateInitialProfiles()

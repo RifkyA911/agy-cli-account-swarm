@@ -36,6 +36,18 @@ public interface IProfileStorageService
     Task SaveSettingsAsync(AppSettings settings);
 
     /// <summary>
+    /// Loads all configured Swarm Projects from <c>%APPDATA%\AgyAccountSwarm\projects.json</c>.
+    /// </summary>
+    /// <returns>A list of loaded <see cref="SwarmProject"/> objects.</returns>
+    Task<List<SwarmProject>> LoadProjectsAsync();
+
+    /// <summary>
+    /// Persists the collection of Swarm Projects to disk using indented UTF-8 JSON.
+    /// </summary>
+    /// <param name="projects">The projects to persist.</param>
+    Task SaveProjectsAsync(IEnumerable<SwarmProject> projects);
+
+    /// <summary>
     /// Retrieves the absolute path to the application's roaming AppData storage directory.
     /// </summary>
     /// <returns>Directory path string (e.g. <c>%APPDATA%\AgyAccountSwarm</c>).</returns>

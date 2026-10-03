@@ -168,3 +168,95 @@ public class PathToBitmapConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
 }
+
+/// <summary>
+/// Maps a SwarmMessageType enum value to a themed background brush.
+/// </summary>
+public class SwarmMessageTypeToBackgroundConverter : IValueConverter
+{
+    public static readonly SwarmMessageTypeToBackgroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is AgyAccountSwarm.Models.SwarmMessageType type)
+        {
+            return type switch
+            {
+                AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#1E293B")),
+                AgyAccountSwarm.Models.SwarmMessageType.AgentAction => new SolidColorBrush(Color.Parse("#064E3B")),
+                AgyAccountSwarm.Models.SwarmMessageType.AgentMessage => new SolidColorBrush(Color.Parse("#0F172A")),
+                AgyAccountSwarm.Models.SwarmMessageType.SystemEvent => new SolidColorBrush(Color.Parse("#2A1B0A")),
+                AgyAccountSwarm.Models.SwarmMessageType.Handoff => new SolidColorBrush(Color.Parse("#3B0764")),
+                _ => new SolidColorBrush(Color.Parse("#0F172A"))
+            };
+        }
+        return new SolidColorBrush(Color.Parse("#0F172A"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Maps a SwarmMessageType enum value to a themed border brush.
+/// </summary>
+public class SwarmMessageTypeToBorderConverter : IValueConverter
+{
+    public static readonly SwarmMessageTypeToBorderConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is AgyAccountSwarm.Models.SwarmMessageType type)
+        {
+            return type switch
+            {
+                AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#3B82F6")),
+                AgyAccountSwarm.Models.SwarmMessageType.AgentAction => new SolidColorBrush(Color.Parse("#10B981")),
+                AgyAccountSwarm.Models.SwarmMessageType.AgentMessage => new SolidColorBrush(Color.Parse("#334155")),
+                AgyAccountSwarm.Models.SwarmMessageType.SystemEvent => new SolidColorBrush(Color.Parse("#D97706")),
+                AgyAccountSwarm.Models.SwarmMessageType.Handoff => new SolidColorBrush(Color.Parse("#A855F7")),
+                _ => new SolidColorBrush(Color.Parse("#1F2937"))
+            };
+        }
+        return new SolidColorBrush(Color.Parse("#1F2937"));
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Compares SelectedProjectTabIndex with parameter. Returns #1E293B if active, otherwise Transparent.
+/// </summary>
+public class ActiveTabBackgroundConverter : IValueConverter
+{
+    public static readonly ActiveTabBackgroundConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool isActive = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        return isActive ? new SolidColorBrush(Color.Parse("#1E293B")) : Brushes.Transparent;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+
+/// <summary>
+/// Converts an integer count into a boolean (true if count &gt; 0, inverted if parameter is 'Inverse').
+/// </summary>
+public class CountToBooleanConverter : IValueConverter
+{
+    public static readonly CountToBooleanConverter Instance = new();
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        int count = 0;
+        if (value is int i) count = i;
+        else if (int.TryParse(value?.ToString(), out var parsed)) count = parsed;
+
+        bool isInverse = string.Equals(parameter?.ToString(), "Inverse", StringComparison.OrdinalIgnoreCase);
+        bool hasItems = count > 0;
+        return isInverse ? !hasItems : hasItems;
+    }
+
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+}
+

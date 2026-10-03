@@ -142,9 +142,122 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private bool _hasDispatchedTasks;
 
     [ObservableProperty]
-    private string _fleetStatusText = "Fleet Dispatcher Ready";
+    private string _fleetStatusText = "Swarm Chat Ready";
 
     private readonly DispatcherTimer _fleetProcessWatcherTimer;
+    private readonly ISwarmAggregatorService _swarmAggregatorService;
+
+    // Swarm Projects Context & CRUD
+    public ObservableCollection<SwarmProject> Projects { get; } = new();
+
+    [ObservableProperty]
+    private SwarmProject? _selectedProject;
+
+    [ObservableProperty]
+    private bool _hasProjects;
+
+    // Project Dialog fields
+    [ObservableProperty]
+    private bool _isProjectDialogOpen;
+
+    [ObservableProperty]
+    private string _projectDialogTitle = "Create Swarm Project";
+
+    [ObservableProperty]
+    private string _projectDialogId = string.Empty;
+
+    [ObservableProperty]
+    private string _projectDialogName = string.Empty;
+
+    [ObservableProperty]
+    private string _projectDialogDescription = string.Empty;
+
+    [ObservableProperty]
+    private string _projectDialogTechStack = "Rust";
+
+    [ObservableProperty]
+    private string _projectDialogRootDirectory = string.Empty;
+
+    [ObservableProperty]
+    private bool _projectDialogUseGitWorktrees = true;
+
+    [ObservableProperty]
+    private string _projectDialogDefaultBranch = "main";
+
+    [ObservableProperty]
+    private string _projectDialogDefaultObjective = string.Empty;
+
+    public ObservableCollection<ProjectWorkerSelectionItem> ProjectDialogWorkers { get; } = new();
+
+    public string[] TechStackOptions => StaticTechStackOptions;
+
+    public static readonly string[] StaticTechStackOptions = [
+        "Rust",
+        "C# / .NET 9",
+        "TypeScript / Node",
+        "Python / FastAPI",
+        "Go",
+        "Java / Spring",
+        "C++",
+        "Generic / Multi-Stack"
+    ];
+
+    // Swarm Chat & Inter-Agent Bus
+    public ObservableCollection<SwarmChatMessage> SwarmChatMessages { get; } = new();
+
+    [ObservableProperty]
+    private string _swarmChatInputText = string.Empty;
+
+    [ObservableProperty]
+    private string _selectedChatTargetWorker = "All Workers (Broadcast)";
+
+    public ObservableCollection<string> ChatTargetWorkers { get; } = new() { "All Workers (Broadcast)" };
+
+    [ObservableProperty]
+    private int _selectedProjectTabIndex = 0; // 0 = Chat Feed, 1 = Dispatch Settings, 2 = Branch Tree
+
+    [RelayCommand]
+    public void SetProjectTab(string? tab)
+    {
+        _audioService.PlayClick();
+        if (int.TryParse(tab, out int idx))
+        {
+            SelectedProjectTabIndex = idx;
+        }
+    }
+
+    async partial void OnSelectedProjectChanged(SwarmProject? value)
+    {
+        if (value != null)
+        {
+            FleetWorkspacePath = value.RootDirectory;
+            if (!string.IsNullOrWhiteSpace(value.DefaultObjective) && string.IsNullOrWhiteSpace(FleetTaskObjective))
+            {
+                FleetTaskObjective = value.DefaultObjective;
+            }
+            UseGitWorktrees = value.UseGitWorktrees;
+
+            // Update chat targets
+            ChatTargetWorkers.Clear();
+            ChatTargetWorkers.Add("All Workers (Broadcast)");
+            foreach (var profile in Profiles)
+            {
+                if (value.AssignedWorkerIds.Count == 0 || value.AssignedWorkerIds.Contains(profile.Id))
+                {
+                    ChatTargetWorkers.Add(profile.Name);
+                }
+            }
+            SelectedChatTargetWorker = ChatTargetWorkers[0];
+
+            // Load chat messages
+            await RefreshSwarmChatMessagesAsync();
+            _ = CheckPreflightAsync();
+        }
+        else
+        {
+            SwarmChatMessages.Clear();
+        }
+    }
 
     public event Func<Task<string?>>? BrowseFolderRequested;
 
@@ -169,7 +282,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
         _quotaConfigService = new QuotaConfigService();
         _audioService = new AudioService();
         _gitWorktreeService = new GitWorktreeService();
-        _fleetDispatcherService = new FleetDispatcherService(_gitWorktreeService, _launcherService);
+        _swarmAggregatorService = new SwarmAggregatorService();
+        _fleetDispatcherService = new FleetDispatcherService(_gitWorktreeService, _launcherService, _swarmAggregatorService);
 
         _syncTimer = new DispatcherTimer
         {
@@ -203,6 +317,19 @@ public partial class AvaloniaMainViewModel : ObservableObject
             await ReloadProfilesAsync();
             await LoadMcpServersAsync();
             RefreshLogs();
+
+            // Load Swarm Projects
+            var savedProjects = await _storageService.LoadProjectsAsync();
+            Projects.Clear();
+            foreach (var proj in savedProjects)
+            {
+                Projects.Add(proj);
+            }
+            HasProjects = Projects.Count > 0;
+            if (HasProjects)
+            {
+                SelectedProject = Projects[0];
+            }
 
             _syncTimer.Start();
             ShowNotification("Agy Swarm Avalonia initialized successfully.");
@@ -827,7 +954,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 DispatchProgressDetail = report.Detail;
             });
 
-            var tasks = await _fleetDispatcherService.DispatchFleetAsync(config, selected, Settings.PreferredTerminal, progress);
+            var tasks = await _fleetDispatcherService.DispatchFleetAsync(config, selected, Settings.PreferredTerminal, progress, SelectedProject);
             DispatchedTasks.Clear();
             foreach (var t in tasks)
             {
@@ -835,10 +962,15 @@ public partial class AvaloniaMainViewModel : ObservableObject
             }
             HasDispatchedTasks = DispatchedTasks.Count > 0;
 
-            FleetStatusText = $"Fleet Active ({tasks.Count} Dispatched)";
+            FleetStatusText = $"Swarm Active ({tasks.Count} Dispatched)";
             ShowNotification($"Successfully dispatched objective to {tasks.Count} workers.");
             await RefreshWorktreesAsync();
             UpdateWorktreeTreeNodes();
+
+            if (SelectedProject != null)
+            {
+                await RefreshSwarmChatMessagesAsync();
+            }
 
             // Start background process watcher
             _fleetProcessWatcherTimer.Start();
@@ -865,6 +997,20 @@ public partial class AvaloniaMainViewModel : ObservableObject
         ShowNotification($"Stopped {killed} dispatched worker process(es).");
         UpdateWorktreeTreeNodes();
         await RefreshWorktreesAsync();
+
+        if (SelectedProject != null)
+        {
+            _ = _swarmAggregatorService.PostMessageAsync(SelectedProject, new SwarmChatMessage
+            {
+                ProjectId = SelectedProject.Id,
+                SenderName = "Swarm Orchestrator",
+                SenderRole = "System",
+                SenderColor = "#EF4444",
+                Content = $"🛑 Swarm aborted by user ({killed} task(s) stopped).",
+                Type = SwarmMessageType.SystemEvent
+            });
+            await RefreshSwarmChatMessagesAsync();
+        }
     }
 
     [RelayCommand]
@@ -875,6 +1021,248 @@ public partial class AvaloniaMainViewModel : ObservableObject
         await _fleetDispatcherService.StopTaskAsync(task);
         ShowNotification($"Stopped worker '{task.ProfileName}'");
         UpdateWorktreeTreeNodes();
+
+        if (SelectedProject != null)
+        {
+            _ = _swarmAggregatorService.PostMessageAsync(SelectedProject, new SwarmChatMessage
+            {
+                ProjectId = SelectedProject.Id,
+                SenderName = task.ProfileName,
+                SenderRole = task.AssignedRole,
+                SenderColor = "#EF4444",
+                Content = $"🛑 Worker task stopped by user.",
+                Type = SwarmMessageType.SystemEvent
+            });
+            await RefreshSwarmChatMessagesAsync();
+        }
+    }
+
+    // =========================================================================
+    // SWARM PROJECT CRUD & CHAT AGGREGATOR COMMANDS (AVALONIA)
+    // =========================================================================
+
+    [RelayCommand]
+    public void OpenCreateProjectDialog()
+    {
+        _audioService.PlayClick();
+        ProjectDialogTitle = "Create Swarm Project";
+        ProjectDialogId = string.Empty;
+        ProjectDialogName = "My Swarm Project";
+        ProjectDialogDescription = "Autonomous multi-agent project collaboration swarm";
+        ProjectDialogTechStack = "Rust";
+
+        var defaultRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "SwarmProjects", "my-swarm-project");
+        ProjectDialogRootDirectory = defaultRoot;
+        ProjectDialogUseGitWorktrees = true;
+        ProjectDialogDefaultBranch = "main";
+        ProjectDialogDefaultObjective = "Implement project architecture, components, and test suite.";
+
+        ProjectDialogWorkers.Clear();
+        foreach (var p in Profiles)
+        {
+            ProjectDialogWorkers.Add(new ProjectWorkerSelectionItem
+            {
+                ProfileId = p.Id,
+                ProfileName = p.Name,
+                AccountEmail = p.AccountEmail ?? string.Empty,
+                ColorTag = p.ColorTag,
+                AvatarUrl = p.AvatarUrl,
+                AvatarInitial = !string.IsNullOrEmpty(p.AvatarInitial) ? p.AvatarInitial : "W",
+                Tier = p.Tier,
+                IsSelected = true
+            });
+        }
+
+        IsProjectDialogOpen = true;
+    }
+
+    [RelayCommand]
+    public void OpenEditProjectDialog(SwarmProject? project = null)
+    {
+        var proj = project ?? SelectedProject;
+        if (proj == null) return;
+
+        _audioService.PlayClick();
+        ProjectDialogTitle = $"Edit Project: {proj.Name}";
+        ProjectDialogId = proj.Id;
+        ProjectDialogName = proj.Name;
+        ProjectDialogDescription = proj.Description;
+        ProjectDialogTechStack = proj.TechStack;
+        ProjectDialogRootDirectory = proj.RootDirectory;
+        ProjectDialogUseGitWorktrees = proj.UseGitWorktrees;
+        ProjectDialogDefaultBranch = proj.DefaultBranch;
+        ProjectDialogDefaultObjective = proj.DefaultObjective;
+
+        ProjectDialogWorkers.Clear();
+        foreach (var p in Profiles)
+        {
+            bool isAssigned = proj.AssignedWorkerIds.Count == 0 || proj.AssignedWorkerIds.Contains(p.Id);
+            ProjectDialogWorkers.Add(new ProjectWorkerSelectionItem
+            {
+                ProfileId = p.Id,
+                ProfileName = p.Name,
+                AccountEmail = p.AccountEmail ?? string.Empty,
+                ColorTag = p.ColorTag,
+                AvatarUrl = p.AvatarUrl,
+                AvatarInitial = !string.IsNullOrEmpty(p.AvatarInitial) ? p.AvatarInitial : "W",
+                Tier = p.Tier,
+                IsSelected = isAssigned
+            });
+        }
+
+        IsProjectDialogOpen = true;
+    }
+
+    [RelayCommand]
+    public async Task BrowseProjectDialogFolderAsync()
+    {
+        _audioService.PlayClick();
+        if (BrowseFolderRequested != null)
+        {
+            var path = await BrowseFolderRequested.Invoke();
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                ProjectDialogRootDirectory = path;
+            }
+        }
+    }
+
+    [RelayCommand]
+    public async Task SaveProjectDialogAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ProjectDialogName))
+        {
+            ShowNotification("Please provide a project name.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(ProjectDialogRootDirectory))
+        {
+            ShowNotification("Please specify a root directory for the project.");
+            return;
+        }
+
+        _audioService.PlayClick();
+
+        var selectedWorkerIds = ProjectDialogWorkers
+            .Where(w => w.IsSelected)
+            .Select(w => w.ProfileId)
+            .ToList();
+
+        SwarmProject proj;
+        bool isNew = string.IsNullOrWhiteSpace(ProjectDialogId);
+
+        if (isNew)
+        {
+            proj = new SwarmProject
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                CreatedAt = DateTime.UtcNow
+            };
+            Projects.Add(proj);
+        }
+        else
+        {
+            proj = Projects.FirstOrDefault(p => p.Id == ProjectDialogId) ?? new SwarmProject { Id = ProjectDialogId };
+            if (!Projects.Contains(proj))
+            {
+                Projects.Add(proj);
+            }
+        }
+
+        proj.Name = ProjectDialogName.Trim();
+        proj.Description = ProjectDialogDescription.Trim();
+        proj.TechStack = ProjectDialogTechStack;
+        proj.RootDirectory = ProjectDialogRootDirectory.Trim();
+        proj.UseGitWorktrees = ProjectDialogUseGitWorktrees;
+        proj.DefaultBranch = string.IsNullOrWhiteSpace(ProjectDialogDefaultBranch) ? "main" : ProjectDialogDefaultBranch.Trim();
+        proj.DefaultObjective = ProjectDialogDefaultObjective.Trim();
+        proj.AssignedWorkerIds = selectedWorkerIds;
+        proj.LastActiveAt = DateTime.UtcNow;
+
+        await _storageService.SaveProjectsAsync(Projects);
+        HasProjects = Projects.Count > 0;
+        SelectedProject = proj;
+
+        var assignedProfiles = Profiles
+            .Where(p => selectedWorkerIds.Contains(p.Id));
+        _swarmAggregatorService.EnsureProjectSwarmWorkspace(proj, assignedProfiles);
+
+        IsProjectDialogOpen = false;
+        ShowNotification($"Project '{proj.Name}' saved successfully.");
+        await RefreshSwarmChatMessagesAsync();
+    }
+
+    [RelayCommand]
+    public void CancelProjectDialog()
+    {
+        _audioService.PlayClick();
+        IsProjectDialogOpen = false;
+    }
+
+    [RelayCommand]
+    public async Task DeleteProjectAsync(SwarmProject? project = null)
+    {
+        var target = project ?? SelectedProject;
+        if (target == null) return;
+
+        _audioService.PlayDelete();
+        Projects.Remove(target);
+        await _storageService.SaveProjectsAsync(Projects);
+        HasProjects = Projects.Count > 0;
+        SelectedProject = Projects.FirstOrDefault();
+        ShowNotification($"Project '{target.Name}' deleted.");
+    }
+
+    [RelayCommand]
+    public void OpenProjectFolder(string? path = null)
+    {
+        var targetDir = path ?? SelectedProject?.RootDirectory;
+        if (string.IsNullOrWhiteSpace(targetDir) || !Directory.Exists(targetDir)) return;
+        _audioService.PlayClick();
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = targetDir,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[AvaloniaMainViewModel] Failed to open folder {targetDir}: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task SendSwarmChatMessageAsync()
+    {
+        if (SelectedProject == null || string.IsNullOrWhiteSpace(SwarmChatInputText)) return;
+
+        _audioService.PlayClick();
+        var text = SwarmChatInputText.Trim();
+        SwarmChatInputText = string.Empty;
+
+        string? target = SelectedChatTargetWorker.StartsWith("All", StringComparison.OrdinalIgnoreCase)
+            ? null
+            : SelectedChatTargetWorker;
+
+        var msg = await _swarmAggregatorService.BroadcastUserInstructionAsync(SelectedProject, text, target);
+        SwarmChatMessages.Add(msg);
+        ShowNotification("Broadcast instruction dispatched to swarm.");
+    }
+
+    [RelayCommand]
+    public async Task RefreshSwarmChatMessagesAsync()
+    {
+        if (SelectedProject == null) return;
+        var messages = await _swarmAggregatorService.LoadProjectMessagesAsync(SelectedProject);
+        SwarmChatMessages.Clear();
+        foreach (var m in messages)
+        {
+            SwarmChatMessages.Add(m);
+        }
     }
 
     [RelayCommand]
