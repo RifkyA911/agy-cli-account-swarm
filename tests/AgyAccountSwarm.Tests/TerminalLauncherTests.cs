@@ -254,12 +254,15 @@ public class TerminalLauncherTests
     {
         Assert.Equal("--continue", TerminalLauncherService.SanitizeSessionArgs("--continue"));
         Assert.Equal("--conversation conv-123_abc", TerminalLauncherService.SanitizeSessionArgs("--conversation conv-123_abc"));
+        Assert.Equal("--dangerously-skip-permissions", TerminalLauncherService.SanitizeSessionArgs("--dangerously-skip-permissions"));
+        Assert.Equal("--dangerously-skip-permissions --continue", TerminalLauncherService.SanitizeSessionArgs("--continue --dangerously-skip-permissions"));
+        Assert.Equal("--dangerously-skip-permissions --conversation conv-123", TerminalLauncherService.SanitizeSessionArgs("--conversation conv-123 --dangerously-skip-permissions"));
         
         // Malicious or arbitrary inputs should be rejected
         Assert.Null(TerminalLauncherService.SanitizeSessionArgs("--conversation conv-123; calc.exe"));
         Assert.Null(TerminalLauncherService.SanitizeSessionArgs("--conversation conv-123 & whoami"));
         Assert.Null(TerminalLauncherService.SanitizeSessionArgs("rm -rf /"));
-        Assert.Null(TerminalLauncherService.SanitizeSessionArgs("--dangerously-skip-permissions"));
+        Assert.Null(TerminalLauncherService.SanitizeSessionArgs("calc.exe"));
     }
 
     [Fact]
@@ -273,11 +276,52 @@ public class TerminalLauncherTests
         Assert.NotNull(longArg);
         Assert.StartsWith("--prompt \"Fix race condition\"", longArg);
 
+        var interactiveArg = TerminalLauncherService.SanitizeSessionArgs("-i \"Interactive work\"");
+        Assert.NotNull(interactiveArg);
+        Assert.StartsWith("-i \"Interactive work\"", interactiveArg);
+
+        // Crucial test: --dangerously-skip-permissions placed outside prompt quotes, NEVER swallowed into the prompt
+        var withPerms = TerminalLauncherService.SanitizeSessionArgs("-p \"Deploy to staging\" --dangerously-skip-permissions");
+        Assert.Equal("--dangerously-skip-permissions -p \"Deploy to staging\"", withPerms);
+
+        var withPermsLeading = TerminalLauncherService.SanitizeSessionArgs("--dangerously-skip-permissions -p \"Deploy to staging\"");
+        Assert.Equal("--dangerously-skip-permissions -p \"Deploy to staging\"", withPermsLeading);
+
         // Shell control characters like & and | should be sanitized
         var injected = TerminalLauncherService.SanitizeSessionArgs("-p \"task & whoami | calc\"");
         Assert.NotNull(injected);
         Assert.DoesNotContain("&", injected);
         Assert.DoesNotContain("|", injected);
+    }
+
+    [Fact]
+    public void EnsureProfileSettingsJson_GeneratesAllowRulesAndTrustedWorkspaces()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), "agy_settings_test_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var ws = @"C:\MyWorkspace\Project";
+            TerminalLauncherService.EnsureProfileSettingsJson(tempDir, ws);
+
+            var settingsPath = Path.Combine(tempDir, ".gemini", "antigravity-cli", "settings.json");
+            Assert.True(File.Exists(settingsPath));
+
+            var json = File.ReadAllText(settingsPath);
+            Assert.Contains("\"permissions\"", json);
+            Assert.Contains("\"command(*)\"", json);
+            Assert.Contains("\"file(*)\"", json);
+            Assert.Contains("\"run_command(*)\"", json);
+            Assert.Contains("\"*\"", json);
+            Assert.Contains("\"trustedWorkspaces\"", json);
+            Assert.Contains("C:\\\\MyWorkspace\\\\Project", json);
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+            }
+        }
     }
 
     [Fact]

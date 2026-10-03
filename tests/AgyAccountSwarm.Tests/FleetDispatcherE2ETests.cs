@@ -216,8 +216,71 @@ public class FleetDispatcherE2ETests
 
         Assert.Single(mockLauncherService.CapturedSessionArgs);
         var sessionArg = mockLauncherService.CapturedSessionArgs[0];
-        Assert.Contains("--dangerously-skip-permissions", sessionArg);
+        Assert.StartsWith("--dangerously-skip-permissions -p \"", sessionArg);
         Assert.Contains("Write integration test suite for payment gateway", sessionArg);
+    }
+
+    [Fact]
+    public void Win32ProcessHelper_ProcessTreeTraversal_IdentifiesDescendantsAndProtectsShells()
+    {
+        // Mock hierarchy:
+        // PID 1000: wt.exe (root terminal host)
+        //   PID 1001: cmd.exe (shell)
+        //     PID 1002: conhost.exe (console host)
+        //     PID 1003: agy.exe (worker process)
+        //       PID 1004: rustc.exe (compiler tool spawned by agy)
+        var mockProcesses = new List<ProcessNode>
+        {
+            new(1000, 1, "wt.exe"),
+            new(1001, 1000, "cmd.exe"),
+            new(1002, 1001, "conhost.exe"),
+            new(1003, 1001, "agy.exe"),
+            new(1004, 1003, "rustc.exe"),
+            new(2000, 1, "notepad.exe") // Unrelated process
+        };
+
+        var descendants = Win32ProcessHelper.GetDescendantProcesses(1000, mockProcesses);
+        Assert.Equal(4, descendants.Count);
+        Assert.Contains(descendants, d => d.ProcessId == 1001);
+        Assert.Contains(descendants, d => d.ProcessId == 1002);
+        Assert.Contains(descendants, d => d.ProcessId == 1003);
+        Assert.Contains(descendants, d => d.ProcessId == 1004);
+        Assert.DoesNotContain(descendants, d => d.ProcessId == 2000);
+
+        // Filter out shell processes (wt, cmd, conhost)
+        var toKill = descendants
+            .Where(d => !FleetDispatcherService.ShellProcessNames.Contains(d.Name))
+            .Select(d => d.ProcessId)
+            .ToList();
+
+        // Exactly the worker process (agy.exe) and its compiler tool (rustc.exe) should be targeted
+        Assert.Equal(new[] { 1003, 1004 }, toKill);
+
+        // Shell processes (cmd.exe, conhost.exe) are preserved
+        Assert.DoesNotContain(1001, toKill);
+        Assert.DoesNotContain(1002, toKill);
+        Assert.DoesNotContain(1000, toKill);
+    }
+
+    [Fact]
+    public async Task StopTaskAsync_VisibleTerminal_MarksTaskStoppedSafely()
+    {
+        var dispatcher = new FleetDispatcherService();
+        var task = new DispatchedWorkerTask
+        {
+            ProfileName = "Terminal Worker",
+            ExecutionMode = FleetExecutionMode.VisibleTerminal,
+            ProcessId = 999999, // Non-existent PID to test safety without killing current shell
+            Status = "Running",
+            StatusColor = "#10B981"
+        };
+
+        bool stopped = await dispatcher.StopTaskAsync(task);
+        Assert.True(stopped);
+        Assert.Equal("Stopped", task.Status);
+        Assert.Equal("#EF4444", task.StatusColor);
+        Assert.Equal("🛑 Stopped by user", task.CurrentActivity);
+        Assert.NotNull(task.CompletedAt);
     }
 
     private class MockGitWorktreeService : IGitWorktreeService
