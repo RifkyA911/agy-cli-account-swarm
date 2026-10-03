@@ -29,6 +29,8 @@
             <converters:PositiveIntToVisibilityConverter x:Key="NumberToVisConverter" />
             <converters:SwarmMessageTypeToBackgroundConverter x:Key="SwarmMsgBgConverter" />
             <converters:SwarmMessageTypeToBorderConverter x:Key="SwarmMsgBorderConverter" />
+            <converters:TabToActiveForegroundConverter x:Key="TabToActiveFgConverter" />
+            <converters:TabToActiveBorderConverter x:Key="TabToActiveBorderConverter" />
         </ResourceDictionary>
 
     </Application.Resources>

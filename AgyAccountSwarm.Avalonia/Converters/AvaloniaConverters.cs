@@ -182,15 +182,14 @@ public class SwarmMessageTypeToBackgroundConverter : IValueConverter
         {
             return type switch
             {
-                AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#1E293B")),
-                AgyAccountSwarm.Models.SwarmMessageType.AgentAction => new SolidColorBrush(Color.Parse("#064E3B")),
-                AgyAccountSwarm.Models.SwarmMessageType.AgentMessage => new SolidColorBrush(Color.Parse("#0F172A")),
-                AgyAccountSwarm.Models.SwarmMessageType.SystemEvent => new SolidColorBrush(Color.Parse("#2A1B0A")),
-                AgyAccountSwarm.Models.SwarmMessageType.Handoff => new SolidColorBrush(Color.Parse("#3B0764")),
-                _ => new SolidColorBrush(Color.Parse("#0F172A"))
+                AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#0F1E36")),
+                AgyAccountSwarm.Models.SwarmMessageType.AgentAction => new SolidColorBrush(Color.Parse("#062E25")),
+                AgyAccountSwarm.Models.SwarmMessageType.SystemEvent => new SolidColorBrush(Color.Parse("#131927")),
+                AgyAccountSwarm.Models.SwarmMessageType.Handoff => new SolidColorBrush(Color.Parse("#2E1065")),
+                _ => new SolidColorBrush(Color.Parse("#111827"))
             };
         }
-        return new SolidColorBrush(Color.Parse("#0F172A"));
+        return new SolidColorBrush(Color.Parse("#111827"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
@@ -209,11 +208,10 @@ public class SwarmMessageTypeToBorderConverter : IValueConverter
         {
             return type switch
             {
-                AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#3B82F6")),
-                AgyAccountSwarm.Models.SwarmMessageType.AgentAction => new SolidColorBrush(Color.Parse("#10B981")),
-                AgyAccountSwarm.Models.SwarmMessageType.AgentMessage => new SolidColorBrush(Color.Parse("#334155")),
-                AgyAccountSwarm.Models.SwarmMessageType.SystemEvent => new SolidColorBrush(Color.Parse("#D97706")),
-                AgyAccountSwarm.Models.SwarmMessageType.Handoff => new SolidColorBrush(Color.Parse("#A855F7")),
+                AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#2563EB")),
+                AgyAccountSwarm.Models.SwarmMessageType.AgentAction => new SolidColorBrush(Color.Parse("#059669")),
+                AgyAccountSwarm.Models.SwarmMessageType.SystemEvent => new SolidColorBrush(Color.Parse("#4F46E5")),
+                AgyAccountSwarm.Models.SwarmMessageType.Handoff => new SolidColorBrush(Color.Parse("#9333EA")),
                 _ => new SolidColorBrush(Color.Parse("#1F2937"))
             };
         }

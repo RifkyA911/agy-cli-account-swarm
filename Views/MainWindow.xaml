@@ -2312,15 +2312,30 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Content="💬 Swarm Chat &amp; Aggregator Feed" Command="{Binding SetProjectTabCommand}" CommandParameter="0"
-                                            Style="{StaticResource ModernButton}" Padding="12,8" FontSize="12" FontWeight="SemiBold"
-                                            Background="{Binding SelectedProjectTabIndex, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=0}" />
-                                    <Button Grid.Column="1" Content="🎯 Tasks &amp; Fleet Dispatch" Command="{Binding SetProjectTabCommand}" CommandParameter="1"
-                                            Style="{StaticResource ModernButton}" Padding="12,8" FontSize="12" FontWeight="SemiBold"
-                                            Background="{Binding SelectedProjectTabIndex, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=1}" />
-                                    <Button Grid.Column="2" Content="🌳 Worktree Isolation Tree" Command="{Binding SetProjectTabCommand}" CommandParameter="2"
-                                            Style="{StaticResource ModernButton}" Padding="12,8" FontSize="12" FontWeight="SemiBold"
-                                            Background="{Binding SelectedProjectTabIndex, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=2}" />
+                                    <Border Grid.Column="0" Margin="2" CornerRadius="6"
+                                            Background="{Binding SelectedProjectTabIndex, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=0}"
+                                            BorderBrush="{Binding SelectedProjectTabIndex, Converter={StaticResource TabToActiveBorderConverter}, ConverterParameter=0}"
+                                            BorderThickness="1">
+                                        <Button Content="💬 Swarm Chat &amp; Aggregator Feed" Command="{Binding SetProjectTabCommand}" CommandParameter="0"
+                                                Background="Transparent" BorderThickness="0" Padding="12,9" FontSize="12.5" FontWeight="SemiBold"
+                                                Foreground="{Binding SelectedProjectTabIndex, Converter={StaticResource TabToActiveFgConverter}, ConverterParameter=0}" Cursor="Hand" />
+                                    </Border>
+                                    <Border Grid.Column="1" Margin="2" CornerRadius="6"
+                                            Background="{Binding SelectedProjectTabIndex, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=1}"
+                                            BorderBrush="{Binding SelectedProjectTabIndex, Converter={StaticResource TabToActiveBorderConverter}, ConverterParameter=1}"
+                                            BorderThickness="1">
+                                        <Button Content="🎯 Tasks &amp; Fleet Dispatch" Command="{Binding SetProjectTabCommand}" CommandParameter="1"
+                                                Background="Transparent" BorderThickness="0" Padding="12,9" FontSize="12.5" FontWeight="SemiBold"
+                                                Foreground="{Binding SelectedProjectTabIndex, Converter={StaticResource TabToActiveFgConverter}, ConverterParameter=1}" Cursor="Hand" />
+                                    </Border>
+                                    <Border Grid.Column="2" Margin="2" CornerRadius="6"
+                                            Background="{Binding SelectedProjectTabIndex, Converter={StaticResource PageToActiveBgConverter}, ConverterParameter=2}"
+                                            BorderBrush="{Binding SelectedProjectTabIndex, Converter={StaticResource TabToActiveBorderConverter}, ConverterParameter=2}"
+                                            BorderThickness="1">
+                                        <Button Content="🌳 Worktree Isolation Tree" Command="{Binding SetProjectTabCommand}" CommandParameter="2"
+                                                Background="Transparent" BorderThickness="0" Padding="12,9" FontSize="12.5" FontWeight="SemiBold"
+                                                Foreground="{Binding SelectedProjectTabIndex, Converter={StaticResource TabToActiveFgConverter}, ConverterParameter=2}" Cursor="Hand" />
+                                    </Border>
                                 </Grid>
                             </Border>
 
@@ -2338,8 +2353,13 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <StackPanel Grid.Column="0">
-                                                <TextBlock Text="💬 Live Swarm Chat &amp; Inter-Agent Message Bus" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                <TextBlock Text="Synchronized real-time telemetry from .swarm/bus.jsonl, user broadcasts, and agent actions" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" Margin="0,2,0,0" />
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                    <TextBlock Text="💬 Live Swarm Chat &amp; Inter-Agent Message Bus" FontWeight="Bold" FontSize="14.5" Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                                    <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="4" Padding="6,1.5" VerticalAlignment="Center">
+                                                        <TextBlock Text=".swarm/bus.jsonl" FontFamily="{StaticResource FontMono}" FontSize="10" Foreground="#94A3B8" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="Synchronized real-time telemetry, agent directives, shared blackboard contracts, and user broadcasts" FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Border Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="8,4" Margin="0,0,8,0">
@@ -2350,15 +2370,15 @@
                                         </Grid>
 
                                         <!-- Messages Scroll Area -->
-                                        <Border Background="{DynamicResource BrushSurface}" CornerRadius="8" Padding="14" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" MinHeight="260" MaxHeight="520">
+                                        <Border Background="#0B0F19" CornerRadius="8" Padding="14" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" MinHeight="280" MaxHeight="520">
                                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                                 <StackPanel>
-                                                    <!-- Empty Chat Notice -->
-                                                    <Border Visibility="{Binding SwarmChatMessages.Count, Converter={StaticResource IntToVisConverter}, ConverterParameter=Inverse}"
-                                                            Padding="30" HorizontalAlignment="Center">
+                                                    <!-- Empty Chat Notice (Shows ONLY when zero messages) -->
+                                                    <Border Visibility="{Binding HasSwarmChatMessages, Converter={StaticResource InverseBoolToVisConverter}}"
+                                                            Padding="40,30" HorizontalAlignment="Center">
                                                         <StackPanel HorizontalAlignment="Center">
-                                                            <TextBlock Text="💬 No messages recorded yet." FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" />
-                                                            <TextBlock Text="Dispatch the swarm or use the broadcast bar below to send instructions to the agents." FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                                                            <TextBlock Text="💬 No messages recorded yet." FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" HorizontalAlignment="Center" />
+                                                            <TextBlock Text="Dispatch the swarm fleet or use the broadcast bar below to send instructions to the agents." FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,4,0,0" />
                                                         </StackPanel>
                                                     </Border>
 
@@ -2377,34 +2397,34 @@
                                                                         </Grid.ColumnDefinitions>
 
                                                                         <!-- Sender Avatar -->
-                                                                        <Grid Grid.Column="0" Width="32" Height="32" Margin="0,0,10,0" VerticalAlignment="Top">
-                                                                            <Border Background="{Binding SenderColor, Converter={StaticResource HexToBrushConverter}}" CornerRadius="16">
+                                                                        <Grid Grid.Column="0" Width="34" Height="34" Margin="0,0,12,0" VerticalAlignment="Top">
+                                                                            <Border Background="{Binding SenderColor, Converter={StaticResource HexToBrushConverter}}" CornerRadius="17">
                                                                                 <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                                                             </Border>
-                                                                            <Border CornerRadius="16" ClipToBounds="True" Visibility="{Binding AvatarUrl, Converter={StaticResource NotNullOrEmptyToVisConverter}}">
-                                                                                <Image Source="{Binding AvatarUrl}" Stretch="UniformToFill" Width="32" Height="32" />
+                                                                            <Border CornerRadius="17" ClipToBounds="True" Visibility="{Binding AvatarUrl, Converter={StaticResource NotNullOrEmptyToVisConverter}}">
+                                                                                <Image Source="{Binding AvatarUrl}" Stretch="UniformToFill" Width="34" Height="34" />
                                                                             </Border>
                                                                         </Grid>
 
                                                                         <!-- Content Body -->
                                                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                                            <WrapPanel Margin="0,0,0,4">
+                                                                            <WrapPanel Margin="0,0,0,5">
                                                                                 <TextBlock Text="{Binding SenderName}" FontWeight="Bold" FontSize="12.5" Foreground="#FFFFFF" Margin="0,0,8,0" VerticalAlignment="Center" />
                                                                                 <!-- Role Badge -->
-                                                                                <Border Background="{DynamicResource BrushSurface}" CornerRadius="3" Padding="5,1.5" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                                                    <TextBlock Text="{Binding SenderRole}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                                <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="3" Padding="6,1.5" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                                                    <TextBlock Text="{Binding SenderRole}" FontSize="10" FontWeight="Bold" Foreground="#93C5FD" />
                                                                                 </Border>
                                                                                 <!-- Target Badge if direct message -->
                                                                                 <Border Visibility="{Binding TargetWorker, Converter={StaticResource NotNullOrEmptyToVisConverter}}"
-                                                                                        Background="#1E3A8A" CornerRadius="3" Padding="5,1.5" Margin="0,0,6,0" VerticalAlignment="Center">
-                                                                                    <TextBlock Text="{Binding TargetWorker, StringFormat='🎯 @{0}'}" FontSize="9.5" FontWeight="Bold" Foreground="#93C5FD" />
+                                                                                        Background="#1E3A8A" BorderBrush="#3B82F6" BorderThickness="1" CornerRadius="3" Padding="6,1.5" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                                                    <TextBlock Text="{Binding TargetWorker, StringFormat='🎯 @{0}'}" FontSize="9.5" FontWeight="Bold" Foreground="#BFDBFE" />
                                                                                 </Border>
                                                                             </WrapPanel>
-                                                                            <TextBlock Text="{Binding Content}" FontSize="12" Foreground="#F1F5F9" TextWrapping="Wrap" />
+                                                                            <TextBlock Text="{Binding Content}" FontSize="12.5" Foreground="#F1F5F9" TextWrapping="Wrap" LineHeight="18" />
                                                                         </StackPanel>
 
                                                                         <!-- Timestamp -->
-                                                                        <TextBlock Grid.Column="2" Text="{Binding TimestampFormatted}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="#94A3B8" VerticalAlignment="Top" Margin="8,0,0,0" />
+                                                                        <TextBlock Grid.Column="2" Text="{Binding TimestampFormatted}" FontFamily="{StaticResource FontMono}" FontSize="10.5" Foreground="#94A3B8" VerticalAlignment="Top" Margin="10,2,0,0" />
                                                                     </Grid>
                                                                 </Border>
                                                             </DataTemplate>
@@ -2424,10 +2444,14 @@
                                                 </Grid.ColumnDefinitions>
                                                 <!-- Target Worker Selection -->
                                                 <ComboBox Grid.Column="0" ItemsSource="{Binding ChatTargetWorkers}" SelectedItem="{Binding SelectedChatTargetWorker}"
-                                                          Style="{StaticResource ModernComboBox}" MinWidth="180" Padding="8,6" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Send broadcast to all workers or target a specific agent" />
-                                                <!-- Input TextBox -->
+                                                          Style="{StaticResource ModernComboBox}" MinWidth="190" Padding="8,6" Margin="0,0,8,0" VerticalAlignment="Center" ToolTip="Send broadcast to all workers or target a specific agent" />
+                                                <!-- Input TextBox with Enter Key Support -->
                                                 <TextBox Grid.Column="1" Text="{Binding SwarmChatInputText, UpdateSourceTrigger=PropertyChanged}"
-                                                         Style="{StaticResource ModernTextBox}" Padding="10,8" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                                         Style="{StaticResource ModernTextBox}" Padding="10,8" Margin="0,0,8,0" VerticalAlignment="Center">
+                                                    <TextBox.InputBindings>
+                                                        <KeyBinding Key="Return" Command="{Binding SendSwarmChatMessageCommand}" />
+                                                    </TextBox.InputBindings>
+                                                </TextBox>
                                                 <!-- Send Button -->
                                                 <Button Grid.Column="2" Command="{Binding SendSwarmChatMessageCommand}"
                                                         Style="{StaticResource PrimaryButton}" Background="#3B82F6" Padding="16,8" VerticalAlignment="Center">

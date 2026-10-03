@@ -206,6 +206,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
     public ObservableCollection<SwarmChatMessage> SwarmChatMessages { get; } = new();
 
     [ObservableProperty]
+    private bool _hasSwarmChatMessages;
+
+    [ObservableProperty]
     private string _swarmChatInputText = string.Empty;
 
     [ObservableProperty]
@@ -1250,19 +1253,26 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
         var msg = await _swarmAggregatorService.BroadcastUserInstructionAsync(SelectedProject, text, target);
         SwarmChatMessages.Add(msg);
+        HasSwarmChatMessages = SwarmChatMessages.Count > 0;
         ShowNotification("Broadcast instruction dispatched to swarm.");
     }
 
     [RelayCommand]
     public async Task RefreshSwarmChatMessagesAsync()
     {
-        if (SelectedProject == null) return;
+        if (SelectedProject == null)
+        {
+            SwarmChatMessages.Clear();
+            HasSwarmChatMessages = false;
+            return;
+        }
         var messages = await _swarmAggregatorService.LoadProjectMessagesAsync(SelectedProject);
         SwarmChatMessages.Clear();
         foreach (var m in messages)
         {
             SwarmChatMessages.Add(m);
         }
+        HasSwarmChatMessages = SwarmChatMessages.Count > 0;
     }
 
     [RelayCommand]

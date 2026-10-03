@@ -586,7 +586,7 @@
                                             <ScrollViewer>
                                                 <StackPanel Spacing="8">
                                                     <!-- Empty Chat Notice -->
-                                                    <Border IsVisible="{Binding SwarmChatMessages.Count, Converter={StaticResource CountToBoolConverter}, ConverterParameter=Inverse}"
+                                                    <Border IsVisible="{Binding HasSwarmChatMessages, Converter={x:Static BoolConverters.Not}}"
                                                             Padding="30" HorizontalAlignment="Center">
                                                         <StackPanel HorizontalAlignment="Center" Spacing="4">
                                                             <TextBlock Text="💬 No messages recorded yet." FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" HorizontalAlignment="Center" />

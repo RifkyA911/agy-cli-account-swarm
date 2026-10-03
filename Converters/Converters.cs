@@ -109,9 +109,16 @@ public class PositiveIntToVisibilityConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is int i && i > 0) return Visibility.Visible;
-        if (value is long l && l > 0) return Visibility.Visible;
-        return Visibility.Collapsed;
+        int count = 0;
+        if (value is int i) count = i;
+        else if (value is long l) count = (int)l;
+        else if (int.TryParse(value?.ToString(), out var parsed)) count = parsed;
+
+        bool isInverse = string.Equals(parameter?.ToString(), "Inverse", StringComparison.OrdinalIgnoreCase);
+        bool hasItems = count > 0;
+        bool visible = isInverse ? !hasItems : hasItems;
+
+        return visible ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -230,14 +237,14 @@ public class SwarmMessageTypeToBackgroundConverter : IValueConverter
         {
             return type switch
             {
-                Models.SwarmMessageType.UserBroadcast => (SolidColorBrush)new BrushConverter().ConvertFromString("#1E3A8A")!,
-                Models.SwarmMessageType.AgentAction => (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!,
-                Models.SwarmMessageType.SystemEvent => (SolidColorBrush)new BrushConverter().ConvertFromString("#064E3B")!,
-                Models.SwarmMessageType.Handoff => (SolidColorBrush)new BrushConverter().ConvertFromString("#581C87")!,
-                _ => (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!
+                Models.SwarmMessageType.UserBroadcast => (SolidColorBrush)new BrushConverter().ConvertFromString("#0F1E36")!, // Dark royal navy
+                Models.SwarmMessageType.AgentAction => (SolidColorBrush)new BrushConverter().ConvertFromString("#062E25")!,   // Dark forest emerald
+                Models.SwarmMessageType.SystemEvent => (SolidColorBrush)new BrushConverter().ConvertFromString("#131927")!,   // Sleek dark slate
+                Models.SwarmMessageType.Handoff => (SolidColorBrush)new BrushConverter().ConvertFromString("#2E1065")!,       // Deep regal purple
+                _ => (SolidColorBrush)new BrushConverter().ConvertFromString("#111827")!                                      // Dark background
             };
         }
-        return (SolidColorBrush)new BrushConverter().ConvertFromString("#1E293B")!;
+        return (SolidColorBrush)new BrushConverter().ConvertFromString("#111827")!;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
@@ -251,18 +258,45 @@ public class SwarmMessageTypeToBorderConverter : IValueConverter
         {
             return type switch
             {
-                Models.SwarmMessageType.UserBroadcast => (SolidColorBrush)new BrushConverter().ConvertFromString("#3B82F6")!,
-                Models.SwarmMessageType.AgentAction => (SolidColorBrush)new BrushConverter().ConvertFromString("#475569")!,
-                Models.SwarmMessageType.SystemEvent => (SolidColorBrush)new BrushConverter().ConvertFromString("#10B981")!,
-                Models.SwarmMessageType.Handoff => (SolidColorBrush)new BrushConverter().ConvertFromString("#A855F7")!,
-                _ => (SolidColorBrush)new BrushConverter().ConvertFromString("#334155")!
+                Models.SwarmMessageType.UserBroadcast => (SolidColorBrush)new BrushConverter().ConvertFromString("#2563EB")!, // Electric Blue
+                Models.SwarmMessageType.AgentAction => (SolidColorBrush)new BrushConverter().ConvertFromString("#059669")!,   // Emerald
+                Models.SwarmMessageType.SystemEvent => (SolidColorBrush)new BrushConverter().ConvertFromString("#4F46E5")!,   // Indigo
+                Models.SwarmMessageType.Handoff => (SolidColorBrush)new BrushConverter().ConvertFromString("#9333EA")!,       // Violet
+                _ => (SolidColorBrush)new BrushConverter().ConvertFromString("#1F2937")!
             };
         }
-        return (SolidColorBrush)new BrushConverter().ConvertFromString("#334155")!;
+        return (SolidColorBrush)new BrushConverter().ConvertFromString("#1F2937")!;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
+
+public class TabToActiveForegroundConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool matches = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        return matches 
+            ? (SolidColorBrush)new BrushConverter().ConvertFromString("#38BDF8")! 
+            : (SolidColorBrush)new BrushConverter().ConvertFromString("#94A3B8")!;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
+public class TabToActiveBorderConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        bool matches = string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+        return matches 
+            ? (SolidColorBrush)new BrushConverter().ConvertFromString("#3B82F6")! 
+            : System.Windows.Media.Brushes.Transparent;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+}
+
 
 
 
