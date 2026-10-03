@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AgyAccountSwarm.Models;
@@ -92,6 +93,32 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
     [ObservableProperty]
     private DispatchMode _selectedDispatchMode = DispatchMode.RoleTailored;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTerminalMode))]
+    [NotifyPropertyChangedFor(nameof(IsSilentMode))]
+    private FleetExecutionMode _selectedFleetExecutionMode = FleetExecutionMode.VisibleTerminal;
+
+    public bool IsTerminalMode
+    {
+        get => SelectedFleetExecutionMode == FleetExecutionMode.VisibleTerminal;
+        set
+        {
+            if (value) SelectedFleetExecutionMode = FleetExecutionMode.VisibleTerminal;
+        }
+    }
+
+    public bool IsSilentMode
+    {
+        get => SelectedFleetExecutionMode == FleetExecutionMode.HeadlessSilent;
+        set
+        {
+            if (value) SelectedFleetExecutionMode = FleetExecutionMode.HeadlessSilent;
+        }
+    }
+
+    [ObservableProperty]
+    private bool _fleetDangerouslySkipPermissions = true;
 
     [ObservableProperty]
     private bool _useGitWorktrees = true;
@@ -785,6 +812,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
             TaskObjective = FleetTaskObjective,
             TargetWorkspace = FleetWorkspacePath,
             Mode = SelectedDispatchMode,
+            ExecutionMode = SelectedFleetExecutionMode,
+            DangerouslySkipPermissions = FleetDangerouslySkipPermissions,
             UseGitWorktrees = UseGitWorktrees,
             SelectedWorkerNames = selected.Select(w => w.Name).ToList()
         };
@@ -838,6 +867,61 @@ public partial class AvaloniaMainViewModel : ObservableObject
         await RefreshWorktreesAsync();
     }
 
+    [RelayCommand]
+    public async Task StopWorkerTaskAsync(DispatchedWorkerTask? task)
+    {
+        if (task == null) return;
+        _audioService.PlayClick();
+        await _fleetDispatcherService.StopTaskAsync(task);
+        ShowNotification($"Stopped worker '{task.ProfileName}'");
+        UpdateWorktreeTreeNodes();
+    }
+
+    [RelayCommand]
+    public void OpenWorktreeFolder(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) return;
+        _audioService.PlayClick();
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[Fleet] Failed to open folder {path}: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task CopyTaskLogAsync(DispatchedWorkerTask? task)
+    {
+        if (task == null) return;
+        _audioService.PlayClick();
+        var log = !string.IsNullOrWhiteSpace(task.FullOutputLog) ? task.FullOutputLog : task.LastOutputLine;
+        if (!string.IsNullOrWhiteSpace(log))
+        {
+            try
+            {
+                if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow?.Clipboard != null)
+                {
+                    var data = new DataTransfer();
+                    data.Add(DataTransferItem.CreateText(log));
+                    await desktop.MainWindow.Clipboard.SetDataAsync(data);
+                    ShowNotification($"Copied logs for '{task.ProfileName}' to clipboard.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"[Fleet] Failed to copy logs: {ex.Message}");
+            }
+        }
+    }
+
     private void WatchDispatchedProcesses()
     {
         if (DispatchedTasks.Count == 0) return;
@@ -847,6 +931,15 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
         foreach (var task in DispatchedTasks)
         {
+            // Update live elapsed duration for active tasks
+            if (task.StartedAt.HasValue && task.Status is "Running" or "Launching" or "Active")
+            {
+                var duration = DateTime.UtcNow - task.StartedAt.Value;
+                task.ElapsedTimeFormatted = duration.TotalHours >= 1
+                    ? $"{(int)duration.TotalHours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}"
+                    : $"{duration.Minutes:D2}:{duration.Seconds:D2}";
+            }
+
             if (task.ProcessId.HasValue)
             {
                 try
@@ -854,8 +947,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
                     var proc = Process.GetProcessById(task.ProcessId.Value);
                     if (proc.HasExited)
                     {
+                        task.CompletedAt = DateTime.UtcNow;
                         task.Status = proc.ExitCode == 0 ? "Completed" : $"Exited ({proc.ExitCode})";
-                        task.StatusColor = proc.ExitCode == 0 ? "#8B5CF6" : "#EF4444";
+                        task.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
+                        task.CurrentActivity = proc.ExitCode == 0 ? "✅ Completed successfully" : $"⚠️ Process exited with code {proc.ExitCode}";
                         task.ProcessId = null;
                         stateChanged = true;
                     }
@@ -866,8 +961,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 }
                 catch
                 {
+                    task.CompletedAt = DateTime.UtcNow;
                     task.Status = "Completed";
-                    task.StatusColor = "#8B5CF6";
+                    task.StatusColor = "#10B981";
+                    task.CurrentActivity = "✅ Completed successfully";
                     task.ProcessId = null;
                     stateChanged = true;
                 }

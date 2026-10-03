@@ -35,6 +35,18 @@ public interface ITerminalLauncherService
     Task<Process?> LaunchProfileAsync(AccountProfile profile, TerminalType terminal, bool forceLoginPrompt = false, string? sessionArgs = null);
 
     /// <summary>
+    /// Launches an isolated background Antigravity CLI process in headless/silent mode,
+    /// redirecting standard output and error streams for real-time telemetry capture.
+    /// </summary>
+    Task<Process?> LaunchHeadlessAgyAsync(
+        AccountProfile profile,
+        string workingDir,
+        string prompt,
+        System.Action<string>? onOutputLine = null,
+        System.Action<string>? onErrorLine = null,
+        bool dangerouslySkipPermissions = true);
+
+    /// <summary>
     /// Launches a swarm batch execution across multiple selected account profiles simultaneously
     /// utilizing split-panes, separate tabs, or independent windows.
     /// </summary>

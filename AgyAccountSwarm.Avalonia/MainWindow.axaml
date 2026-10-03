@@ -539,6 +539,21 @@
                                             <TextBlock Text="Browse Folder..." FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center" />
                                         </Button>
                                     </Grid>
+
+                                    <!-- Execution Mode & Tool Permission Sentinel -->
+                                    <Border Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="12,10" Margin="0,8,0,0" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0" Spacing="4">
+                                                <TextBlock Text="Execution Mode:" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                                <StackPanel Orientation="Horizontal" Spacing="16">
+                                                    <RadioButton Content="🖥️ Visible Terminal Windows" IsChecked="{Binding IsTerminalMode}" FontSize="11" Foreground="{StaticResource BrushTextPrimary}" ToolTip.Tip="Interactive terminal windows: watch and interact with CLI sessions in real-time" />
+                                                    <RadioButton Content="⚡ Silent Background (Headless)" IsChecked="{Binding IsSilentMode}" FontSize="11" Foreground="{StaticResource BrushTextPrimary}" ToolTip.Tip="Headless execution: silent background execution with real-time telemetry streamed into task cards" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1" IsChecked="{Binding FleetDangerouslySkipPermissions}" Content="Auto-approve tool permissions (--dangerously-skip-permissions)" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center" ToolTip.Tip="Essential for automated headless execution to prevent tool prompt timeouts and headless denial" />
+                                        </Grid>
+                                    </Border>
+
                                     <CheckBox IsChecked="{Binding UseGitWorktrees}" Content="Isolate workers in linked Git Worktrees (.worktrees/worker-*) to avoid .git/index.lock contention" FontSize="12" Margin="0,4,0,0" />
                                 </StackPanel>
 
@@ -789,7 +804,10 @@
                                 Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="10" Padding="20">
                             <StackPanel Spacing="14">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" Text="📋 Active Swarm Dispatch Tasks" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                    <StackPanel Grid.Column="0" Spacing="2">
+                                        <TextBlock Text="📋 Active Swarm Dispatch Tasks" FontWeight="Bold" FontSize="14" Foreground="{StaticResource BrushTextPrimary}" />
+                                        <TextBlock Text="Real-time telemetry, active tool activities, and isolated workspace management" FontSize="11.5" Foreground="{StaticResource BrushTextSecondary}" />
+                                    </StackPanel>
                                     <Border Grid.Column="1" Background="{StaticResource BrushSurface}" CornerRadius="4" Padding="8,3" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
                                         <TextBlock Text="{Binding DispatchedTasks.Count, StringFormat='{}{0} Dispatched'}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" />
                                     </Border>
@@ -797,20 +815,88 @@
                                 <ItemsControl ItemsSource="{Binding DispatchedTasks}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="models:DispatchedWorkerTask">
-                                            <Border Background="{StaticResource BrushSurface}" CornerRadius="6" Padding="12,10" Margin="0,0,0,8" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
-                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                                                    <Border Grid.Column="0" Background="#1E293B" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" Margin="0,0,12,0">
-                                                        <TextBlock Text="{Binding AssignedRole}" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushAccent}" />
+                                            <Border Background="{StaticResource BrushSurface}" CornerRadius="8" Padding="16,14" Margin="0,0,0,12" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1">
+                                                <StackPanel Spacing="10">
+                                                    <!-- Header Row: Identity, Badges, Timer & Status -->
+                                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                                        <!-- Profile Avatar / Initial Badge -->
+                                                        <Grid Grid.Column="0" Width="36" Height="36" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                            <Border Background="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" CornerRadius="18">
+                                                                <TextBlock Text="{Binding AvatarInitial}" FontWeight="Bold" FontSize="14" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                            </Border>
+                                                            <Border CornerRadius="18" ClipToBounds="True" IsVisible="{Binding AvatarUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                                <Image Source="{Binding AvatarUrl, Converter={StaticResource PathToBitmapConverter}}" Stretch="UniformToFill" Width="36" Height="36" />
+                                                            </Border>
+                                                        </Grid>
+
+                                                        <!-- Profile Name & Role Info -->
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                                                            <WrapPanel VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding ProfileName}" FontWeight="Bold" FontSize="13.5" Foreground="{StaticResource BrushTextPrimary}" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                                                <Border Background="{StaticResource BrushBadgeBg}" BorderBrush="{StaticResource BrushBadgeBorder}" BorderThickness="1" CornerRadius="4" Padding="7,2" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding AssignedRole}" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource BrushBadgeText}" />
+                                                                </Border>
+                                                                <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding ExecutionModeText}" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource BrushTextSecondary}" />
+                                                                </Border>
+                                                                <Border IsVisible="{Binding ProcessId, Converter={x:Static ObjectConverters.IsNotNull}}" Background="{StaticResource BrushCard}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding ProcessId, StringFormat='PID: {0}'}" FontFamily="Cascadia Code, Consolas" FontSize="10" Foreground="{StaticResource BrushTextSecondary}" />
+                                                                </Border>
+                                                            </WrapPanel>
+                                                            <TextBlock Text="{Binding BranchName, StringFormat='🌱 Branch: {0}'}" FontFamily="Cascadia Code, Consolas" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
+
+                                                        <!-- Right Status & Timer -->
+                                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                            <Border Background="{StaticResource BrushCard}" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding ElapsedTimeFormatted, StringFormat='⏱️ {0}'}" FontFamily="Cascadia Code, Consolas" FontSize="11" FontWeight="Bold" Foreground="{StaticResource BrushTextPrimary}" />
+                                                            </Border>
+                                                            <Border Background="{Binding StatusColor, Converter={StaticResource HexBrushConverter}}" CornerRadius="4" Padding="10,4" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                    </Grid>
+
+                                                    <!-- Live Real-Time Telemetry Bar ("dia lagi ngapain") -->
+                                                    <Border Background="{StaticResource BrushCard}" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                                                        <StackPanel Spacing="2">
+                                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <TextBlock Text="⚡ Activity:" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                                                <TextBlock Text="{Binding CurrentActivity, FallbackValue='Initializing...'}" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource BrushAccent}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                            </StackPanel>
+                                                            <TextBlock Text="{Binding LastOutputLine}" IsVisible="{Binding LastOutputLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" FontFamily="Cascadia Code, Consolas" FontSize="10" Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
                                                     </Border>
-                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding ProfileName}" FontWeight="Bold" FontSize="13" Foreground="{StaticResource BrushTextPrimary}" />
-                                                        <TextBlock Text="{Binding BranchName, StringFormat='Branch: {0}'}" FontSize="11" Foreground="{StaticResource BrushTextSecondary}" />
-                                                    </StackPanel>
-                                                    <Border Grid.Column="2" Background="{Binding StatusColor, Converter={StaticResource HexBrushConverter}}" CornerRadius="4" Padding="8,3" VerticalAlignment="Center" Margin="12,0">
-                                                        <TextBlock Text="{Binding Status}" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" />
+
+                                                    <!-- Collapsible Console Output Stream -->
+                                                    <Border IsVisible="{Binding LastOutputLine, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                        <StackPanel Spacing="4">
+                                                            <Button Command="{Binding ToggleOutputCommand}" HorizontalAlignment="Left" Padding="8,3" FontSize="10.5" CornerRadius="4">
+                                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                    <TextBlock Text="🖥️ Console Stream Log" FontWeight="SemiBold" />
+                                                                </StackPanel>
+                                                            </Button>
+                                                            <Border IsVisible="{Binding IsOutputExpanded}" Background="#090D16" BorderBrush="{StaticResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="10">
+                                                                <StackPanel Spacing="6">
+                                                                    <ScrollViewer MaxHeight="140" HorizontalScrollBarVisibility="Auto">
+                                                                        <TextBox Text="{Binding FullOutputLog, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="Transparent" Foreground="#6EE7B7" FontFamily="Cascadia Code, Consolas" FontSize="10.5" TextWrapping="Wrap" />
+                                                                    </ScrollViewer>
+                                                                    <Button Content="📋 Copy Full Log" Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).CopyTaskLogCommand}" CommandParameter="{Binding .}" Padding="8,4" FontSize="10.5" HorizontalAlignment="Right" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </StackPanel>
                                                     </Border>
-                                                    <Button Grid.Column="3" Content="Merge" Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).MergeSwarmBranchCommand}" CommandParameter="{Binding BranchName}" Padding="8,4" FontSize="11" VerticalAlignment="Center" />
-                                                </Grid>
+
+                                                    <!-- Footer Path & Action Buttons -->
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <TextBlock Grid.Column="0" Text="{Binding WorktreePath, StringFormat='📁 {0}'}" FontFamily="Cascadia Code, Consolas" FontSize="10" Foreground="{StaticResource BrushTextSecondary}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                                            <Button Content="📂 Folder" Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).OpenWorktreeFolderCommand}" CommandParameter="{Binding WorktreePath}" Padding="8,4" FontSize="10.5" ToolTip.Tip="Open workspace folder in File Explorer" />
+                                                            <Button Content="🔀 Merge" Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).MergeSwarmBranchCommand}" CommandParameter="{Binding BranchName}" Padding="8,4" FontSize="10.5" ToolTip.Tip="Merge branch changes into base repo" />
+                                                            <Button Content="🛑 Stop Worker" Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).StopWorkerTaskCommand}" CommandParameter="{Binding .}" Background="#DC2626" Foreground="#FFFFFF" Padding="8,4" FontSize="10.5" ToolTip.Tip="Terminate this isolated worker process immediately" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </StackPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

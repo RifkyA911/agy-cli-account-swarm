@@ -531,6 +531,32 @@ public partial class MainViewModel : ObservableObject
     private DispatchMode _selectedDispatchMode = DispatchMode.RoleTailored;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsTerminalMode))]
+    [NotifyPropertyChangedFor(nameof(IsSilentMode))]
+    private FleetExecutionMode _selectedFleetExecutionMode = FleetExecutionMode.VisibleTerminal;
+
+    public bool IsTerminalMode
+    {
+        get => SelectedFleetExecutionMode == FleetExecutionMode.VisibleTerminal;
+        set
+        {
+            if (value) SelectedFleetExecutionMode = FleetExecutionMode.VisibleTerminal;
+        }
+    }
+
+    public bool IsSilentMode
+    {
+        get => SelectedFleetExecutionMode == FleetExecutionMode.HeadlessSilent;
+        set
+        {
+            if (value) SelectedFleetExecutionMode = FleetExecutionMode.HeadlessSilent;
+        }
+    }
+
+    [ObservableProperty]
+    private bool _fleetDangerouslySkipPermissions = true;
+
+    [ObservableProperty]
     private bool _useGitWorktrees = true;
 
     [ObservableProperty]
@@ -2609,6 +2635,8 @@ public partial class MainViewModel : ObservableObject
             TaskObjective = FleetTaskObjective,
             TargetWorkspace = FleetWorkspacePath,
             Mode = SelectedDispatchMode,
+            ExecutionMode = SelectedFleetExecutionMode,
+            DangerouslySkipPermissions = FleetDangerouslySkipPermissions,
             UseGitWorktrees = UseGitWorktrees,
             SelectedWorkerNames = selected.Select(w => w.Name).ToList()
         };
@@ -2662,6 +2690,49 @@ public partial class MainViewModel : ObservableObject
         await RefreshWorktreesAsync();
     }
 
+    [RelayCommand]
+    public async Task StopWorkerTaskAsync(DispatchedWorkerTask? task)
+    {
+        if (task == null) return;
+        _audioService.PlayClick();
+        await _fleetDispatcherService.StopTaskAsync(task);
+        ShowNotification($"Stopped worker '{task.ProfileName}'");
+        UpdateWorktreeTreeNodes();
+    }
+
+    [RelayCommand]
+    public void OpenWorktreeFolder(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path)) return;
+        _audioService.PlayClick();
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = path,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[Fleet] Failed to open folder {path}: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public void CopyTaskLog(DispatchedWorkerTask? task)
+    {
+        if (task == null) return;
+        _audioService.PlayClick();
+        var log = !string.IsNullOrWhiteSpace(task.FullOutputLog) ? task.FullOutputLog : task.LastOutputLine;
+        if (!string.IsNullOrWhiteSpace(log))
+        {
+            System.Windows.Clipboard.SetText(log);
+            ShowNotification($"Copied logs for '{task.ProfileName}' to clipboard.");
+        }
+    }
+
     private void WatchDispatchedProcesses()
     {
         if (DispatchedTasks.Count == 0) return;
@@ -2671,6 +2742,15 @@ public partial class MainViewModel : ObservableObject
 
         foreach (var task in DispatchedTasks)
         {
+            // Update live elapsed duration for active tasks
+            if (task.StartedAt.HasValue && task.Status is "Running" or "Launching" or "Active")
+            {
+                var duration = DateTime.UtcNow - task.StartedAt.Value;
+                task.ElapsedTimeFormatted = duration.TotalHours >= 1
+                    ? $"{(int)duration.TotalHours:D2}:{duration.Minutes:D2}:{duration.Seconds:D2}"
+                    : $"{duration.Minutes:D2}:{duration.Seconds:D2}";
+            }
+
             if (task.ProcessId.HasValue)
             {
                 try
@@ -2678,8 +2758,10 @@ public partial class MainViewModel : ObservableObject
                     var proc = Process.GetProcessById(task.ProcessId.Value);
                     if (proc.HasExited)
                     {
+                        task.CompletedAt = DateTime.UtcNow;
                         task.Status = proc.ExitCode == 0 ? "Completed" : $"Exited ({proc.ExitCode})";
-                        task.StatusColor = proc.ExitCode == 0 ? "#8B5CF6" : "#EF4444";
+                        task.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
+                        task.CurrentActivity = proc.ExitCode == 0 ? "✅ Completed successfully" : $"⚠️ Process exited with code {proc.ExitCode}";
                         task.ProcessId = null;
                         stateChanged = true;
                     }
@@ -2690,8 +2772,10 @@ public partial class MainViewModel : ObservableObject
                 }
                 catch
                 {
+                    task.CompletedAt = DateTime.UtcNow;
                     task.Status = "Completed";
-                    task.StatusColor = "#8B5CF6";
+                    task.StatusColor = "#10B981";
+                    task.CurrentActivity = "✅ Completed successfully";
                     task.ProcessId = null;
                     stateChanged = true;
                 }

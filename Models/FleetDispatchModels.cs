@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace AgyAccountSwarm.Models;
 
@@ -11,11 +12,19 @@ public enum DispatchMode
     Consensus
 }
 
+public enum FleetExecutionMode
+{
+    VisibleTerminal,
+    HeadlessSilent
+}
+
 public class FleetDispatchConfig
 {
     public string TaskObjective { get; set; } = string.Empty;
     public string TargetWorkspace { get; set; } = string.Empty;
     public DispatchMode Mode { get; set; } = DispatchMode.RoleTailored;
+    public FleetExecutionMode ExecutionMode { get; set; } = FleetExecutionMode.VisibleTerminal;
+    public bool DangerouslySkipPermissions { get; set; } = true;
     public bool UseGitWorktrees { get; set; } = true;
     public List<string> SelectedWorkerNames { get; set; } = new();
 }
@@ -68,6 +77,45 @@ public partial class DispatchedWorkerTask : ObservableObject
 
     [ObservableProperty]
     private DateTime? _startedAt;
+
+    [ObservableProperty]
+    private DateTime? _completedAt;
+
+    [ObservableProperty]
+    private string _currentActivity = "Initializing...";
+
+    [ObservableProperty]
+    private string _lastOutputLine = string.Empty;
+
+    [ObservableProperty]
+    private string _fullOutputLog = string.Empty;
+
+    [ObservableProperty]
+    private string _elapsedTimeFormatted = "00:00";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ExecutionModeText))]
+    private FleetExecutionMode _executionMode = FleetExecutionMode.VisibleTerminal;
+
+    [ObservableProperty]
+    private bool _isOutputExpanded;
+
+    [ObservableProperty]
+    private string _colorTag = "#4285F4";
+
+    [ObservableProperty]
+    private string? _avatarUrl;
+
+    [ObservableProperty]
+    private string _avatarInitial = "W";
+
+    public string ExecutionModeText => ExecutionMode == FleetExecutionMode.VisibleTerminal ? "🖥️ Terminal" : "⚡ Silent";
+
+    [RelayCommand]
+    public void ToggleOutput()
+    {
+        IsOutputExpanded = !IsOutputExpanded;
+    }
 }
 
 public partial class WorktreeTreeNode : ObservableObject

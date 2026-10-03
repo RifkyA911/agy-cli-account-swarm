@@ -189,7 +189,12 @@ public class FleetDispatcherService : IFleetDispatcherService
                 BranchName = branchName,
                 Status = "Launching",
                 StatusColor = "#3B82F6",
-                StartedAt = DateTime.UtcNow
+                StartedAt = DateTime.UtcNow,
+                ExecutionMode = config.ExecutionMode,
+                ColorTag = string.IsNullOrWhiteSpace(worker.ColorTag) ? "#4285F4" : worker.ColorTag,
+                AvatarUrl = worker.AvatarUrl,
+                AvatarInitial = !string.IsNullOrEmpty(worker.AvatarInitial) ? worker.AvatarInitial : "W",
+                CurrentActivity = "Initializing session..."
             };
 
             // Temporarily set workspace for launch
@@ -204,31 +209,118 @@ public class FleetDispatcherService : IFleetDispatcherService
                     await Task.Delay(600);
                 }
 
-                progress?.Report(new FleetProgressReport
+                if (config.ExecutionMode == FleetExecutionMode.HeadlessSilent)
                 {
-                    Percent = workerBasePercent + 15,
-                    Stage = "Spawning Terminal Session",
-                    Detail = $"Launching isolated session for '{worker.Name}' in '{targetWorkDir}'"
-                });
+                    progress?.Report(new FleetProgressReport
+                    {
+                        Percent = workerBasePercent + 15,
+                        Stage = "Spawning Background Process",
+                        Detail = $"Starting silent background agy for '{worker.Name}' in '{targetWorkDir}'"
+                    });
 
-                // Prepare session arg with initial prompt
-                var safePromptArg = EscapePromptForCli(tailoredPrompt);
-                var proc = await _terminalLauncherService.LaunchProfileAsync(
-                    worker,
-                    terminal,
-                    false,
-                    $"-p \"{safePromptArg}\"");
-
-                if (proc != null)
-                {
-                    workerTask.ProcessId = proc.Id;
+                    workerTask.CurrentActivity = "Spawning background process...";
                     workerTask.Status = "Running";
                     workerTask.StatusColor = "#10B981";
+
+                    var proc = await _terminalLauncherService.LaunchHeadlessAgyAsync(
+                        worker,
+                        targetWorkDir,
+                        tailoredPrompt,
+                        onOutputLine: line =>
+                        {
+                            workerTask.LastOutputLine = line;
+                            if (string.IsNullOrWhiteSpace(workerTask.FullOutputLog))
+                                workerTask.FullOutputLog = line;
+                            else
+                                workerTask.FullOutputLog += Environment.NewLine + line;
+
+                            var activity = ParseActivityFromOutput(line);
+                            if (!string.IsNullOrWhiteSpace(activity))
+                            {
+                                workerTask.CurrentActivity = activity;
+                            }
+                        },
+                        onErrorLine: err =>
+                        {
+                            workerTask.LastOutputLine = $"[ERR] {err}";
+                            if (string.IsNullOrWhiteSpace(workerTask.FullOutputLog))
+                                workerTask.FullOutputLog = $"[ERR] {err}";
+                            else
+                                workerTask.FullOutputLog += Environment.NewLine + $"[ERR] {err}";
+
+                            var activity = ParseActivityFromOutput(err);
+                            if (!string.IsNullOrWhiteSpace(activity))
+                            {
+                                workerTask.CurrentActivity = activity;
+                            }
+                        },
+                        dangerouslySkipPermissions: config.DangerouslySkipPermissions);
+
+                    if (proc != null)
+                    {
+                        workerTask.ProcessId = proc.Id;
+                        workerTask.CurrentActivity = "Running agy headless...";
+                        proc.EnableRaisingEvents = true;
+                        proc.Exited += (s, e) =>
+                        {
+                            workerTask.CompletedAt = DateTime.UtcNow;
+                            if (proc.ExitCode == 0)
+                            {
+                                workerTask.Status = "Completed";
+                                workerTask.StatusColor = "#10B981";
+                                workerTask.CurrentActivity = "✅ Completed successfully";
+                            }
+                            else
+                            {
+                                workerTask.Status = $"Exited ({proc.ExitCode})";
+                                workerTask.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
+                                workerTask.CurrentActivity = $"⚠️ Process exited with code {proc.ExitCode}";
+                            }
+                        };
+                    }
+                    else
+                    {
+                        workerTask.Status = "Detached";
+                        workerTask.StatusColor = "#6B7280";
+                        workerTask.CurrentActivity = "Process spawned detached";
+                    }
                 }
                 else
                 {
-                    workerTask.Status = "Detached";
-                    workerTask.StatusColor = "#6B7280";
+                    progress?.Report(new FleetProgressReport
+                    {
+                        Percent = workerBasePercent + 15,
+                        Stage = "Spawning Terminal Session",
+                        Detail = $"Launching isolated session for '{worker.Name}' in '{targetWorkDir}'"
+                    });
+
+                    workerTask.CurrentActivity = "Opening interactive terminal window...";
+
+                    // Prepare session arg with initial prompt and permission flag
+                    var safePromptArg = EscapePromptForCli(tailoredPrompt);
+                    var sessionArg = config.DangerouslySkipPermissions
+                        ? $"-p \"{safePromptArg}\" --dangerously-skip-permissions"
+                        : $"-p \"{safePromptArg}\"";
+
+                    var proc = await _terminalLauncherService.LaunchProfileAsync(
+                        worker,
+                        terminal,
+                        false,
+                        sessionArg);
+
+                    if (proc != null)
+                    {
+                        workerTask.ProcessId = proc.Id;
+                        workerTask.Status = "Running";
+                        workerTask.StatusColor = "#10B981";
+                        workerTask.CurrentActivity = "Interactive terminal active";
+                    }
+                    else
+                    {
+                        workerTask.Status = "Detached";
+                        workerTask.StatusColor = "#6B7280";
+                        workerTask.CurrentActivity = "Terminal spawned detached";
+                    }
                 }
             }
             catch (Exception ex)
@@ -236,6 +328,7 @@ public class FleetDispatcherService : IFleetDispatcherService
                 Logger.Error($"[FleetDispatcher] Launch error for {worker.Name}", ex);
                 workerTask.Status = $"Failed: {ex.Message}";
                 workerTask.StatusColor = "#EF4444";
+                workerTask.CurrentActivity = $"Failed: {ex.Message}";
             }
             finally
             {
@@ -255,35 +348,78 @@ public class FleetDispatcherService : IFleetDispatcherService
         return tasks;
     }
 
+    public async Task<bool> StopTaskAsync(DispatchedWorkerTask task)
+    {
+        if (task == null) return false;
+        return await Task.Run(() =>
+        {
+            if (task.ProcessId.HasValue)
+            {
+                try
+                {
+                    var proc = Process.GetProcessById(task.ProcessId.Value);
+                    if (!proc.HasExited)
+                    {
+                        proc.Kill(entireProcessTree: true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn($"[FleetDispatcher] Error stopping task {task.ProfileName} PID {task.ProcessId}: {ex.Message}");
+                }
+            }
+            task.Status = "Stopped";
+            task.StatusColor = "#EF4444";
+            task.CurrentActivity = "🛑 Stopped by user";
+            task.CompletedAt = DateTime.UtcNow;
+            return true;
+        });
+    }
+
     public async Task<int> AbortFleetAsync(IEnumerable<DispatchedWorkerTask> activeTasks)
     {
         int killed = 0;
-        await Task.Run(() =>
+        foreach (var task in activeTasks)
         {
-            foreach (var task in activeTasks)
+            if (task.Status == "Running" || task.Status == "Launching")
             {
-                if (task.ProcessId.HasValue)
+                if (await StopTaskAsync(task))
                 {
-                    try
-                    {
-                        var proc = Process.GetProcessById(task.ProcessId.Value);
-                        if (!proc.HasExited)
-                        {
-                            proc.Kill(entireProcessTree: true);
-                            killed++;
-                        }
-                    }
-                    catch
-                    {
-                        // Ignore exited process errors
-                    }
+                    killed++;
                 }
-                task.Status = "Stopped";
-                task.StatusColor = "#EF4444";
             }
-        });
-
+        }
         return killed;
+    }
+
+    public static string ParseActivityFromOutput(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line)) return string.Empty;
+        var trimmed = line.Trim();
+
+        if (trimmed.Contains("thinking", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("Analyzing", StringComparison.OrdinalIgnoreCase))
+            return "🧠 Thinking & analyzing...";
+        if (trimmed.Contains("run_command", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("Executing", StringComparison.OrdinalIgnoreCase) || trimmed.StartsWith("$ ") || trimmed.StartsWith("> "))
+            return "⚡ Executing command...";
+        if (trimmed.Contains("view_file", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("read_", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("Reading", StringComparison.OrdinalIgnoreCase))
+            return "📖 Reading file / context...";
+        if (trimmed.Contains("write_to_file", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("replace_file_content", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("Writing", StringComparison.OrdinalIgnoreCase))
+            return "✏️ Writing / editing code...";
+        if (trimmed.Contains("search", StringComparison.OrdinalIgnoreCase))
+            return "🔍 Searching codebase / tools...";
+        if (trimmed.Contains("git", StringComparison.OrdinalIgnoreCase))
+            return "🌿 Git operations...";
+        if (trimmed.Contains("permission", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("denied", StringComparison.OrdinalIgnoreCase))
+            return "⚠️ Permission required / denied";
+        if (trimmed.Contains("Error", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("Exception", StringComparison.OrdinalIgnoreCase) || trimmed.Contains("failed", StringComparison.OrdinalIgnoreCase))
+            return $"⚠️ {(trimmed.Length > 60 ? trimmed.Substring(0, 57) + "..." : trimmed)}";
+        if (trimmed.StartsWith("Turn ", StringComparison.OrdinalIgnoreCase))
+            return $"🔄 {trimmed}";
+        if (trimmed.Length > 3)
+        {
+            return $"⚙️ {(trimmed.Length > 70 ? trimmed.Substring(0, 67) + "..." : trimmed)}";
+        }
+        return string.Empty;
     }
 
     public static string ResolveWorkerRole(AccountProfile profile, int index)

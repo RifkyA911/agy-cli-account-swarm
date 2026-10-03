@@ -356,6 +356,11 @@ public class TerminalLauncherService : ITerminalLauncherService
             var safeSession = SanitizeSessionArgs(sessionArgs);
             bool isCliOnly = safeSession == "--cli-only";
 
+            if (!string.IsNullOrWhiteSpace(safeSession) && (safeSession.StartsWith("-p") || safeSession.StartsWith("--prompt")) && !extraArgs.Contains("--dangerously-skip-permissions"))
+            {
+                extraArgs = string.IsNullOrWhiteSpace(extraArgs) ? "--dangerously-skip-permissions" : $"--dangerously-skip-permissions {extraArgs}";
+            }
+
             if (!string.IsNullOrWhiteSpace(safeSession) && !isCliOnly)
             {
                 extraArgs = string.IsNullOrWhiteSpace(extraArgs) ? safeSession : $"{extraArgs} {safeSession}";
@@ -415,6 +420,111 @@ public class TerminalLauncherService : ITerminalLauncherService
             var proc = Process.Start(psi);
             Logger.Info($"[TerminalLauncher] Launched profile '{profile.Name}' via {terminal} (PID: {proc?.Id.ToString() ?? "detached"}) with args '{safeSession ?? "none"}' in '{workingDir}'");
             return proc;
+        });
+    }
+
+    public Task<Process?> LaunchHeadlessAgyAsync(
+        AccountProfile profile,
+        string workingDir,
+        string prompt,
+        Action<string>? onOutputLine = null,
+        Action<string>? onErrorLine = null,
+        bool dangerouslySkipPermissions = true)
+    {
+        return Task.Run(() =>
+        {
+            var effectiveDir = profile.GetEffectiveProfileDirectory().Trim().TrimEnd('\\', '/');
+            if (!Directory.Exists(effectiveDir))
+            {
+                Directory.CreateDirectory(effectiveDir);
+            }
+
+            var agyBinary = FindAgyExecutablePath() ?? "agy";
+            var safeWorkDir = Directory.Exists(workingDir) ? workingDir : GetValidWorkingDirectory(profile);
+
+            // Clean prompt - keep readable while eliminating shell metacharacters
+            var safePrompt = SanitizeCommandLineArgs(prompt)
+                .Replace("&", " and ")
+                .Replace("|", " ")
+                .Replace("\"", "'")
+                .Replace("\r", " ")
+                .Replace("\n", " ");
+            safePrompt = System.Text.RegularExpressions.Regex.Replace(safePrompt, @"\s+", " ").Trim();
+
+            var argsList = new List<string>();
+            if (dangerouslySkipPermissions || profile.DangerouslySkipPermissions)
+            {
+                argsList.Add("--dangerously-skip-permissions");
+            }
+            if (!string.IsNullOrWhiteSpace(profile.ExtraArguments))
+            {
+                var extra = SanitizeCommandLineArgs(profile.ExtraArguments);
+                if (!string.IsNullOrWhiteSpace(extra)) argsList.Add(extra);
+            }
+            argsList.Add($"-p \"{safePrompt}\"");
+
+            var arguments = string.Join(" ", argsList);
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = agyBinary,
+                Arguments = arguments,
+                WorkingDirectory = safeWorkDir,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                StandardOutputEncoding = System.Text.Encoding.UTF8,
+                StandardErrorEncoding = System.Text.Encoding.UTF8
+            };
+
+            psi.EnvironmentVariables["USERPROFILE"] = effectiveDir;
+            psi.EnvironmentVariables["HOME"] = effectiveDir;
+            psi.EnvironmentVariables["ANTIGRAVITY_APP_DATA_DIR"] = Path.Combine(effectiveDir, ".gemini", "antigravity-cli");
+            psi.EnvironmentVariables["JETSKI_APP_DATA_DIR"] = Path.Combine(effectiveDir, ".gemini", "antigravity-cli");
+
+            if (!profile.IsMainDefaultProfile())
+            {
+                psi.EnvironmentVariables["SSH_CONNECTION"] = "1";
+                psi.EnvironmentVariables["SSH_CLIENT"] = "1";
+            }
+            else
+            {
+                psi.EnvironmentVariables["SSH_CONNECTION"] = "";
+                psi.EnvironmentVariables["SSH_CLIENT"] = "";
+            }
+
+            try
+            {
+                var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
+                if (onOutputLine != null)
+                {
+                    proc.OutputDataReceived += (s, e) =>
+                    {
+                        if (e.Data != null) onOutputLine(e.Data);
+                    };
+                }
+                if (onErrorLine != null)
+                {
+                    proc.ErrorDataReceived += (s, e) =>
+                    {
+                        if (e.Data != null) onErrorLine(e.Data);
+                    };
+                }
+
+                proc.Start();
+                proc.BeginOutputReadLine();
+                proc.BeginErrorReadLine();
+
+                profile.LastLaunchedAt = DateTime.UtcNow;
+                Logger.Info($"[TerminalLauncher] Launched headless agy for '{profile.Name}' (PID: {proc.Id}) in '{safeWorkDir}'");
+                return proc;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[TerminalLauncher] Failed to launch headless agy for '{profile.Name}'", ex);
+                return null;
+            }
         });
     }
 

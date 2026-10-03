@@ -14,4 +14,5 @@ public interface IFleetDispatcherService
         TerminalType terminal,
         System.IProgress<FleetProgressReport>? progress = null);
     Task<int> AbortFleetAsync(IEnumerable<DispatchedWorkerTask> activeTasks);
+    Task<bool> StopTaskAsync(DispatchedWorkerTask task);
 }
