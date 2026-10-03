@@ -581,6 +581,10 @@ public partial class MainViewModel : ObservableObject
     private string _fleetStatusText = "Fleet Dispatcher Ready";
 
     private readonly System.Windows.Threading.DispatcherTimer _fleetProcessWatcherTimer;
+    private readonly object _profilesSyncLock = new();
+    private readonly object _tasksSyncLock = new();
+    private readonly object _worktreesSyncLock = new();
+    private readonly object _branchesSyncLock = new();
 
     public ObservableCollection<DispatchedWorkerTask> DispatchedTasks { get; } = [];
     public ObservableCollection<GitWorktreeInfo> ActiveWorktrees { get; } = [];
@@ -624,6 +628,11 @@ public partial class MainViewModel : ObservableObject
             Interval = TimeSpan.FromSeconds(2)
         };
         _fleetProcessWatcherTimer.Tick += (s, e) => WatchDispatchedProcesses();
+
+        System.Windows.Data.BindingOperations.EnableCollectionSynchronization(Profiles, _profilesSyncLock);
+        System.Windows.Data.BindingOperations.EnableCollectionSynchronization(DispatchedTasks, _tasksSyncLock);
+        System.Windows.Data.BindingOperations.EnableCollectionSynchronization(ActiveWorktrees, _worktreesSyncLock);
+        System.Windows.Data.BindingOperations.EnableCollectionSynchronization(SwarmBranches, _branchesSyncLock);
 
         FilteredProfiles = CollectionViewSource.GetDefaultView(Profiles);
         FilteredProfiles.Filter = FilterProfile;
@@ -2742,6 +2751,12 @@ public partial class MainViewModel : ObservableObject
 
         foreach (var task in DispatchedTasks)
         {
+            // If already stopped by user, do not let process watcher overwrite its status!
+            if (task.Status == "Stopped")
+            {
+                continue;
+            }
+
             // Update live elapsed duration for active tasks
             if (task.StartedAt.HasValue && task.Status is "Running" or "Launching" or "Active")
             {
@@ -2759,9 +2774,12 @@ public partial class MainViewModel : ObservableObject
                     if (proc.HasExited)
                     {
                         task.CompletedAt = DateTime.UtcNow;
-                        task.Status = proc.ExitCode == 0 ? "Completed" : $"Exited ({proc.ExitCode})";
-                        task.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
-                        task.CurrentActivity = proc.ExitCode == 0 ? "✅ Completed successfully" : $"⚠️ Process exited with code {proc.ExitCode}";
+                        if (task.Status != "Stopped")
+                        {
+                            task.Status = proc.ExitCode == 0 ? "Completed" : $"Exited ({proc.ExitCode})";
+                            task.StatusColor = proc.ExitCode == 0 ? "#10B981" : "#EF4444";
+                            task.CurrentActivity = proc.ExitCode == 0 ? "✅ Completed successfully" : $"⚠️ Process exited with code {proc.ExitCode}";
+                        }
                         task.ProcessId = null;
                         stateChanged = true;
                     }
@@ -2772,10 +2790,13 @@ public partial class MainViewModel : ObservableObject
                 }
                 catch
                 {
-                    task.CompletedAt = DateTime.UtcNow;
-                    task.Status = "Completed";
-                    task.StatusColor = "#10B981";
-                    task.CurrentActivity = "✅ Completed successfully";
+                    if (task.Status != "Stopped")
+                    {
+                        task.CompletedAt = DateTime.UtcNow;
+                        task.Status = "Completed";
+                        task.StatusColor = "#10B981";
+                        task.CurrentActivity = "✅ Completed successfully";
+                    }
                     task.ProcessId = null;
                     stateChanged = true;
                 }
@@ -2808,17 +2829,31 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var worktrees = await _gitWorktreeService.ListWorktreesAsync(targetDir);
-            ActiveWorktrees.Clear();
-            foreach (var wt in worktrees)
-            {
-                ActiveWorktrees.Add(wt);
-            }
-
             var branches = await _gitWorktreeService.ListSwarmBranchesAsync(targetDir);
-            SwarmBranches.Clear();
-            foreach (var b in branches)
+
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            Action updateCollections = () =>
             {
-                SwarmBranches.Add(b);
+                ActiveWorktrees.Clear();
+                foreach (var wt in worktrees)
+                {
+                    ActiveWorktrees.Add(wt);
+                }
+
+                SwarmBranches.Clear();
+                foreach (var b in branches)
+                {
+                    SwarmBranches.Add(b);
+                }
+            };
+
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.Invoke(updateCollections);
+            }
+            else
+            {
+                updateCollections();
             }
         }
         catch (Exception ex)
