@@ -178,8 +178,23 @@ public class SwarmMessageTypeToBackgroundConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                       || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
         if (value is AgyAccountSwarm.Models.SwarmMessageType type)
         {
+            if (isLight)
+            {
+                return type switch
+                {
+                    AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#EFF6FF")), // Soft Blue
+                    AgyAccountSwarm.Models.SwarmMessageType.AgentAction => new SolidColorBrush(Color.Parse("#ECFDF5")),   // Soft Emerald
+                    AgyAccountSwarm.Models.SwarmMessageType.SystemEvent => new SolidColorBrush(Color.Parse("#F8FAFC")),   // Slate 50
+                    AgyAccountSwarm.Models.SwarmMessageType.Handoff => new SolidColorBrush(Color.Parse("#FAF5FF")),       // Soft Purple
+                    _ => new SolidColorBrush(Color.Parse("#F8FAFC"))
+                };
+            }
+
             return type switch
             {
                 AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#0F1E36")),
@@ -189,7 +204,7 @@ public class SwarmMessageTypeToBackgroundConverter : IValueConverter
                 _ => new SolidColorBrush(Color.Parse("#111827"))
             };
         }
-        return new SolidColorBrush(Color.Parse("#111827"));
+        return isLight ? new SolidColorBrush(Color.Parse("#FFFFFF")) : new SolidColorBrush(Color.Parse("#111827"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
@@ -204,8 +219,23 @@ public class SwarmMessageTypeToBorderConverter : IValueConverter
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        bool isLight = string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "Light", StringComparison.OrdinalIgnoreCase)
+                       || (string.Equals(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.CurrentTheme, "System", StringComparison.OrdinalIgnoreCase) && AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.DetectOsTheme() == "Light");
+
         if (value is AgyAccountSwarm.Models.SwarmMessageType type)
         {
+            if (isLight)
+            {
+                return type switch
+                {
+                    AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#BFDBFE")), // Blue 200
+                    AgyAccountSwarm.Models.SwarmMessageType.AgentAction => new SolidColorBrush(Color.Parse("#A7F3D0")),   // Emerald 200
+                    AgyAccountSwarm.Models.SwarmMessageType.SystemEvent => new SolidColorBrush(Color.Parse("#E2E8F0")),   // Slate 200
+                    AgyAccountSwarm.Models.SwarmMessageType.Handoff => new SolidColorBrush(Color.Parse("#E9D5FF")),       // Purple 200
+                    _ => new SolidColorBrush(Color.Parse("#E2E8F0"))
+                };
+            }
+
             return type switch
             {
                 AgyAccountSwarm.Models.SwarmMessageType.UserBroadcast => new SolidColorBrush(Color.Parse("#2563EB")),
@@ -215,7 +245,7 @@ public class SwarmMessageTypeToBorderConverter : IValueConverter
                 _ => new SolidColorBrush(Color.Parse("#1F2937"))
             };
         }
-        return new SolidColorBrush(Color.Parse("#1F2937"));
+        return isLight ? new SolidColorBrush(Color.Parse("#E2E8F0")) : new SolidColorBrush(Color.Parse("#1F2937"));
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();

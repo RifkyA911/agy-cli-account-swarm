@@ -14,4 +14,5 @@
 ## Publish directory (keep source, ignore generated release files in repo)
 publish/
 publish-avalonia/
+publish-crossplatform/
 dist/

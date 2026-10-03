@@ -71,6 +71,51 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private AppSettings _settings = new();
 
     [ObservableProperty]
+    private string _currentTheme = "Dark";
+
+    public ObservableCollection<string> ThemeOptions { get; } =
+        new(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.AvailableThemes);
+
+    [ObservableProperty]
+    private string _selectedThemeOption = "Dark";
+
+    partial void OnSelectedThemeOptionChanged(string value)
+    {
+        if (!string.IsNullOrEmpty(value) && value != CurrentTheme)
+        {
+            CurrentTheme = value;
+            Settings.Theme = value;
+            AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.ApplyTheme(value);
+            _ = _storageService.SaveSettingsAsync(Settings);
+            ShowNotification($"Theme set to {value}");
+        }
+    }
+
+    [RelayCommand]
+    public void SetTheme(string? themeName)
+    {
+        if (string.IsNullOrWhiteSpace(themeName)) return;
+        _audioService.PlayClick();
+        CurrentTheme = themeName;
+        SelectedThemeOption = themeName;
+        Settings.Theme = themeName;
+        AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.ApplyTheme(themeName);
+        _ = _storageService.SaveSettingsAsync(Settings);
+        ShowNotification($"Theme set to {themeName}");
+    }
+
+    [RelayCommand]
+    public void ToggleTheme()
+    {
+        _audioService.PlayClick();
+        int curIdx = Array.IndexOf(AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.AvailableThemes, CurrentTheme);
+        if (curIdx < 0) curIdx = 0;
+        int nextIdx = (curIdx + 1) % AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.AvailableThemes.Length;
+        string nextTheme = AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.AvailableThemes[nextIdx];
+        SetTheme(nextTheme);
+    }
+
+    [ObservableProperty]
     private AccountProfile? _selectedProfile;
 
     [ObservableProperty]
@@ -337,6 +382,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
         {
             Settings = await _storageService.LoadSettingsAsync();
             _audioService.IsEnabled = Settings.SoundEnabled;
+
+            CurrentTheme = Settings.Theme ?? "Dark";
+            SelectedThemeOption = CurrentTheme;
+            AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.ApplyTheme(CurrentTheme);
 
             await ReloadProfilesAsync();
             await LoadMcpServersAsync();

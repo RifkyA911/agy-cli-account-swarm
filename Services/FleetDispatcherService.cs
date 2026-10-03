@@ -560,6 +560,36 @@ public class FleetDispatcherService : IFleetDispatcherService
                 Logger.Warn($"[FleetDispatcher] Win32ProcessHelper failed: {ex.Message}");
             }
         }
+        else if (!OperatingSystem.IsWindows() && task.ProcessId.HasValue)
+        {
+            try
+            {
+                var p = Process.GetProcessById(task.ProcessId.Value);
+                if (!p.HasExited)
+                {
+                    p.Kill(entireProcessTree: true);
+                    killedCount++;
+                    Logger.Info($"[FleetDispatcher] Terminated Unix process tree for PID {task.ProcessId.Value} ('{task.ProfileName}')");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug($"[FleetDispatcher] Unix process termination exception: {ex.Message}");
+            }
+
+            try
+            {
+                using var pkill = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "pkill",
+                    Arguments = $"-9 -P {task.ProcessId.Value}",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+                pkill?.WaitForExit(1000);
+            }
+            catch { }
+        }
 
         // Safeguard: If no child was found via process tree (e.g. detached wt.exe tab),
         // check running 'agy' processes associated with this workspace or profile

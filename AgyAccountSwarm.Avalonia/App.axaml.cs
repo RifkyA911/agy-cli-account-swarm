@@ -13,6 +13,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.ApplyTheme("Dark");
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow();
