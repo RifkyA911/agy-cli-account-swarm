@@ -4,10 +4,10 @@
 ; ==============================================================================
 
 #define MyAppName "Agy CLI Account Swarm"
-#define MyAppVersion "0.9.3-beta"
+#define MyAppVersion "0.9.8-beta"
 #define MyAppPublisher "RifkyA911"
 #define MyAppURL "https://github.com/RifkyA911/agy-cli-account-swarm"
-#define MyAppExeName "AgyAccountSwarm.exe"
+#define MyAppExeName "AgyCliAccountSwarmGUI.exe"
 
 [Setup]
 AppId={{D37E88A1-4192-4C10-912A-B962631580E1}
@@ -23,8 +23,8 @@ DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
 OutputDir=..\dist
 OutputBaseFilename=Agy-CLI-Account-Swarm-Setup-v{#MyAppVersion}
-SetupIconFile=..\Resources\favicon.ico
-UninstallDisplayIcon={app}\Resources\favicon.ico
+SetupIconFile=..\AgyAccountSwarm.Avalonia\Assets\favicon.ico
+UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -44,9 +44,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\Resources\favicon.ico"; Comment: "Launch Agy CLI Account Swarm"
-Name: "{autoprograms}\{#MyAppName}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; IconFilename: "{app}\Resources\favicon.ico"; Comment: "Uninstall Agy CLI Account Swarm"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\Resources\favicon.ico"; Tasks: desktopicon; Comment: "Launch Agy CLI Account Swarm"
+Name: "{autoprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Comment: "Launch Agy CLI Account Swarm"
+Name: "{autoprograms}\{#MyAppName}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; Comment: "Uninstall Agy CLI Account Swarm"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; Comment: "Launch Agy CLI Account Swarm"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

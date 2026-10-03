@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Installer for Agy CLI Account Swarm (macOS)
-# Version: 0.9.3-beta
+# Version: 0.9.8-beta
 # ==============================================================================
 set -e
 
@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo -e "${CYAN}============================================================${NC}"
-echo -e "${CYAN}    Agy CLI Account Swarm — macOS Installer (v0.9.3-beta)    ${NC}"
+echo -e "${CYAN}    Agy CLI Account Swarm — macOS Installer (v0.9.8-beta)    ${NC}"
 echo -e "${CYAN}============================================================${NC}"
 
 APP_NAME="Agy CLI Account Swarm"
@@ -57,9 +57,9 @@ cat << EOF > "$APP_DIR/Contents/Info.plist"
     <key>CFBundleName</key>
     <string>Agy CLI Account Swarm</string>
     <key>CFBundleVersion</key>
-    <string>0.9.3-beta</string>
+    <string>0.9.8-beta</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.9.3-beta</string>
+    <string>0.9.8-beta</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
 </dict>
@@ -71,12 +71,15 @@ cat << 'EOF' > "$APP_DIR/Contents/MacOS/agy-cli-account-swarm"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
 
-echo "⚡ Launching Agy CLI Account Swarm (Experimental Wine compatibility mode)..."
-if command -v wine >/dev/null 2>&1 && [ -f "$RES_DIR/AgyAccountSwarm.exe" ]; then
-    wine "$RES_DIR/AgyAccountSwarm.exe" "$@"
+# Native .NET 9 Avalonia execution on macOS (Metal / Cocoa)
+if [ -x "$RES_DIR/AgyCliAccountSwarmGUI" ]; then
+    exec "$RES_DIR/AgyCliAccountSwarmGUI" "$@"
+elif [ -f "$RES_DIR/AgyCliAccountSwarmGUI.dll" ]; then
+    exec dotnet "$RES_DIR/AgyCliAccountSwarmGUI.dll" "$@"
+elif command -v wine >/dev/null 2>&1 && [ -f "$RES_DIR/AgyCliAccountSwarmGUI.exe" ]; then
+    exec wine "$RES_DIR/AgyCliAccountSwarmGUI.exe" "$@"
 else
-    echo "Notice: Agy CLI Account Swarm is a .NET 9 WPF application (Windows-only)."
-    echo "Native macOS desktop GUI is not yet supported. Please run on Windows or use Wine."
+    echo "Error: Could not locate AgyCliAccountSwarmGUI in $RES_DIR"
     exit 1
 fi
 EOF

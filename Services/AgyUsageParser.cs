@@ -175,10 +175,16 @@ public static class AgyUsageParser
         {
             var workingDir = Directory.Exists(effectiveProfileDir) ? effectiveProfileDir : Path.GetTempPath();
 
+            var isWindowsBatch = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) &&
+                                 (agyExecutablePath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase) ||
+                                  agyExecutablePath.EndsWith(".bat", StringComparison.OrdinalIgnoreCase));
+
             var psi = new ProcessStartInfo
             {
-                FileName = agyExecutablePath,
-                Arguments = "-p \"/usage\" --output-format json",
+                FileName = isWindowsBatch ? "cmd.exe" : agyExecutablePath,
+                Arguments = isWindowsBatch
+                    ? $"/c \"\"{agyExecutablePath}\" -p \"/usage\" --output-format json\""
+                    : "-p \"/usage\" --output-format json",
                 WorkingDirectory = workingDir,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,

@@ -85,10 +85,16 @@ public class AgyModelService : IAgyModelService
                 var agyPath = TerminalLauncherService.ResolveAgyExecutablePath() ?? FindAgyBinary();
                 if (!string.IsNullOrEmpty(agyPath) && File.Exists(agyPath))
                 {
+                    var isWindowsBatch = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) &&
+                                         (agyPath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase) ||
+                                          agyPath.EndsWith(".bat", StringComparison.OrdinalIgnoreCase));
+
                     var psi = new ProcessStartInfo
                     {
-                        FileName = agyPath,
-                        Arguments = "models",
+                        FileName = isWindowsBatch ? "cmd.exe" : agyPath,
+                        Arguments = isWindowsBatch
+                            ? $"/c \"\"{agyPath}\" models\""
+                            : "models",
                         WorkingDirectory = Path.GetTempPath(),
                         UseShellExecute = false,
                         RedirectStandardOutput = true,

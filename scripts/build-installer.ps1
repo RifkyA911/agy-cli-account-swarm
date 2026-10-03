@@ -2,7 +2,7 @@
 # Automated Release & Packaging Script for Agy CLI Account Swarm
 # ==============================================================================
 param (
-    [string]$Version = "0.9.3-beta"
+    [string]$Version = "0.9.8-beta"
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,12 +21,12 @@ if (-not (Test-Path $DistDir)) {
     New-Item -ItemType Directory -Path $DistDir -Force | Out-Null
 }
 
-# 2. Publish .NET 9 WPF Release
+# 2. Publish .NET 9 Avalonia Release (AgyCliAccountSwarmGUI)
 Write-Host ""
 Write-Host "[1/4] Publishing Release binaries to $PublishDir..." -ForegroundColor Yellow
 Push-Location $ProjectRoot
 try {
-    dotnet publish AgyAccountSwarm.csproj -c Release -o $PublishDir --nologo
+    dotnet publish AgyAccountSwarm.Avalonia/AgyAccountSwarm.Avalonia.csproj -c Release -o $PublishDir --nologo
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet publish failed with exit code $LASTEXITCODE"
     }

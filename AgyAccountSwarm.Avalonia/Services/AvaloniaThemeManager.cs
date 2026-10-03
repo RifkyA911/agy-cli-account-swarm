@@ -108,7 +108,16 @@ public static class AvaloniaThemeManager
 
     private static void SetBrush(Application app, string key, Color color)
     {
-        app.Resources[key] = new SolidColorBrush(color);
+        var brush = new SolidColorBrush(color);
+        app.Resources[key] = brush;
+
+        foreach (var entry in app.Resources.ThemeDictionaries)
+        {
+            if (entry.Value is global::Avalonia.Controls.IResourceDictionary dict)
+            {
+                dict[key] = brush;
+            }
+        }
     }
 
     private static void ApplyDarkTheme(Application app)

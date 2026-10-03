@@ -133,10 +133,16 @@ public class ProfileDoctorService : IProfileDoctorService
         {
             var agyPath = TerminalLauncherService.ResolveAgyExecutablePath() ?? "agy";
             using var proc = new Process();
+            var isWindowsBatch = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows) &&
+                                 (agyPath.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase) ||
+                                  agyPath.EndsWith(".bat", StringComparison.OrdinalIgnoreCase));
+
             proc.StartInfo = new ProcessStartInfo
             {
-                FileName = agyPath,
-                Arguments = "--version",
+                FileName = isWindowsBatch ? "cmd.exe" : agyPath,
+                Arguments = isWindowsBatch
+                    ? $"/c \"\"{agyPath}\" --version\""
+                    : "--version",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 RedirectStandardInput = true,

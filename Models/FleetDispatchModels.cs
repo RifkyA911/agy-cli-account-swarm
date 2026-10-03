@@ -148,6 +148,18 @@ public partial class WorktreeTreeNode : ObservableObject
 
     [ObservableProperty]
     private bool _isLast;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasAvatarUrl))]
+    private string? _avatarUrl;
+
+    [ObservableProperty]
+    private string _avatarInitial = "W";
+
+    [ObservableProperty]
+    private string _colorTag = "#3B82F6";
+
+    public bool HasAvatarUrl => !string.IsNullOrEmpty(AvatarUrl);
 }
 
 public class FleetProgressReport

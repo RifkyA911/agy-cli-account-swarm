@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Avalonia.Input;
@@ -29,11 +30,37 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private readonly IFleetDispatcherService _fleetDispatcherService;
 
     private readonly DispatcherTimer _syncTimer;
+    private readonly SemaphoreSlim _syncSemaphore = new(1, 1);
     private DateTime _nextSyncTime = DateTime.UtcNow.AddMinutes(5);
     private readonly List<Process> _activeSwarmProcesses = new();
 
     [ObservableProperty]
     private string _currentPage = "Dashboard";
+
+    [ObservableProperty]
+    private string _appVersion = "v0.9.8-beta";
+
+    public string CurrentPageTitle => CurrentPage switch
+    {
+        "Dashboard" => "System Dashboard & Telemetry Overview",
+        "Accounts" => "Fleet Accounts & Quota Governance",
+        "Dispatcher" => "Swarm Worker & Project Orchestrator",
+        "Analytics" => "Telemetry Analytics & Quota Forecasting",
+        "Mcp" => "Model Context Protocol (MCP) Ecosystem",
+        "Docs" => "Documentation & AGY Operational Guides",
+        "Doctor" => "Swarm System Health & Profile Doctor",
+        "LiveChat" => "Live Swarm Chat & Interactive Prompter",
+        "RealtimeWorkflow" => "Realtime Swarm Workflow Graph",
+        "Logs" => "Swarm Execution & Telemetry Logs",
+        "Settings" => "Global Settings & Engine Preferences",
+        "About" => "About AGY Account Swarm GUI",
+        _ => CurrentPage
+    };
+
+    partial void OnCurrentPageChanged(string value)
+    {
+        OnPropertyChanged(nameof(CurrentPageTitle));
+    }
 
     [ObservableProperty]
     private bool _isSidebarCollapsed = false;
@@ -493,8 +520,15 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [RelayCommand]
     public async Task SyncSwarmAsync()
     {
+        if (!await _syncSemaphore.WaitAsync(0))
+        {
+            return;
+        }
+
         _audioService.PlayClick();
         IsSyncing = true;
+        _nextSyncTime = DateTime.UtcNow.AddMinutes(5);
+        AutoSyncCountdown = "05:00";
         try
         {
             AgyUsageParser.InvalidateCache();
@@ -532,6 +566,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         finally
         {
             IsSyncing = false;
+            _syncSemaphore.Release();
         }
     }
 
@@ -2443,8 +2478,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
         if (remaining <= TimeSpan.Zero)
         {
             _nextSyncTime = DateTime.UtcNow.AddMinutes(5);
-            _ = ReloadProfilesAsync();
             AutoSyncCountdown = "05:00";
+            _ = SyncSwarmAsync();
         }
         else
         {
@@ -3112,6 +3147,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 var isFailed = t.Status.StartsWith("Failed") || t.Status.StartsWith("Exited");
 
                 var color = isRunning ? "#10B981" : (isCompleted ? "#8B5CF6" : (isFailed ? "#EF4444" : "#64748B"));
+                var matchingProfile = Profiles.FirstOrDefault(p => p.Name.Equals(t.ProfileName, StringComparison.OrdinalIgnoreCase));
 
                 WorktreeTreeNodes.Add(new WorktreeTreeNode
                 {
@@ -3122,7 +3158,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
                     Status = t.Status,
                     StatusColor = color,
                     IsActive = isRunning,
-                    IsLast = i == DispatchedTasks.Count - 1
+                    IsLast = i == DispatchedTasks.Count - 1,
+                    AvatarUrl = matchingProfile?.AvatarUrl ?? t.AvatarUrl,
+                    AvatarInitial = matchingProfile?.AvatarInitial ?? (!string.IsNullOrEmpty(t.AvatarInitial) ? t.AvatarInitial : "W"),
+                    ColorTag = matchingProfile?.ColorTag ?? (!string.IsNullOrEmpty(t.ColorTag) ? t.ColorTag : "#3B82F6")
                 });
             }
         }
@@ -3144,7 +3183,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
                     Status = "Planned Worktree",
                     StatusColor = "#64748B",
                     IsActive = false,
-                    IsLast = i == selected.Count - 1
+                    IsLast = i == selected.Count - 1,
+                    AvatarUrl = p.AvatarUrl,
+                    AvatarInitial = p.AvatarInitial,
+                    ColorTag = p.ColorTag
                 });
             }
         }

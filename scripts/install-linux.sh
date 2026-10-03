@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Installer for Agy CLI Account Swarm (Linux)
-# Version: 0.9.3-beta
+# Version: 0.9.8-beta
 # ==============================================================================
 set -e
 
@@ -12,7 +12,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${CYAN}============================================================${NC}"
-echo -e "${CYAN}    Agy CLI Account Swarm — Linux Installer (v0.9.3-beta)    ${NC}"
+echo -e "${CYAN}    Agy CLI Account Swarm — Linux Installer (v0.9.8-beta)    ${NC}"
 echo -e "${CYAN}============================================================${NC}"
 
 # Detect install target
@@ -64,12 +64,15 @@ INSTALL_DIR_RESOLVED="$(dirname "$(readlink -f "$0")")/../share/agy-cli-account-
 [ -d "$INSTALL_DIR_RESOLVED" ] || INSTALL_DIR_RESOLVED="/opt/agy-cli-account-swarm"
 [ -d "$INSTALL_DIR_RESOLVED" ] || INSTALL_DIR_RESOLVED="$HOME/.local/share/agy-cli-account-swarm"
 
-echo "⚡ Starting Agy CLI Account Swarm (Experimental Wine compatibility mode)..."
-if command -v wine >/dev/null 2>&1 && [ -f "$INSTALL_DIR_RESOLVED/AgyAccountSwarm.exe" ]; then
-    wine "$INSTALL_DIR_RESOLVED/AgyAccountSwarm.exe" "$@"
+# Native .NET 9 Avalonia execution on Linux (Wayland / X11)
+if [ -x "$INSTALL_DIR_RESOLVED/AgyCliAccountSwarmGUI" ]; then
+    exec "$INSTALL_DIR_RESOLVED/AgyCliAccountSwarmGUI" "$@"
+elif [ -f "$INSTALL_DIR_RESOLVED/AgyCliAccountSwarmGUI.dll" ]; then
+    exec dotnet "$INSTALL_DIR_RESOLVED/AgyCliAccountSwarmGUI.dll" "$@"
+elif command -v wine >/dev/null 2>&1 && [ -f "$INSTALL_DIR_RESOLVED/AgyCliAccountSwarmGUI.exe" ]; then
+    exec wine "$INSTALL_DIR_RESOLVED/AgyCliAccountSwarmGUI.exe" "$@"
 else
-    echo "Notice: Agy CLI Account Swarm is a .NET 9 WPF application (Windows-only)."
-    echo "Native Linux desktop GUI is not yet supported. Please install 'wine' to run this Windows executable."
+    echo "Error: Could not locate AgyCliAccountSwarmGUI in $INSTALL_DIR_RESOLVED"
     exit 1
 fi
 EOF

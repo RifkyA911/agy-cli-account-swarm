@@ -175,6 +175,22 @@
 
     <Application.Styles>
         <FluentTheme />
+        <!-- Permanent, easily grabbable scrollbars across all pages -->
+        <Style Selector="ScrollBar">
+            <Setter Property="AllowAutoHide" Value="False" />
+        </Style>
+        <Style Selector="ScrollBar:vertical">
+            <Setter Property="Width" Value="10" />
+            <Setter Property="MinWidth" Value="10" />
+        </Style>
+        <Style Selector="ScrollBar:horizontal">
+            <Setter Property="Height" Value="10" />
+            <Setter Property="MinHeight" Value="10" />
+        </Style>
+        <Style Selector="ScrollViewer">
+            <Setter Property="AllowAutoHide" Value="False" />
+        </Style>
+
         <Style Selector="TextBlock">
             <Setter Property="FontFamily" Value="Inter, Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" />
         </Style>
