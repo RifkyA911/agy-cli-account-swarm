@@ -201,6 +201,8 @@ public class FleetDispatcherService : IFleetDispatcherService
             var originalWorkspace = worker.DefaultWorkspace;
             worker.DefaultWorkspace = targetWorkDir;
 
+            TerminalLauncherService.EnsureProfileSettingsJson(worker.GetEffectiveProfileDirectory(), targetWorkDir);
+
             try
             {
                 // Stagger launch to prevent CPU/IO spikes
@@ -299,7 +301,7 @@ public class FleetDispatcherService : IFleetDispatcherService
                     // Prepare session arg with initial prompt and permission flag
                     var safePromptArg = EscapePromptForCli(tailoredPrompt);
                     var sessionArg = config.DangerouslySkipPermissions
-                        ? $"-p \"{safePromptArg}\" --dangerously-skip-permissions"
+                        ? $"--dangerously-skip-permissions -p \"{safePromptArg}\""
                         : $"-p \"{safePromptArg}\"";
 
                     var proc = await _terminalLauncherService.LaunchProfileAsync(
@@ -348,6 +350,17 @@ public class FleetDispatcherService : IFleetDispatcherService
         return tasks;
     }
 
+    public static readonly HashSet<string> ShellProcessNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "cmd", "cmd.exe",
+        "powershell", "powershell.exe",
+        "pwsh", "pwsh.exe",
+        "wt", "wt.exe",
+        "windowsterminal", "windowsterminal.exe",
+        "conhost", "conhost.exe",
+        "openconsole", "openconsole.exe"
+    };
+
     public async Task<bool> StopTaskAsync(DispatchedWorkerTask task)
     {
         if (task == null) return false;
@@ -357,10 +370,19 @@ public class FleetDispatcherService : IFleetDispatcherService
             {
                 try
                 {
-                    var proc = Process.GetProcessById(task.ProcessId.Value);
-                    if (!proc.HasExited)
+                    if (task.ExecutionMode == FleetExecutionMode.HeadlessSilent)
                     {
-                        proc.Kill(entireProcessTree: true);
+                        var proc = Process.GetProcessById(task.ProcessId.Value);
+                        if (!proc.HasExited)
+                        {
+                            proc.Kill(entireProcessTree: true);
+                            Logger.Info($"[FleetDispatcher] Stopped headless task process PID {task.ProcessId}");
+                        }
+                    }
+                    else
+                    {
+                        // VisibleTerminal: NEVER kill the shell window! Only terminate agy.exe and its child worker processes
+                        StopTerminalWorkerProcesses(task);
                     }
                 }
                 catch (Exception ex)
@@ -374,6 +396,69 @@ public class FleetDispatcherService : IFleetDispatcherService
             task.CompletedAt = DateTime.UtcNow;
             return true;
         });
+    }
+
+    public static void StopTerminalWorkerProcesses(DispatchedWorkerTask task)
+    {
+        int killedCount = 0;
+
+        if (OperatingSystem.IsWindows() && task.ProcessId.HasValue)
+        {
+            try
+            {
+                var allProcs = Win32ProcessHelper.GetAllProcesses();
+                var descendants = Win32ProcessHelper.GetDescendantProcesses(task.ProcessId.Value, allProcs);
+
+                // Find non-shell processes in the tree (agy.exe and its children)
+                var nonShells = descendants.Where(d => !ShellProcessNames.Contains(d.Name)).ToList();
+
+                foreach (var procNode in nonShells)
+                {
+                    try
+                    {
+                        var p = Process.GetProcessById(procNode.ProcessId);
+                        if (!p.HasExited)
+                        {
+                            p.Kill(entireProcessTree: true);
+                            killedCount++;
+                            Logger.Info($"[FleetDispatcher] Terminated child worker process '{procNode.Name}' (PID: {procNode.ProcessId}) for '{task.ProfileName}'");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Debug($"[FleetDispatcher] Process {procNode.ProcessId} already exited: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"[FleetDispatcher] Win32ProcessHelper failed: {ex.Message}");
+            }
+        }
+
+        // Safeguard: If no child was found via process tree (e.g. detached wt.exe tab),
+        // check running 'agy' processes associated with this workspace or profile
+        if (killedCount == 0 && !string.IsNullOrWhiteSpace(task.WorktreePath))
+        {
+            try
+            {
+                var agyProcesses = Process.GetProcessesByName("agy");
+                foreach (var agyProc in agyProcesses)
+                {
+                    try
+                    {
+                        if (task.ProcessId.HasValue && Win32ProcessHelper.IsParentOrAncestor(task.ProcessId.Value, agyProc.Id))
+                        {
+                            agyProc.Kill(entireProcessTree: true);
+                            killedCount++;
+                            Logger.Info($"[FleetDispatcher] Terminated matching agy process (PID: {agyProc.Id}) for '{task.ProfileName}'");
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
     }
 
     public async Task<int> AbortFleetAsync(IEnumerable<DispatchedWorkerTask> activeTasks)
