@@ -96,6 +96,8 @@ public class TerminalLauncherService : ITerminalLauncherService
         }
 
         var workDir = GetValidWorkingDirectory(profile);
+        EnsureProfileSettingsJson(effectiveDir, workDir);
+
         var agyBinary = FindAgyExecutablePath() ?? "agy";
         var rawExtra = profile.ExtraArguments;
         var extraArgs = string.IsNullOrWhiteSpace(rawExtra) ? "" : " " + SanitizeCommandLineArgs(rawExtra);
@@ -136,6 +138,8 @@ public class TerminalLauncherService : ITerminalLauncherService
         sb.AppendLine($"cd /d \"{safeWorkDir}\"");
         sb.AppendLine("if /i \"%~1\"==\"--cli-only\" goto :cli_only");
         sb.AppendLine($"\"{safeAgyBinary}\"{extraArgs} %*");
+        sb.AppendLine("echo.");
+        sb.AppendLine("echo [AGY Swarm Session Finished]");
         sb.AppendLine("goto :eof");
         sb.AppendLine();
         sb.AppendLine(":cli_only");
@@ -258,13 +262,147 @@ public class TerminalLauncherService : ITerminalLauncherService
         return new string(chars).Trim();
     }
 
+    public static void EnsureProfileSettingsJson(string effectiveDir, string? workspace = null)
+    {
+        try
+        {
+            var geminiDir = Path.Combine(effectiveDir, ".gemini", "antigravity-cli");
+            if (!Directory.Exists(geminiDir))
+            {
+                Directory.CreateDirectory(geminiDir);
+            }
+
+            var settingsPath = Path.Combine(geminiDir, "settings.json");
+            System.Text.Json.Nodes.JsonObject root;
+
+            if (File.Exists(settingsPath))
+            {
+                try
+                {
+                    var content = File.ReadAllText(settingsPath);
+                    root = System.Text.Json.Nodes.JsonNode.Parse(content) as System.Text.Json.Nodes.JsonObject ?? new System.Text.Json.Nodes.JsonObject();
+                }
+                catch
+                {
+                    root = new System.Text.Json.Nodes.JsonObject();
+                }
+            }
+            else
+            {
+                root = new System.Text.Json.Nodes.JsonObject();
+            }
+
+            // Ensure permissions.allow contains all requisite permissions
+            System.Text.Json.Nodes.JsonObject permissionsObj;
+            if (root.TryGetPropertyValue("permissions", out var pNode) && pNode is System.Text.Json.Nodes.JsonObject pObj)
+            {
+                permissionsObj = pObj;
+            }
+            else
+            {
+                permissionsObj = new System.Text.Json.Nodes.JsonObject();
+                root["permissions"] = permissionsObj;
+            }
+
+            System.Text.Json.Nodes.JsonArray allowArray;
+            if (permissionsObj.TryGetPropertyValue("allow", out var aNode) && aNode is System.Text.Json.Nodes.JsonArray aArr)
+            {
+                allowArray = aArr;
+            }
+            else
+            {
+                allowArray = new System.Text.Json.Nodes.JsonArray();
+                permissionsObj["allow"] = allowArray;
+            }
+
+            var defaultAllows = new[] { "command(*)", "file(*)", "run_command(*)", "*" };
+            var existingAllows = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in allowArray)
+            {
+                if (item != null && item.GetValue<string>() is { Length: > 0 } str)
+                {
+                    existingAllows.Add(str);
+                }
+            }
+
+            foreach (var def in defaultAllows)
+            {
+                if (!existingAllows.Contains(def))
+                {
+                    allowArray.Add(def);
+                }
+            }
+
+            // Ensure trustedWorkspaces if workspace is provided
+            if (!string.IsNullOrWhiteSpace(workspace))
+            {
+                System.Text.Json.Nodes.JsonArray twArray;
+                if (root.TryGetPropertyValue("trustedWorkspaces", out var twNode) && twNode is System.Text.Json.Nodes.JsonArray twArr)
+                {
+                    twArray = twArr;
+                }
+                else
+                {
+                    twArray = new System.Text.Json.Nodes.JsonArray();
+                    root["trustedWorkspaces"] = twArray;
+                }
+
+                var cleanWs = workspace.Trim();
+                bool exists = false;
+                foreach (var item in twArray)
+                {
+                    if (item != null && string.Equals(item.GetValue<string>(), cleanWs, StringComparison.OrdinalIgnoreCase))
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists)
+                {
+                    twArray.Add(cleanWs);
+                }
+            }
+
+            var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
+            File.WriteAllText(settingsPath, root.ToJsonString(jsonOptions), new System.Text.UTF8Encoding(false));
+            Logger.Debug($"[TerminalLauncher] Ensured settings.json in '{geminiDir}' with allow-rules and trusted workspaces.");
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[TerminalLauncher] Failed to ensure settings.json in '{effectiveDir}': {ex.Message}");
+        }
+    }
+
     public static string? SanitizeSessionArgs(string? sessionArgs)
     {
         if (string.IsNullOrWhiteSpace(sessionArgs)) return null;
         var trimmed = sessionArgs.Trim();
-        if (trimmed.Equals("--continue", StringComparison.OrdinalIgnoreCase))
+
+        // 1. Detect and extract --dangerously-skip-permissions
+        bool hasDangerouslySkip = false;
+        const string skipFlag = "--dangerously-skip-permissions";
+        if (trimmed.Contains(skipFlag, StringComparison.OrdinalIgnoreCase))
         {
-            return "--continue";
+            hasDangerouslySkip = true;
+            int idx;
+            while ((idx = trimmed.IndexOf(skipFlag, StringComparison.OrdinalIgnoreCase)) >= 0)
+            {
+                trimmed = (trimmed.Substring(0, idx) + " " + trimmed.Substring(idx + skipFlag.Length)).Trim();
+            }
+            trimmed = System.Text.RegularExpressions.Regex.Replace(trimmed, @"\s+", " ").Trim();
+        }
+
+        // If after removing flag it is empty
+        if (string.IsNullOrWhiteSpace(trimmed))
+        {
+            return hasDangerouslySkip ? skipFlag : null;
+        }
+
+        // 2. Exact command aliases
+        if (trimmed.Equals("--continue", StringComparison.OrdinalIgnoreCase) || trimmed.Equals("-c", StringComparison.OrdinalIgnoreCase))
+        {
+            return hasDangerouslySkip ? $"{skipFlag} --continue" : "--continue";
         }
         if (trimmed.Equals("--cli-only", StringComparison.OrdinalIgnoreCase) || trimmed.Equals("__cli_only__", StringComparison.OrdinalIgnoreCase))
         {
@@ -275,45 +413,79 @@ public class TerminalLauncherService : ITerminalLauncherService
             var idPart = trimmed.Substring("--conversation ".Length).Trim();
             if (System.Text.RegularExpressions.Regex.IsMatch(idPart, @"^[a-zA-Z0-9_\-]+$"))
             {
-                return $"--conversation {idPart}";
+                return hasDangerouslySkip ? $"{skipFlag} --conversation {idPart}" : $"--conversation {idPart}";
             }
+            return null;
         }
-        if (trimmed.StartsWith("-p ", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("-p\"", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("--prompt ", StringComparison.OrdinalIgnoreCase) ||
-            trimmed.StartsWith("--prompt=\"", StringComparison.OrdinalIgnoreCase))
-        {
-            string rawPrompt;
-            string flag;
-            if (trimmed.StartsWith("--prompt=\"", StringComparison.OrdinalIgnoreCase))
-            {
-                flag = "--prompt";
-                rawPrompt = trimmed.Substring("--prompt=\"".Length);
-                if (rawPrompt.EndsWith("\"")) rawPrompt = rawPrompt.Substring(0, rawPrompt.Length - 1);
-            }
-            else if (trimmed.StartsWith("--prompt ", StringComparison.OrdinalIgnoreCase))
-            {
-                flag = "--prompt";
-                rawPrompt = trimmed.Substring("--prompt ".Length).Trim();
-            }
-            else if (trimmed.StartsWith("-p\"", StringComparison.OrdinalIgnoreCase))
-            {
-                flag = "-p";
-                rawPrompt = trimmed.Substring("-p\"".Length);
-                if (rawPrompt.EndsWith("\"")) rawPrompt = rawPrompt.Substring(0, rawPrompt.Length - 1);
-            }
-            else
-            {
-                flag = "-p";
-                rawPrompt = trimmed.Substring(3).Trim();
-            }
 
+        // 3. Prompt arguments: -p, --prompt, --print, -i, --prompt-interactive
+        string? promptFlag = null;
+        string rawPrompt = "";
+
+        if (trimmed.StartsWith("--prompt-interactive=", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "-i";
+            rawPrompt = trimmed.Substring("--prompt-interactive=".Length);
+        }
+        else if (trimmed.StartsWith("--prompt-interactive ", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "-i";
+            rawPrompt = trimmed.Substring("--prompt-interactive ".Length);
+        }
+        else if (trimmed.StartsWith("-i\"", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "-i";
+            rawPrompt = trimmed.Substring(2);
+        }
+        else if (trimmed.StartsWith("-i ", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "-i";
+            rawPrompt = trimmed.Substring(3);
+        }
+        else if (trimmed.StartsWith("--prompt=", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "--prompt";
+            rawPrompt = trimmed.Substring("--prompt=".Length);
+        }
+        else if (trimmed.StartsWith("--prompt ", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "--prompt";
+            rawPrompt = trimmed.Substring("--prompt ".Length);
+        }
+        else if (trimmed.StartsWith("--print=", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "-p";
+            rawPrompt = trimmed.Substring("--print=".Length);
+        }
+        else if (trimmed.StartsWith("--print ", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "-p";
+            rawPrompt = trimmed.Substring("--print ".Length);
+        }
+        else if (trimmed.StartsWith("-p\"", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "-p";
+            rawPrompt = trimmed.Substring(2);
+        }
+        else if (trimmed.StartsWith("-p ", StringComparison.OrdinalIgnoreCase))
+        {
+            promptFlag = "-p";
+            rawPrompt = trimmed.Substring(3);
+        }
+
+        if (promptFlag != null)
+        {
+            rawPrompt = rawPrompt.Trim();
             if (rawPrompt.StartsWith("\"") && rawPrompt.EndsWith("\"") && rawPrompt.Length >= 2)
             {
                 rawPrompt = rawPrompt.Substring(1, rawPrompt.Length - 2);
             }
+            else if (rawPrompt.StartsWith("'") && rawPrompt.EndsWith("'") && rawPrompt.Length >= 2)
+            {
+                rawPrompt = rawPrompt.Substring(1, rawPrompt.Length - 2);
+            }
 
-            // Sanitize batch and shell control characters to prevent command injection and batch syntax errors
+            // Sanitize batch and shell control characters
             var sanitized = rawPrompt
                 .Replace("&", " and ")
                 .Replace("|", " ")
@@ -330,9 +502,12 @@ public class TerminalLauncherService : ITerminalLauncherService
 
             if (!string.IsNullOrWhiteSpace(sanitized))
             {
-                return $"{flag} \"{sanitized}\"";
+                return hasDangerouslySkip
+                    ? $"{skipFlag} {promptFlag} \"{sanitized}\""
+                    : $"{promptFlag} \"{sanitized}\"";
             }
         }
+
         return null;
     }
 
@@ -347,6 +522,8 @@ public class TerminalLauncherService : ITerminalLauncherService
             }
 
             var workingDir = GetValidWorkingDirectory(profile);
+            EnsureProfileSettingsJson(effectiveDir, workingDir);
+
             var agyBinary = FindAgyExecutablePath() ?? "agy";
             var extraArgs = SanitizeCommandLineArgs(profile.ExtraArguments);
             if (profile.DangerouslySkipPermissions && !extraArgs.Contains("--dangerously-skip-permissions"))
@@ -356,7 +533,10 @@ public class TerminalLauncherService : ITerminalLauncherService
             var safeSession = SanitizeSessionArgs(sessionArgs);
             bool isCliOnly = safeSession == "--cli-only";
 
-            if (!string.IsNullOrWhiteSpace(safeSession) && (safeSession.StartsWith("-p") || safeSession.StartsWith("--prompt")) && !extraArgs.Contains("--dangerously-skip-permissions"))
+            if (!string.IsNullOrWhiteSpace(safeSession) &&
+                (safeSession.StartsWith("-p") || safeSession.StartsWith("--prompt") || safeSession.StartsWith("-i") || safeSession.StartsWith("--prompt-interactive")) &&
+                !extraArgs.Contains("--dangerously-skip-permissions") &&
+                !safeSession.Contains("--dangerously-skip-permissions"))
             {
                 extraArgs = string.IsNullOrWhiteSpace(extraArgs) ? "--dangerously-skip-permissions" : $"--dangerously-skip-permissions {extraArgs}";
             }
@@ -441,6 +621,7 @@ public class TerminalLauncherService : ITerminalLauncherService
 
             var agyBinary = FindAgyExecutablePath() ?? "agy";
             var safeWorkDir = Directory.Exists(workingDir) ? workingDir : GetValidWorkingDirectory(profile);
+            EnsureProfileSettingsJson(effectiveDir, safeWorkDir);
 
             // Clean prompt - keep readable while eliminating shell metacharacters
             var safePrompt = SanitizeCommandLineArgs(prompt)
