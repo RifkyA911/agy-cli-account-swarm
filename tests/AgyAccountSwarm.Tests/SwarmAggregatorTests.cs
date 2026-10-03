@@ -208,4 +208,99 @@ public class SwarmAggregatorTests : IDisposable
         Assert.Contains("BackendAgent", prompt);
         Assert.Contains("FrontendAgent", prompt);
     }
+
+    [Fact]
+    public void ParseMessageLine_ValidJson_ParsesCorrectly()
+    {
+        var json = "{\"projectId\":\"p1\",\"senderName\":\"Tester\",\"senderRole\":\"QA\",\"content\":\"All green\",\"type\":2}";
+        var msg = SwarmAggregatorService.ParseMessageLine(json, "p1");
+
+        Assert.NotNull(msg);
+        Assert.Equal("p1", msg.ProjectId);
+        Assert.Equal("Tester", msg.SenderName);
+        Assert.Equal("QA", msg.SenderRole);
+        Assert.Equal("All green", msg.Content);
+        Assert.Equal(SwarmMessageType.AgentAction, msg.Type);
+    }
+
+    [Fact]
+    public void ParseMessageLine_RawTextFallback_ParsesSenderAndContent()
+    {
+        var lineWithRole = "[Worker-Alpha (Backend Architect)]: Initialized postgres connection pool.";
+        var msg1 = SwarmAggregatorService.ParseMessageLine(lineWithRole, "p2");
+
+        Assert.NotNull(msg1);
+        Assert.Equal("p2", msg1.ProjectId);
+        Assert.Equal("Worker-Alpha", msg1.SenderName);
+        Assert.Equal("Backend Architect", msg1.SenderRole);
+        Assert.Equal("Initialized postgres connection pool.", msg1.Content);
+
+        var plainLine = "Raw output without bracket format";
+        var msg2 = SwarmAggregatorService.ParseMessageLine(plainLine, "p2");
+
+        Assert.NotNull(msg2);
+        Assert.Equal("External Agent", msg2.SenderName);
+        Assert.Equal("Raw output without bracket format", msg2.Content);
+    }
+
+    [Fact]
+    public async Task ReadBlackboardAsync_ReturnsFullBlackboardContent()
+    {
+        var project = new SwarmProject
+        {
+            Id = "proj-read-blackboard",
+            Name = "Read Blackboard Test",
+            RootDirectory = _tempTestDir
+        };
+
+        _aggregator.EnsureProjectSwarmWorkspace(project, new List<AccountProfile>());
+        await _aggregator.UpdateBlackboardAsync(project, "Shared JWT Secret configured", author: "Lead Architect");
+
+        var content = await _aggregator.ReadBlackboardAsync(project);
+
+        Assert.Contains("# Swarm Project Blackboard: Read Blackboard Test", content);
+        Assert.Contains("Lead Architect", content);
+        Assert.Contains("Shared JWT Secret configured", content);
+    }
+
+    [Fact]
+    public async Task SubscribeProjectBus_NotifiesOnAppendedMessage()
+    {
+        var project = new SwarmProject
+        {
+            Id = "proj-sub-test",
+            Name = "Subscriber Test",
+            RootDirectory = _tempTestDir
+        };
+
+        _aggregator.EnsureProjectSwarmWorkspace(project, new List<AccountProfile>());
+
+        var received = new List<SwarmChatMessage>();
+        var tcs = new TaskCompletionSource<bool>();
+
+        using var subscription = _aggregator.SubscribeProjectBus(project, msg =>
+        {
+            lock (received)
+            {
+                received.Add(msg);
+            }
+            tcs.TrySetResult(true);
+        });
+
+        // Append a message to the bus file
+        var busFile = Path.Combine(_tempTestDir, ".swarm", "bus.jsonl");
+        await File.AppendAllTextAsync(busFile, "[Worker-Delta (Security)]: Audit completed" + Environment.NewLine);
+
+        // Wait up to 3 seconds for watcher debounce and dispatch
+        var completed = await Task.WhenAny(tcs.Task, Task.Delay(3000));
+        Assert.True(completed == tcs.Task, "Timed out waiting for file watcher message notification.");
+
+        lock (received)
+        {
+            Assert.NotEmpty(received);
+            Assert.Equal("Worker-Delta", received[0].SenderName);
+            Assert.Equal("Security", received[0].SenderRole);
+            Assert.Contains("Audit completed", received[0].Content);
+        }
+    }
 }

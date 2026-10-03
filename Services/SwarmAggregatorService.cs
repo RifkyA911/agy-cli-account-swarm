@@ -26,6 +26,13 @@ public class SwarmAggregatorService : ISwarmAggregatorService
 
     private readonly ConcurrentDictionary<string, List<SwarmChatMessage>> _projectMessagesCache = new();
 
+    public static string ResolveProjectRootDir(SwarmProject project)
+    {
+        return !string.IsNullOrWhiteSpace(project.RootDirectory) && Directory.Exists(project.RootDirectory)
+            ? project.RootDirectory
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "SwarmProjects", SwarmProject.SanitizeProjectFolderName(project.Name));
+    }
+
     public string ResolveWorkerProjectDirectory(AccountProfile worker, SwarmProject project)
     {
         var sanitizedProjName = SwarmProject.SanitizeProjectFolderName(project.Name);
@@ -54,9 +61,7 @@ public class SwarmAggregatorService : ISwarmAggregatorService
     public string EnsureProjectSwarmWorkspace(SwarmProject project, IEnumerable<AccountProfile> workers)
     {
         var workerList = workers.ToList();
-        string rootDir = !string.IsNullOrWhiteSpace(project.RootDirectory) && Directory.Exists(project.RootDirectory)
-            ? project.RootDirectory
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "SwarmProjects", SwarmProject.SanitizeProjectFolderName(project.Name));
+        string rootDir = ResolveProjectRootDir(project);
 
         if (!Directory.Exists(rootDir))
         {
@@ -99,7 +104,7 @@ public class SwarmAggregatorService : ISwarmAggregatorService
                 ProjectId = project.Id,
                 SenderName = "Swarm Orchestrator",
                 SenderRole = "System",
-                SenderColor = "#10B981",
+                SenderColor = "#4F46E5",
                 Content = $"🚀 Project '{project.Name}' initialized. Tech Stack: {project.TechStack}. Participating workers: {workerList.Count}.",
                 Type = SwarmMessageType.SystemEvent,
                 Timestamp = DateTime.UtcNow
@@ -163,6 +168,71 @@ public class SwarmAggregatorService : ISwarmAggregatorService
         return rootDir;
     }
 
+    public static SwarmChatMessage? ParseMessageLine(string line, string projectId)
+    {
+        if (string.IsNullOrWhiteSpace(line)) return null;
+
+        try
+        {
+            var msg = JsonSerializer.Deserialize<SwarmChatMessage>(line, JsonOptions);
+            if (msg != null)
+            {
+                if (string.IsNullOrWhiteSpace(msg.ProjectId)) msg.ProjectId = projectId;
+                return msg;
+            }
+        }
+        catch (JsonException)
+        {
+            // Defensive Fallback: Parse non-JSON lines emitted by external CLI tools, shells, or humans
+            var trimmed = line.Trim();
+            string sender = "External Agent";
+            string role = "Worker";
+            string content = trimmed;
+
+            // Pattern: [SenderName (Role)]: Content or [SenderName]: Content
+            if (trimmed.StartsWith("[") && trimmed.Contains("]"))
+            {
+                int closeBracket = trimmed.IndexOf(']');
+                var header = trimmed.Substring(1, closeBracket - 1).Trim();
+                var remainder = trimmed.Substring(closeBracket + 1).TrimStart(':', ' ', '-');
+
+                if (header.Contains("(") && header.EndsWith(")"))
+                {
+                    int openParen = header.IndexOf('(');
+                    sender = header.Substring(0, openParen).Trim();
+                    role = header.Substring(openParen + 1, header.Length - openParen - 2).Trim();
+                }
+                else
+                {
+                    sender = header;
+                }
+
+                if (!string.IsNullOrWhiteSpace(remainder))
+                {
+                    content = remainder;
+                }
+            }
+
+            return new SwarmChatMessage
+            {
+                ProjectId = projectId,
+                SenderName = string.IsNullOrWhiteSpace(sender) ? "External Agent" : sender,
+                SenderRole = string.IsNullOrWhiteSpace(role) ? "Worker" : role,
+                SenderColor = "#10B981",
+                AvatarInitial = !string.IsNullOrEmpty(sender) ? sender.Substring(0, 1).ToUpperInvariant() : "A",
+                Content = content,
+                Type = SwarmMessageType.AgentAction,
+                Timestamp = DateTime.UtcNow
+            };
+        }
+        catch
+        {
+            // Ignore corrupted line
+        }
+
+        return null;
+    }
+
     public async Task PostMessageAsync(SwarmProject project, SwarmChatMessage message)
     {
         message.ProjectId = project.Id;
@@ -175,26 +245,30 @@ public class SwarmAggregatorService : ISwarmAggregatorService
             list.Add(message);
         }
 
-        // Append to .swarm/bus.jsonl
+        // Concurrency-safe append to .swarm/bus.jsonl
         try
         {
-            string rootDir = !string.IsNullOrWhiteSpace(project.RootDirectory) && Directory.Exists(project.RootDirectory)
-                ? project.RootDirectory
-                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "SwarmProjects", SwarmProject.SanitizeProjectFolderName(project.Name));
-
+            string rootDir = ResolveProjectRootDir(project);
             var swarmDir = Path.Combine(rootDir, ".swarm");
             if (!Directory.Exists(swarmDir)) Directory.CreateDirectory(swarmDir);
 
             var busFile = Path.Combine(swarmDir, "bus.jsonl");
             var line = JsonSerializer.Serialize(message, JsonOptions);
-            await File.AppendAllTextAsync(busFile, line + Environment.NewLine, new UTF8Encoding(false));
+
+            using (var stream = new FileStream(busFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+            using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
+            {
+                await writer.WriteLineAsync(line);
+            }
 
             // Also append highlight to blackboard.md
             var blackboardFile = Path.Combine(swarmDir, "blackboard.md");
             if (File.Exists(blackboardFile) && message.Type is SwarmMessageType.UserBroadcast or SwarmMessageType.Handoff or SwarmMessageType.SystemEvent)
             {
-                var entry = $"- [{message.TimestampFormatted}] **{message.SenderName}** ({message.SenderRole}): {message.Content}{Environment.NewLine}";
-                await File.AppendAllTextAsync(blackboardFile, entry, new UTF8Encoding(false));
+                var entry = $"- [{message.TimestampFormatted}] **{message.SenderName}** ({message.SenderRole}): {message.Content}";
+                using var stream = new FileStream(blackboardFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                using var writer = new StreamWriter(stream, new UTF8Encoding(false));
+                await writer.WriteLineAsync(entry);
             }
         }
         catch (Exception ex)
@@ -205,10 +279,7 @@ public class SwarmAggregatorService : ISwarmAggregatorService
 
     public async Task<List<SwarmChatMessage>> LoadProjectMessagesAsync(SwarmProject project)
     {
-        string rootDir = !string.IsNullOrWhiteSpace(project.RootDirectory) && Directory.Exists(project.RootDirectory)
-            ? project.RootDirectory
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "SwarmProjects", SwarmProject.SanitizeProjectFolderName(project.Name));
-
+        string rootDir = ResolveProjectRootDir(project);
         var busFile = Path.Combine(rootDir, ".swarm", "bus.jsonl");
         if (!File.Exists(busFile))
         {
@@ -217,17 +288,17 @@ public class SwarmAggregatorService : ISwarmAggregatorService
 
         try
         {
-            var lines = await File.ReadAllLinesAsync(busFile);
             var result = new List<SwarmChatMessage>();
-            foreach (var line in lines)
+            using (var stream = new FileStream(busFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var reader = new StreamReader(stream, Encoding.UTF8))
             {
-                if (string.IsNullOrWhiteSpace(line)) continue;
-                try
+                string? line;
+                while ((line = await reader.ReadLineAsync()) != null)
                 {
-                    var msg = JsonSerializer.Deserialize<SwarmChatMessage>(line, JsonOptions);
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    var msg = ParseMessageLine(line, project.Id);
                     if (msg != null) result.Add(msg);
                 }
-                catch { }
             }
 
             _projectMessagesCache[project.Id] = result;
@@ -292,19 +363,162 @@ public class SwarmAggregatorService : ISwarmAggregatorService
 
     public async Task UpdateBlackboardAsync(SwarmProject project, string updateContent, string author = "System")
     {
-        string rootDir = !string.IsNullOrWhiteSpace(project.RootDirectory) && Directory.Exists(project.RootDirectory)
-            ? project.RootDirectory
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "SwarmProjects", SwarmProject.SanitizeProjectFolderName(project.Name));
-
+        string rootDir = ResolveProjectRootDir(project);
         var blackboardFile = Path.Combine(rootDir, ".swarm", "blackboard.md");
         try
         {
-            var entry = $"- [{DateTime.UtcNow:HH:mm:ss}] **{author}**: {updateContent}{Environment.NewLine}";
-            await File.AppendAllTextAsync(blackboardFile, entry, new UTF8Encoding(false));
+            var entry = $"- [{DateTime.UtcNow:HH:mm:ss}] **{author}**: {updateContent.Trim()}";
+            using var stream = new FileStream(blackboardFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            using var writer = new StreamWriter(stream, new UTF8Encoding(false));
+            await writer.WriteLineAsync(entry);
         }
         catch (Exception ex)
         {
             Logger.Warn($"[SwarmAggregator] Failed to update blackboard: {ex.Message}");
+        }
+    }
+
+    public async Task<string> ReadBlackboardAsync(SwarmProject project)
+    {
+        string rootDir = ResolveProjectRootDir(project);
+        var blackboardFile = Path.Combine(rootDir, ".swarm", "blackboard.md");
+        if (!File.Exists(blackboardFile)) return string.Empty;
+
+        try
+        {
+            using var stream = new FileStream(blackboardFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            return await reader.ReadToEndAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[SwarmAggregator] Failed to read blackboard: {ex.Message}");
+            return string.Empty;
+        }
+    }
+
+    public IDisposable SubscribeProjectBus(SwarmProject project, Action<SwarmChatMessage> onNewMessage)
+    {
+        var rootDir = ResolveProjectRootDir(project);
+        var swarmDir = Path.Combine(rootDir, ".swarm");
+        if (!Directory.Exists(swarmDir))
+        {
+            Directory.CreateDirectory(swarmDir);
+        }
+
+        return new ProjectBusWatcher(project.Id, swarmDir, onNewMessage);
+    }
+
+    private sealed class ProjectBusWatcher : IDisposable
+    {
+        private readonly string _projectId;
+        private readonly string _busPath;
+        private readonly Action<SwarmChatMessage> _onNewMessage;
+        private readonly FileSystemWatcher? _watcher;
+        private readonly object _lock = new();
+        private long _lastReadOffset = 0;
+        private System.Threading.Timer? _debounceTimer;
+
+        public ProjectBusWatcher(string projectId, string swarmDir, Action<SwarmChatMessage> onNewMessage)
+        {
+            _projectId = projectId;
+            _busPath = Path.Combine(swarmDir, "bus.jsonl");
+            _onNewMessage = onNewMessage;
+
+            if (File.Exists(_busPath))
+            {
+                try
+                {
+                    _lastReadOffset = new FileInfo(_busPath).Length;
+                }
+                catch
+                {
+                    _lastReadOffset = 0;
+                }
+            }
+
+            try
+            {
+                _watcher = new FileSystemWatcher(swarmDir, "bus.jsonl")
+                {
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime,
+                    EnableRaisingEvents = true
+                };
+
+                _watcher.Changed += OnBusFileChanged;
+                _watcher.Created += OnBusFileChanged;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"[SwarmAggregator] FileSystemWatcher could not be initialized for '{swarmDir}': {ex.Message}");
+            }
+        }
+
+        private void OnBusFileChanged(object sender, FileSystemEventArgs e)
+        {
+            lock (_lock)
+            {
+                _debounceTimer?.Dispose();
+                _debounceTimer = new System.Threading.Timer(_ => ReadAppendedLines(), null, 80, System.Threading.Timeout.Infinite);
+            }
+        }
+
+        private void ReadAppendedLines()
+        {
+            lock (_lock)
+            {
+                if (!File.Exists(_busPath)) return;
+
+                try
+                {
+                    using var stream = new FileStream(_busPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    if (stream.Length <= _lastReadOffset)
+                    {
+                        if (stream.Length < _lastReadOffset)
+                        {
+                            _lastReadOffset = 0; // File was truncated/recreated
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+
+                    stream.Seek(_lastReadOffset, SeekOrigin.Begin);
+                    using var reader = new StreamReader(stream, Encoding.UTF8);
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (string.IsNullOrWhiteSpace(line)) continue;
+                        var msg = ParseMessageLine(line, _projectId);
+                        if (msg != null)
+                        {
+                            _onNewMessage(msg);
+                        }
+                    }
+
+                    _lastReadOffset = stream.Position;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"[SwarmAggregator] Error reading appended bus lines: {ex.Message}");
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            lock (_lock)
+            {
+                _debounceTimer?.Dispose();
+                if (_watcher != null)
+                {
+                    _watcher.EnableRaisingEvents = false;
+                    _watcher.Changed -= OnBusFileChanged;
+                    _watcher.Created -= OnBusFileChanged;
+                    _watcher.Dispose();
+                }
+            }
         }
     }
 }

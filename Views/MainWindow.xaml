@@ -2365,6 +2365,7 @@
                                                 <Border Background="{DynamicResource BrushSurface}" CornerRadius="4" Padding="8,4" Margin="0,0,8,0">
                                                     <TextBlock Text="{Binding SwarmChatMessages.Count, StringFormat='{}{0} Messages'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
                                                 </Border>
+                                                <Button Content="📋 Blackboard" Command="{Binding OpenProjectBlackboardCommand}" Style="{StaticResource SecondaryButton}" Padding="10,5" FontSize="11" Margin="0,0,6,0" ToolTip="Open shared architecture blackboard (.swarm/blackboard.md)" />
                                                 <Button Content="🔄 Refresh Feed" Command="{Binding RefreshSwarmChatMessagesCommand}" Style="{StaticResource SecondaryButton}" Padding="10,5" FontSize="11" />
                                             </StackPanel>
                                         </Grid>

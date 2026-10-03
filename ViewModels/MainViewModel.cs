@@ -582,6 +582,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasSwarmChatMessages;
 
+    private IDisposable? _swarmBusSubscription;
+
     [ObservableProperty]
     private string _swarmChatInputText = string.Empty;
 
@@ -605,6 +607,9 @@ public partial class MainViewModel : ObservableObject
 
     async partial void OnSelectedProjectChanged(SwarmProject? value)
     {
+        _swarmBusSubscription?.Dispose();
+        _swarmBusSubscription = null;
+
         if (value != null)
         {
             FleetWorkspacePath = value.RootDirectory;
@@ -628,11 +633,27 @@ public partial class MainViewModel : ObservableObject
 
             // Load chat messages
             await RefreshSwarmChatMessagesAsync();
+
+            // Subscribe to real-time message bus updates
+            _swarmBusSubscription = _swarmAggregatorService.SubscribeProjectBus(value, newMsg =>
+            {
+                System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+                {
+                    if (!SwarmChatMessages.Any(m => m.Id == newMsg.Id ||
+                        (m.Timestamp == newMsg.Timestamp && m.Content == newMsg.Content && m.SenderName == newMsg.SenderName)))
+                    {
+                        SwarmChatMessages.Add(newMsg);
+                        HasSwarmChatMessages = SwarmChatMessages.Count > 0;
+                    }
+                });
+            });
+
             _ = CheckPreflightAsync();
         }
         else
         {
             SwarmChatMessages.Clear();
+            HasSwarmChatMessages = false;
         }
     }
 
@@ -3087,6 +3108,33 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             Logger.Warn($"[MainViewModel] Failed to open folder {targetDir}: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public void OpenProjectBlackboard()
+    {
+        if (SelectedProject == null) return;
+        _audioService.PlayClick();
+        var rootDir = SwarmAggregatorService.ResolveProjectRootDir(SelectedProject);
+        var blackboardPath = Path.Combine(rootDir, ".swarm", "blackboard.md");
+        if (!File.Exists(blackboardPath))
+        {
+            _swarmAggregatorService.EnsureProjectSwarmWorkspace(SelectedProject, Enumerable.Empty<AccountProfile>());
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = blackboardPath,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[SwarmChat] Failed to open blackboard: {ex.Message}");
+            ShowNotification("Could not open blackboard.md");
         }
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgyAccountSwarm.Models;
@@ -19,4 +20,8 @@ public interface ISwarmAggregatorService
     Task PostAgentActionTelemetryAsync(SwarmProject project, string workerName, string role, string line, string? colorTag = null, string? avatarUrl = null, string? avatarInitial = null);
 
     Task UpdateBlackboardAsync(SwarmProject project, string updateContent, string author = "System");
+
+    Task<string> ReadBlackboardAsync(SwarmProject project);
+
+    IDisposable SubscribeProjectBus(SwarmProject project, Action<SwarmChatMessage> onNewMessage);
 }

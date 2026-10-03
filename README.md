@@ -49,6 +49,15 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 
 ## ✨ Key Features & Capabilities
 
+### 💬 Swarm Chat, Inter-Agent Bus & Blackboard Aggregator
+- **Multi-Project Orchestration**: Manage and isolate multiple active projects with dedicated tech stack metadata, base branches, and worker rosters.
+- **Inter-Worker Message Bus (`.swarm/bus.jsonl`)**: Append-only telemetry and coordination bus connecting parallel `agy` workers. Supports structured JSON Lines and fault-tolerant fallback text parsing.
+- **Reactive Streaming (`SubscribeProjectBus`)**: Low-overhead `FileSystemWatcher` with byte-offset tracking and debouncing, streaming new worker actions and user broadcasts to the live chat feed in real time.
+- **Shared Technical Blackboard (`.swarm/blackboard.md`)**: Shared specification board storing exported APIs, system architectures, and worker matrices, openable with 1-click.
+- **Concurrency-Safe Multi-Process File Sharing**: Uses `FileShare.ReadWrite` streams to ensure background CLI processes, interactive terminals, and UI threads never experience `IOException` collisions.
+- **Human-in-the-Loop Broadcasts**: Send directives to the entire swarm or target specific agents (`@WorkerName`) directly from the desktop command bar with keyboard shortcut (<kbd>Enter</kbd>).
+- 📖 **Read Full Architecture**: [docs/SWARM_AGGREGATOR.md](docs/SWARM_AGGREGATOR.md)
+
 ### ⚡ Fleet Prompt Dispatcher & Git Worktree Orchestration [EXPERIMENTAL]
 - **Unified Objective, Multi-Worker Execution**: Enter a single high-level objective and distribute it across multiple authenticated `agy` CLI accounts simultaneously.
 - **Zero-Dependency Native Architecture**: 100% C# / .NET 9 using the official `agy` CLI and Git CLI. No LangChain, LangGraph, or Python dependencies required.
