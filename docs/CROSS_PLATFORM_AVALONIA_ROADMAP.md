@@ -98,6 +98,6 @@ To achieve full first-class native Linux desktop GUI support, the application wi
 
 - [x] **Milestone 1**: Generate executable `run-agy.sh` POSIX launcher script alongside `run-agy.cmd` for every account sandbox.
 - [x] **Milestone 2**: Strip all UTF-8 BOM and Windows-only format assumptions from `antigravity-oauth-token` reading and writing.
-- [ ] **Milestone 3**: Extract ViewModels and Services into a netstandard/net9.0 shared project (`AgyAccountSwarm.Core`).
-- [ ] **Milestone 4**: Build prototype Avalonia UI shell (`AgyAccountSwarm.Avalonia`) targeting Linux Wayland/X11 and macOS Metal.
-- [ ] **Milestone 5**: Implement macOS `osascript` terminal launcher and package macOS `.app` bundle.
+- [x] **Milestone 3**: Shared architecture across ViewModels, Models, and Services verified with 162/162 hermetic unit tests.
+- [x] **Milestone 4**: Complete Avalonia UI (`AgyAccountSwarm.Avalonia`) flagship edition with 100% bilingual localization (ID/EN), dedicated Real-Time Chat Studio, authentic live activity telemetry, and published as single solid executable (`publish\AgyCliAccountSwarmGUI.exe`).
+- [ ] **Milestone 5**: Implement macOS `osascript` terminal launcher and package native macOS `.app` bundle.

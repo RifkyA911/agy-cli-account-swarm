@@ -2616,7 +2616,7 @@ public partial class MainViewModel : ObservableObject
         sb.AppendLine("  th { background: #f1f5f9 !important; color: #334155 !important; font-weight: 700; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; border: 1px solid #cbd5e1 !important; padding: 8px 10px; text-align: left; }");
         sb.AppendLine("  td { border: 1px solid #e2e8f0 !important; color: #1e293b !important; padding: 7px 10px; vertical-align: middle; background: #ffffff; }");
         sb.AppendLine("  tr:nth-child(even) td { background: #f8fafc !important; }");
-        sb.AppendLine("  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; color: #ffffff !important; }");
+        sb.AppendLine("  .badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; color: #0f172a !important; }");
         sb.AppendLine("  .tool-pill { display: inline-block; background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; border-radius: 3px; padding: 1px 5px; font-family: Consolas, Monaco, monospace; font-size: 9.5px; margin: 1px 2px; color: #0369a1 !important; word-break: break-all; }");
         sb.AppendLine("  .footer { text-align: center; font-size: 10.5px; color: #94a3b8; margin-top: 20px; padding-top: 10px; border-top: 1px solid #e2e8f0; }");
         sb.AppendLine("  @media print {");

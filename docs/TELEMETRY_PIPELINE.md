@@ -170,3 +170,17 @@ Uses the native Microsoft Edge headless rendering engine (`msedge.exe`) to gener
 msedge.exe --headless --disable-gpu --run-all-compositor-stages-before-draw --print-to-pdf="Report.pdf" "TempReport.html"
 ```
 If Edge is not present, the system falls back seamlessly to saving the self-contained HTML report.
+
+---
+
+## 📡 7. Real-Time Command & Execution Activity Stream ("dia lagi ngapain")
+
+To eliminate operational opacity during background swarm tasks, the telemetry engine tracks active CLI command executions:
+
+1. **Subprocess Stream Interception**: When a worker task is launched, stdout/stderr streams are piped through asynchronous stream readers.
+2. **Authentic Command Extraction**: Captures the exact executing CLI arguments (e.g. `agy -p "refactor..." --output-format json`).
+3. **Dynamic Output Chips**: Displays formatted visual chips indicating:
+   - `CurrentActivity`: High-level worker status (e.g., `Idle`, `Synthesizing code`, `Executing tests`, `Merging branch`).
+   - `CurrentCommand`: Real-time CLI command string.
+   - `CurrentOutput`: Live tail snippet of stdout/stderr stream.
+4. **Zero Synthetic Guarantee**: Statuses update exclusively from authentic process stream events. If a worker is idle, telemetry clearly reflects idle status without artificial animation.

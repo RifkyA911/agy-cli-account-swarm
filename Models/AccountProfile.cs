@@ -66,6 +66,21 @@ public class AccountProfile : INotifyPropertyChanged
     public string Tier { get; set; } = "Unverified";
 
     /// <summary>
+    /// Swarm execution role / archetype (e.g. Lead Architect, Backend Specialist, Security Auditor, QA Automation, Generalist Worker).
+    /// </summary>
+    public string AccountRole { get; set; } = "Generalist Worker";
+
+    /// <summary>
+    /// Model Provider Family: "Gemini" or "Claude / GPT".
+    /// </summary>
+    public string ModelFamily { get; set; } = "Gemini";
+
+    /// <summary>
+    /// Model Reasoning / Temperature preset: "Low (0.2)", "Medium (0.7)", "High (1.0)".
+    /// </summary>
+    public string ModelTemperature { get; set; } = "Medium (0.7)";
+
+    /// <summary>
     /// Target / preferred model (e.g. gemini-2.5-flash, gemini-2.5-pro, claude-3.7-sonnet)
     /// </summary>
     public string PreferredModel { get; set; } = "gemini-2.5-flash";
@@ -155,7 +170,7 @@ public class AccountProfile : INotifyPropertyChanged
     };
 
     [JsonIgnore]
-    public string TodayQuotaFormatted => $"{AuthStatus?.TodayTurnsCount ?? 0} / {QuotaLimit} prompts today";
+    public string TodayQuotaFormatted => $"{AuthStatus?.TodayTurnsCount ?? 0:N0} prompts today";
 
     [JsonIgnore]
     public string WeeklyRemainingFormatted => AuthStatus != null && AuthStatus.GeminiWeeklyRemainingPercent > 0

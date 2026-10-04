@@ -128,7 +128,7 @@ public class UiAndViewModelEnhancementsTests
             PreferredModel = "gemini-2.5-pro",
             AuthStatus = new ProfileAuthStatus
             {
-                AccountEmail = "alpha.worker@gmail.com",
+                AccountEmail = "alpha.worker@example.com",
                 Status = AuthStatusType.Authenticated,
                 TodayTurnsCount = 42,
                 GeminiWeeklyRemainingPercent = 75.5
@@ -136,12 +136,12 @@ public class UiAndViewModelEnhancementsTests
         };
 
         Assert.Equal("A", profile.AvatarInitial);
-        Assert.Equal("alpha.worker@gmail.com", profile.AccountEmail);
+        Assert.Equal("alpha.worker@example.com", profile.AccountEmail);
         Assert.Equal("Pro", profile.TierBadgeText);
         Assert.Equal("#7C3AED", profile.TierBadgeBackground);
         Assert.Equal("#10B981", profile.StatusBadgeColor);
-        Assert.Equal("alpha.worker@gmail.com", profile.StatusBadgeText);
-        Assert.Equal("42 / 1000 prompts today", profile.TodayQuotaFormatted);
+        Assert.Equal("alpha.worker@example.com", profile.StatusBadgeText);
+        Assert.Equal("42 prompts today", profile.TodayQuotaFormatted);
         Assert.Equal("76% quota remaining", profile.WeeklyRemainingFormatted);
     }
 

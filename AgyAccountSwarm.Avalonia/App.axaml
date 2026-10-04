@@ -59,6 +59,14 @@
             <StreamGeometry x:Key="HeroIconFunnel">M12 3c2.755 0 5.455.232 8.083.678.539.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.41A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.378-1.007.917-1.096A48.32 48.32 0 0 1 12 3Z</StreamGeometry>
             <StreamGeometry x:Key="HeroIconArrowsRightLeft">M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5</StreamGeometry>
             <StreamGeometry x:Key="HeroIconMagnifyingGlass">M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconDocumentText">M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconTableCells">M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-8.625 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m17.25 2.625a1.125 1.125 0 0 0 1.125-1.125M20.625 19.5h-7.5c-.621 0-1.125-.504-1.125-1.125m8.625 0V5.625m0 12.75v-1.5c0-.621-.504-1.125-1.125-1.125m-17.25-11.25a1.125 1.125 0 0 1 1.125-1.125M3.375 4.5h7.5c.621 0 1.125.504 1.125 1.125M3.375 4.5v1.5c0 .621.504 1.125 1.125 1.125m17.25-2.625a1.125 1.125 0 0 0-1.125-1.125M20.625 4.5h-7.5c-.621 0-1.125.504-1.125 1.125m8.625 0v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h17.25M12 4.5v15</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconScale">M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconSparkles">M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconViewColumns">M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconChevronDown">m19.5 8.25-7.5 7.5-7.5-7.5</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconChevronLeft">M15.75 19.5 8.25 12l7.5-7.5</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconChevronRight">m8.25 4.5 7.5 7.5-7.5 7.5</StreamGeometry>
 
             <!-- Mesh Dot-Grid Canvas Background Brush -->
             <DrawingBrush x:Key="MeshGridBrush" TileMode="Tile" SourceRect="0,0,24,24" DestinationRect="0,0,24,24">
@@ -272,6 +280,37 @@
                     </KeyFrame>
                     <KeyFrame Cue="100%">
                         <Setter Property="RotateTransform.Angle" Value="360"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Keyframe Flowing Dashed Connector Animation for Live Workflow Topology -->
+        <Style Selector="Line.flowing-connector">
+            <Style.Animations>
+                <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="StrokeDashOffset" Value="0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="StrokeDashOffset" Value="-14"/>
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <!-- Keyframe Pulsing Arrow Head Animation for Live Workflow Topology -->
+        <Style Selector="Path.pulsing-arrow">
+            <Style.Animations>
+                <Animation Duration="0:0:1.2" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0.6"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="Opacity" Value="1.0"/>
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0.6"/>
                     </KeyFrame>
                 </Animation>
             </Style.Animations>

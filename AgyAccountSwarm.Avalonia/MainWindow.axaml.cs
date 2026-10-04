@@ -25,6 +25,19 @@ public partial class MainWindow : Window
         _viewModel = new AvaloniaMainViewModel();
         DataContext = _viewModel;
 
+        Loaded += (s, e) =>
+        {
+            var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary ?? Screens.All.FirstOrDefault();
+            if (screen != null)
+            {
+                double targetHeight = Math.Round(screen.WorkingArea.Height * 0.80);
+                if (targetHeight >= 550)
+                {
+                    Height = targetHeight;
+                }
+            }
+        };
+
         _viewModel.BrowseFolderRequested += async () =>
         {
             var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
@@ -95,7 +108,7 @@ public partial class MainWindow : Window
                 IsSelectedForSwarm = true
             };
 
-            var dialog = new ProfileEditWindow(newProfile);
+            var dialog = new ProfileEditWindow(newProfile, _viewModel.Strings);
             var result = await dialog.ShowDialog<bool>(this);
             return result && dialog.IsConfirmed ? dialog.Profile : null;
         };
@@ -103,7 +116,7 @@ public partial class MainWindow : Window
         _viewModel.ShowEditDialogRequested += async (profile) =>
         {
             if (profile == null) return null;
-            var dialog = new ProfileEditWindow(profile);
+            var dialog = new ProfileEditWindow(profile, _viewModel.Strings);
             var result = await dialog.ShowDialog<bool>(this);
             return result && dialog.IsConfirmed ? dialog.Profile : null;
         };
@@ -215,15 +228,49 @@ public partial class MainWindow : Window
         }
     }
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnKeyDown(KeyEventArgs e)
     {
-        base.OnPropertyChanged(change);
-        if (change.Property == WindowStateProperty)
+        base.OnKeyDown(e);
+
+        var isCtrl = (e.KeyModifiers & KeyModifiers.Control) == KeyModifiers.Control;
+        var isShift = (e.KeyModifiers & KeyModifiers.Shift) == KeyModifiers.Shift;
+
+        // Ctrl+Shift+C: Jump directly to Realtime Chat
+        if (isCtrl && isShift && e.Key == Key.C)
         {
-            if (WindowState == WindowState.Minimized && _viewModel.MinimizeToTray)
+            _viewModel.Navigate("RealtimeChat");
+            e.Handled = true;
+            return;
+        }
+
+        // Ctrl+N: Add Profile
+        if (isCtrl && !isShift && e.Key == Key.N)
+        {
+            _ = _viewModel.AddProfileAsync();
+            e.Handled = true;
+            return;
+        }
+
+        // Ctrl+F: Focus Accounts Search
+        if (isCtrl && !isShift && e.Key == Key.F)
+        {
+            _viewModel.Navigate("Accounts");
+            var searchBox = this.FindControl<TextBox>("AccountSearchBox");
+            if (searchBox != null)
             {
-                Hide();
+                searchBox.Focus();
+                searchBox.SelectAll();
+                e.Handled = true;
+                return;
             }
+        }
+
+        // Ctrl+R: Refresh / Sync All Accounts
+        if (isCtrl && !isShift && e.Key == Key.R)
+        {
+            _viewModel.SyncSwarmCommand.Execute(null);
+            e.Handled = true;
+            return;
         }
     }
 }

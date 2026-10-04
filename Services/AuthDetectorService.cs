@@ -381,7 +381,7 @@ public class AuthDetectorService : IAuthDetectorService
                     status.TodayTokensEstimated = (long)todayCount * 1950L;
 
                     status.UsagePercentage = Math.Min(100.0, ((double)todayCount / dailyLimit) * 100.0);
-                    status.UsageLabel = $"{todayCount:N0} / {dailyLimit:N0} prompts today ({status.UsagePercentage:F1}%)";
+                    status.UsageLabel = $"{todayCount:N0} prompts today";
 
                     status.WeeklyUsagePercentage = Math.Min(100.0, ((double)weeklyCount / weeklyLimit) * 100.0);
                     int remainingWeekly = Math.Max(0, weeklyLimit - weeklyCount);
@@ -446,7 +446,7 @@ public class AuthDetectorService : IAuthDetectorService
                 catch (Exception ex)
                 {
                     Logger.Warn($"[AuthDetector] Failed reading history.jsonl for '{profile.Name}': {ex.Message}");
-                    status.UsageLabel = $"0 / {dailyLimit:N0} prompts today";
+                    status.UsageLabel = "0 prompts today";
                     status.WeeklyRemainingLabel = "100% remaining";
                     status.SessionUsageLabel = "0 turns this session";
                 }
@@ -454,7 +454,7 @@ public class AuthDetectorService : IAuthDetectorService
             }
             else
             {
-                status.UsageLabel = $"0 / {dailyLimit:N0} prompts today";
+                status.UsageLabel = "0 prompts today";
                 status.WeeklyRemainingLabel = "100% remaining";
                 status.SessionUsageLabel = "0 turns this session";
             }

@@ -248,9 +248,9 @@ public class AvaloniaParityAndPendingLoginTests
 
         var content = File.ReadAllText(avaloniaAxamlPath);
 
-        // Verify exact dimensions match WPF (1240x760, min 1050x640)
-        Assert.Contains("Width=\"1240\" Height=\"760\"", content);
-        Assert.Contains("MinWidth=\"1050\" MinHeight=\"640\"", content);
+        // Verify generous 1440px standard layout dimensions and 80% screen ratio height
+        Assert.Contains("Width=\"1440\" Height=\"720\"", content);
+        Assert.Contains("MinWidth=\"1440\" MinHeight=\"580\"", content);
 
         // Verify DataTemplate uses ViewModel type, not models:AccountProfile
         Assert.DoesNotContain("DataTemplate DataType=\"models:AccountProfile\"", content);

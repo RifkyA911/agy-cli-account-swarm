@@ -5,8 +5,10 @@ namespace AgyAccountSwarm.Models;
 public enum TerminalType
 {
     WindowsTerminal,
+    PowerShellCore,
     PowerShell,
-    CommandPrompt
+    CommandPrompt,
+    GitBash
 }
 
 public enum SwarmLaunchMode

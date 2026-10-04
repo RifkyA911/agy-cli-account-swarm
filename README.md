@@ -7,13 +7,14 @@
 > **A high-performance desktop orchestrator & sandbox session manager for Google Antigravity CLI (`agy`).**  
 > Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing.
 
-[![Version](https://img.shields.io/badge/Version-0.9.8--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.9.9--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
 [![Primary UI: Avalonia Cross-Platform](https://img.shields.io/badge/Primary%20UI-Avalonia%20Cross--Platform-10B981?style=flat&logo=avaloniaui)](https://avaloniaui.net/)
 [![WPF: Archived Prototype](https://img.shields.io/badge/WPF-Archived%20Prototype-gray?style=flat&logo=windows)]()
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
 [![Platform: Windows | Linux | macOS](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-0078D7?style=flat&logo=linux)](https://github.com/RifkyA911/agy-cli-account-swarm)
-[![Tests: 154 Passed](https://img.shields.io/badge/Tests-154%20Passed-brightgreen?logo=xunit)]()
+[![Tests: 162 Passed](https://img.shields.io/badge/Tests-162%20Passed-brightgreen?logo=xunit)]()
+[![Localization: 100% ID & EN](https://img.shields.io/badge/Localization-100%25%20ID%20%7C%20EN-6366F1?style=flat&logo=translate)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
 
@@ -42,6 +43,10 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 1. Virtualizing environment variables (`USERPROFILE`, `HOME`) to dedicated, sandboxed folders (`~/.gemini-profiles/{id}`).
 2. Decoupling the OS keyring via virtualized client parameters (`SSH_CONNECTION=1`, `SSH_CLIENT=1`), forcing `agy` to use isolated file-based credentials (`oauth_credentials.json`).
 3. Reading and visualizing authentic telemetry parsed directly from local JSONL logs and JWT tokens with zero synthetic dummy data.
+4. **🌐 100% Bilingual Localization (Indonesian 🇮🇩 & English 🇬🇧)**: Complete native localization coverage with instant live switching without restart.
+5. **💬 Dedicated Real-Time Chat Studio (`/realtime-chat`)**: Full-screen collaborative agent chat room with profile shortcuts (`💬 Chat Realtime`) and live channel feeds.
+6. **📡 Live Activity Telemetry ("dia lagi ngapain")**: Authentic real-time command tracking and live output chips showing exactly what each worker is executing.
+7. **🧩 Antigravity Skills Hub & 🔊 Sonic Sentinels**: Inspect custom skills schemas and receive dynamic audio feedback on swarm status changes.
 
 ---
 
@@ -104,14 +109,16 @@ Autonomous multi-worker execution engine that distributes high-level technical o
 
 ---
 
-### 5. Live Swarm Chat & Inter-Agent Message Bus
-Real-time collaborative chat feed streaming messages from the append-only `.swarm/bus.jsonl` event bus and human-in-the-loop directives.
+### 5. Dedicated Real-Time Chat Studio (`/realtime-chat`) & Event Bus
+Real-time collaborative chat workspace streaming live messages from the append-only `.swarm/bus.jsonl` event bus, human-in-the-loop directives, and individual account session streams.
 
 <p align="center">
   <img src="docs/assets/screenshots/05_live_swarm_chat.png" alt="05 Live Swarm Chat" width="100%" />
 </p>
 
-- **Distinct Role Badges & Avatars**: Color-coded badges differentiating System, User/Commander, Architect, Implementer, Reviewer, and Security roles.
+- **Dedicated Chat Workspace (`/realtime-chat`)**: Full workspace view with responsive channels, quick tips, interactive blackboard specs, and profile shortcuts (`💬 Chat Realtime`).
+- **Live Output Stream Chips ("dia lagi ngapain")**: Dynamic chips and status banners displaying the exact shell command and real-time execution output for each active worker.
+- **Distinct Role Badges & Avatars**: Color-coded badges differentiating System, User/Commander, Architect, Implementer, Reviewer, and Security roles with crisp circular avatars.
 - **Reactive Stream Watching**: Low-overhead `FileSystemWatcher` with byte-offset tracking renders new worker events with zero polling overhead.
 - **Human Directive Bar**: Send broadcasts to the entire swarm or target specific agents (`@WorkerName`) directly from the input bar.
 
@@ -205,6 +212,7 @@ Configure application behavior, window management, themes, and Antigravity CLI b
 flowchart TD
     subgraph DesktopGUI ["Agy CLI Account Swarm (Avalonia UI .NET 9 — AgyCliAccountSwarmGUI.exe)"]
         UI["Cross-Platform GUI (Avalonia XAML + MVVM)"]
+        Loc["LocalizationService (100% Bilingual ID/EN)"]
         Storage["ProfileStorageService (%APPDATA%/AgyAccountSwarm)"]
         Launcher["TerminalLauncherService (Windows Terminal / PowerShell / POSIX)"]
         AuthDet["AuthDetectorService (JWT id_token & Avatar Cache)"]
@@ -212,8 +220,11 @@ flowchart TD
         SwarmBus["SwarmAggregatorService (.swarm/bus.jsonl + Blackboard)"]
         FleetDisp["FleetDispatcherService (Git Worktrees + Sentinels)"]
         Mcp["McpService (stdio IPC Bridge)"]
+        Skills["SkillService (Custom & Builtin Skills Discovery)"]
+        Audio["AudioService (Synthesized Feedback Alerts)"]
         DailyLog["Logger Subsystem (Daily agyswarm_YYYY-MM-DD.log)"]
         
+        UI --> Loc
         UI --> Storage
         UI --> Launcher
         UI --> AuthDet
@@ -221,6 +232,8 @@ flowchart TD
         UI --> SwarmBus
         UI --> FleetDisp
         UI --> Mcp
+        UI --> Skills
+        UI --> Audio
         UI --> DailyLog
     end
 
@@ -307,7 +320,7 @@ For fleet tasks, `FleetDispatcherService` creates separate Git worktrees:
 git clone https://github.com/RifkyA911/agy-cli-account-swarm.git
 cd agy-cli-account-swarm
 
-# Run full test suite (154 tests passing)
+# Run full test suite (162 tests passing)
 dotnet test
 
 # Run primary desktop GUI

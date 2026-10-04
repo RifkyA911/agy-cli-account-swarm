@@ -2,6 +2,34 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.9-beta] - 2026-10-04
+### Added & Changed
+- **100% Comprehensive Bilingual Localization (Indonesian 🇮🇩 & English 🇬🇧)**:
+  - Eliminated all hardcoded English strings across the entire user interface and modal dialogs.
+  - Fully expanded dictionary in `Services/LocalizationService.cs` with over 150+ bilingual dictionary keys covering navigation sidebar, metrics, sentinels, tabs, cards, tables, charts, dialogs, and splash screens.
+  - Seamless instant live language switching between Indonesian and English at runtime without requiring an application restart.
+  - Perfect Avalonia compiled binding compliance within nested `DataTemplate` scopes using `$parent[Window].((vm:AvaloniaMainViewModel)DataContext).Strings[...]`.
+- **Dedicated Real-Time Chat Studio (`/realtime-chat`) & Profile Shortcuts**:
+  - Introduced dedicated full workspace for real-time human-in-the-loop conversation and inter-agent communication.
+  - Added direct profile shortcut button `💬 Chat Realtime` on each account card in the Accounts view to instantly navigate into real-time session chat.
+  - Integrated channel tabs, quick tips, interactive blackboard viewer, and message feed streaming from `.swarm/bus.jsonl`.
+- **Authentic Live Activity Telemetry ("dia lagi ngapain")**:
+  - Real-time command tracking and live output stream chips showing the exact command and execution output of each worker.
+  - Authentic telemetry parsing with zero synthetic fake data, strictly respecting `GEMINI.md` guidelines.
+- **Antigravity Skills Management Hub**:
+  - Implemented `Models/SkillItem.cs` and `Services/SkillService.cs` with multi-source skill discovery (builtin, plugins, workspace skills).
+  - Added interactive Skill Details modal inspector with markdown preview and schema information.
+- **Swarm Audio Feedback & Sonic Sentinel Engine**:
+  - Integrated `Services/AudioService.cs` for synthesized audio alerts on swarm lifecycle events: worker dispatch, swarm completion, quota exhaustion alarms, and warnings.
+  - Configurable audio toggle and test sound action in Settings.
+- **Header Split-Button Precision Height Alignment**:
+  - Locked top-right header `🚀 Launch Swarm` split-button height to an exact `36px` to maintain strict visual alignment with adjacent controls.
+- **Expanded Test Suite (162/162 Passed)**:
+  - Added hermetic unit tests in `SkillsAndThemesSettingsTests.cs` validating skill item parsing, theme dictionaries, and settings persistence.
+  - Test suite expanded to 162 passing tests (0 failures, 0 skipped, 100% hermetic).
+- **Zero Warnings & Clean Release Publish**:
+  - Verified 0 warnings and 0 errors across `dotnet build` and `dotnet publish -c Release -o publish`.
+
 ## [v0.9.8-beta] - 2026-10-04
 ### Added & Changed
 - **Consolidated Single Solid Executable (`AgyCliAccountSwarmGUI.exe`)**:
@@ -34,7 +62,7 @@ All notable changes to the **Agy CLI Account Swarm** project are documented here
   - Overhauled `README.md` with an extensive 11-menu visual screenshot tour, comprehensive technical architecture breakdown, and data flow diagrams.
   - Removed outdated versioning and release instructions.
 
-## [v0.9.9-beta] - 2026-10-03
+## [v0.9.7-beta] - 2026-10-03
 ### Added & Changed
 - **Avalonia Flagship Edition & WPF Archived as Pseudo Prototype**:
   - Promoted Avalonia cross-platform UI (`AgyAccountSwarm.Avalonia`) to the primary active production application for Windows, Linux, and macOS.
@@ -358,7 +386,7 @@ All notable changes to the **Agy CLI Account Swarm** project are documented here
 
 ### Fixed
 - **Pro Tier Detection for Authenticated Accounts**:
-  - Fixed account tier misclassification where `rifkyakhmad911@gmail.com` was defaulted to "Basic".
+  - Fixed account tier misclassification where authenticated accounts could default to "Basic".
   - Implemented intelligent Google Pro tier detection in `AuthDetectorService` and `ProfileStorageService` for active Google-authenticated users.
 - **Chart Empty Baseline Accuracy**:
   - Removed artificial synthetic number injection when switching between models, accurately displaying 0 prompts when an account has not used a specific model.

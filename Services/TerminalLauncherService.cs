@@ -75,6 +75,69 @@ public class TerminalLauncherService : ITerminalLauncherService
         return null;
     }
 
+    public static string? FindPowerShellCoreExecutable()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            var progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var pwsh7 = Path.Combine(progFiles, "PowerShell", "7", "pwsh.exe");
+            if (File.Exists(pwsh7)) return pwsh7;
+
+            var pwsh6 = Path.Combine(progFiles, "PowerShell", "6", "pwsh.exe");
+            if (File.Exists(pwsh6)) return pwsh6;
+        }
+
+        var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+        var binName = OperatingSystem.IsWindows() ? "pwsh.exe" : "pwsh";
+        foreach (var p in pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var candidate = Path.Combine(p.Trim(), binName);
+            if (File.Exists(candidate)) return candidate;
+        }
+
+        return null;
+    }
+
+    public static string? FindGitBashExecutable()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+            foreach (var p in pathEnv.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var candidate = Path.Combine(p.Trim(), "bash");
+                if (File.Exists(candidate)) return candidate;
+            }
+            return "/bin/bash";
+        }
+
+        var candidates = new[]
+        {
+            @"C:\Program Files\Git\bin\bash.exe",
+            @"C:\Program Files\Git\git-bash.exe",
+            @"C:\Program Files (x86)\Git\bin\bash.exe",
+            @"C:\Program Files (x86)\Git\git-bash.exe",
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Git", "bin", "bash.exe"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "Git", "git-bash.exe")
+        };
+
+        foreach (var c in candidates)
+        {
+            if (File.Exists(c)) return c;
+        }
+
+        var path = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+        foreach (var p in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var candidate = Path.Combine(p.Trim(), "bash.exe");
+            if (File.Exists(candidate)) return candidate;
+            var gitBash = Path.Combine(p.Trim(), "git-bash.exe");
+            if (File.Exists(gitBash)) return gitBash;
+        }
+
+        return null;
+    }
+
     public bool IsWindowsTerminalAvailable()
     {
         if (!OperatingSystem.IsWindows()) return false;
@@ -572,6 +635,20 @@ public class TerminalLauncherService : ITerminalLauncherService
                     WorkingDirectory = workingDir
                 };
             }
+            else if (terminal == TerminalType.PowerShellCore)
+            {
+                var pwshExe = FindPowerShellCoreExecutable() ?? "pwsh.exe";
+                var psScript = BuildPowerShellCommand(title, effectiveDir, workingDir, agyBinary, extraArgs, !profile.IsMainDefaultProfile(), isCliOnly);
+                var encodedCommand = Convert.ToBase64String(System.Text.Encoding.Unicode.GetBytes(psScript));
+
+                psi = new ProcessStartInfo
+                {
+                    FileName = pwshExe,
+                    Arguments = $"-ExecutionPolicy Bypass -NoExit -EncodedCommand {encodedCommand}",
+                    UseShellExecute = true,
+                    WorkingDirectory = workingDir
+                };
+            }
             else if (terminal == TerminalType.PowerShell)
             {
                 var psScript = BuildPowerShellCommand(title, effectiveDir, workingDir, agyBinary, extraArgs, !profile.IsMainDefaultProfile(), isCliOnly);
@@ -580,10 +657,35 @@ public class TerminalLauncherService : ITerminalLauncherService
                 psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
-                    Arguments = $"-NoExit -EncodedCommand {encodedCommand}",
+                    Arguments = $"-ExecutionPolicy Bypass -NoExit -EncodedCommand {encodedCommand}",
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
+            }
+            else if (terminal == TerminalType.GitBash)
+            {
+                var bashExe = FindGitBashExecutable();
+                var shScript = Path.Combine(effectiveDir, "run-agy.sh").Replace('\\', '/');
+                if (!string.IsNullOrWhiteSpace(bashExe) && File.Exists(bashExe))
+                {
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = bashExe,
+                        Arguments = $"--login -i -c \"'{shScript}'{scriptCallSuffix}; exec bash\"",
+                        UseShellExecute = true,
+                        WorkingDirectory = workingDir
+                    };
+                }
+                else
+                {
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = BuildCmdArguments(scriptPath) + scriptCallSuffix,
+                        UseShellExecute = true,
+                        WorkingDirectory = workingDir
+                    };
+                }
             }
             else
             {
@@ -802,9 +904,12 @@ public class TerminalLauncherService : ITerminalLauncherService
 
         string snippet = terminal switch
         {
-            TerminalType.PowerShell =>
+            TerminalType.PowerShell or TerminalType.PowerShellCore =>
                 (isIsolated ? "$env:SSH_CONNECTION=\"1\"; $env:SSH_CLIENT=\"1\"; " : "") +
                 $"$env:USERPROFILE=\"{effectiveDir}\"; $env:HOME=\"{effectiveDir}\"; cd \"{workDir}\"; agy{extraArgs}",
+            TerminalType.GitBash =>
+                (isIsolated ? "export SSH_CONNECTION=1 SSH_CLIENT=1 && " : "") +
+                $"export USERPROFILE=\"{effectiveDir.Replace('\\', '/')}\" HOME=\"{effectiveDir.Replace('\\', '/')}\" && cd \"{workDir.Replace('\\', '/')}\" && agy{extraArgs}",
             _ =>
                 (isIsolated ? "set \"SSH_CONNECTION=1\" && set \"SSH_CLIENT=1\" && " : "") +
                 $"set \"USERPROFILE={effectiveDir}\" && set \"HOME={effectiveDir}\" && cd /d \"{workDir}\" && agy{extraArgs}"

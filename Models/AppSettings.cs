@@ -13,5 +13,11 @@ public class AppSettings
     public string Language { get; set; } = "en";
     public string PreferredChartMode { get; set; } = "Bar";
     public string AutoSyncInterval { get; set; } = "5 Minutes";
+    public bool AutoSyncEnabled { get; set; } = true;
     public bool AutoSyncAudioEnabled { get; set; } = false;
+    public bool WelcomeSoundEnabled { get; set; } = true;
+    public string GradientTheme { get; set; } = "Cyberpunk";
+    public string SwarmExecutionMode { get; set; } = "ConcurrentCli";
+    public bool ConfirmWorktreeMerge { get; set; } = true;
+    public string NavbarDisplayMode { get; set; } = "Detailed";
 }

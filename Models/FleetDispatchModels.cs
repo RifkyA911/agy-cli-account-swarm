@@ -90,6 +90,7 @@ public partial class DispatchedWorkerTask : ObservableObject
     private string _currentActivity = "Initializing...";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FormattedOutputLine))]
     private string _lastOutputLine = string.Empty;
 
     [ObservableProperty]
@@ -100,6 +101,7 @@ public partial class DispatchedWorkerTask : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ExecutionModeText))]
+    [NotifyPropertyChangedFor(nameof(FormattedOutputLine))]
     private FleetExecutionMode _executionMode = FleetExecutionMode.VisibleTerminal;
 
     [ObservableProperty]
@@ -115,6 +117,10 @@ public partial class DispatchedWorkerTask : ObservableObject
     private string _avatarInitial = "W";
 
     public string ExecutionModeText => ExecutionMode == FleetExecutionMode.VisibleTerminal ? "🖥️ Terminal" : "⚡ Silent";
+
+    public string FormattedOutputLine => !string.IsNullOrWhiteSpace(LastOutputLine)
+        ? LastOutputLine
+        : (ExecutionMode == FleetExecutionMode.VisibleTerminal ? "(Interactive terminal active)" : "(Awaiting CLI stream output...)");
 
     [RelayCommand]
     public void ToggleOutput()

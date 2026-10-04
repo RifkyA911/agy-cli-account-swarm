@@ -14,14 +14,14 @@ public class TerminalLauncherTests
     public void BuildCmdArguments_PathWithSpaces_WrapsInQuotesWithCall()
     {
         // Arrange: Reproduces user's path with spaces:
-        // 'C:\Users\rifky\.gemini-profiles\Worker 2\run-agy.cmd'
-        string scriptPath = @"C:\Users\rifky\.gemini-profiles\Worker 2\run-agy.cmd";
+        // 'C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd'
+        string scriptPath = @"C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd";
 
         // Act
         string args = TerminalLauncherService.BuildCmdArguments(scriptPath);
 
         // Assert: Must format as: /k call "path"
-        Assert.Equal(@"/k call ""C:\Users\rifky\.gemini-profiles\Worker 2\run-agy.cmd""", args);
+        Assert.Equal(@"/k call ""C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd""", args);
         Assert.DoesNotContain(@"""""""", args); // Ensure no double consecutive quotes
     }
 
@@ -31,7 +31,7 @@ public class TerminalLauncherTests
         // Arrange
         string title = "AGY Swarm - Worker 2";
         string workingDir = @"D:\Works\My Projects\Workspace 1";
-        string scriptPath = @"C:\Users\rifky\.gemini-profiles\Worker 2\run-agy.cmd";
+        string scriptPath = @"C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd";
 
         // Act
         string args = TerminalLauncherService.BuildWindowsTerminalArguments(title, workingDir, scriptPath);
@@ -39,7 +39,7 @@ public class TerminalLauncherTests
         // Assert
         Assert.StartsWith(@"--title ""AGY Swarm - Worker 2""", args);
         Assert.Contains(@"-d ""D:\Works\My Projects\Workspace 1""", args);
-        Assert.Contains(@"cmd.exe /k call ""C:\Users\rifky\.gemini-profiles\Worker 2\run-agy.cmd""", args);
+        Assert.Contains(@"cmd.exe /k call ""C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd""", args);
     }
 
     [Fact]
@@ -47,9 +47,9 @@ public class TerminalLauncherTests
     {
         // Arrange
         string title = "AGY Swarm - Primary";
-        string effectiveDir = @"C:\Users\rifky\.gemini-profiles\Profile 1";
+        string effectiveDir = @"C:\Users\developer\.gemini-profiles\Profile 1";
         string workingDir = @"D:\Works\Code Projects";
-        string agyBinary = @"C:\Users\rifky\AppData\Roaming\npm\agy.cmd";
+        string agyBinary = @"C:\Users\developer\AppData\Roaming\npm\agy.cmd";
         string? extraArgs = "--model 'gemini-3.8-flash'";
 
         // Act
@@ -57,9 +57,9 @@ public class TerminalLauncherTests
 
         // Assert
         Assert.Contains("$host.UI.RawUI.WindowTitle = 'AGY Swarm - Primary'", cmd);
-        Assert.Contains(@"$env:USERPROFILE = 'C:\Users\rifky\.gemini-profiles\Profile 1'", cmd);
+        Assert.Contains(@"$env:USERPROFILE = 'C:\Users\developer\.gemini-profiles\Profile 1'", cmd);
         Assert.Contains(@"Set-Location 'D:\Works\Code Projects'", cmd);
-        Assert.Contains(@"& 'C:\Users\rifky\AppData\Roaming\npm\agy.cmd'", cmd);
+        Assert.Contains(@"& 'C:\Users\developer\AppData\Roaming\npm\agy.cmd'", cmd);
     }
 
     [Fact]
@@ -67,8 +67,8 @@ public class TerminalLauncherTests
     {
         // Arrange
         string title = "AGY Swarm - Worker 2";
-        string effectiveDir = @"C:\Users\rifky\.gemini-profiles\Worker 2";
-        string workingDir = @"C:\Users\rifky\.gemini-profiles\Worker 2\workspace";
+        string effectiveDir = @"C:\Users\developer\.gemini-profiles\Worker 2";
+        string workingDir = @"C:\Users\developer\.gemini-profiles\Worker 2\workspace";
         string agyBinary = "agy";
 
         // Act
@@ -77,7 +77,7 @@ public class TerminalLauncherTests
         // Assert
         Assert.Contains("$env:SSH_CONNECTION = '1'", cmd);
         Assert.Contains("$env:SSH_CLIENT = '1'", cmd);
-        Assert.Contains(@"$env:ANTIGRAVITY_APP_DATA_DIR = 'C:\Users\rifky\.gemini-profiles\Worker 2\.gemini\antigravity-cli'", cmd);
+        Assert.Contains(@"$env:ANTIGRAVITY_APP_DATA_DIR = 'C:\Users\developer\.gemini-profiles\Worker 2\.gemini\antigravity-cli'", cmd);
     }
 
     [Fact]
@@ -199,9 +199,9 @@ public class TerminalLauncherTests
     [Fact]
     public void ExtractEmailFromTokenJson_ValidIdToken_ReturnsEmail()
     {
-        string tokenJson = "{\"id_token\":\"eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6Im1pc3NmYXJ1emFuQGdtYWlsLmNvbSJ9.abc\"}";
+        string tokenJson = "{\"id_token\":\"eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImR1bW15LndvcmtlckBleGFtcGxlLmNvbSJ9.abc\"}";
         var email = AuthDetectorService.ExtractEmailFromTokenJson(tokenJson);
-        Assert.Equal("missfaruzan@gmail.com", email);
+        Assert.Equal("dummy.worker@example.com", email);
     }
 
     [Fact]

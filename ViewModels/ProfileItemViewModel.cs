@@ -459,11 +459,14 @@ public partial class ProfileItemViewModel : ObservableObject
     public long TodayTokensEstimated => AuthStatus.TodayTokensEstimated;
     public long DailyTokensLimit => AuthStatus.DailyTokensLimit;
     public string QuotaResetCountdown => AuthStatus.QuotaResetCountdown;
-    public string TodayQuotaFormatted => $"{TodayTurnsCount:N0} / {DailyQuotaLimit:N0} prompts today ({UsagePercentage:F1}%)";
-    public string TodayTokensFormatted => $"{TodayTokensEstimated / 1000:N0}K / {DailyTokensLimit / 1000:N0}K est. tokens";
-    public string TierDailySummary => $"{TierBadgeText} Tier • {AccountRoleText}";
+    public string TodayQuotaFormatted => $"{TodayTurnsCount:N0} prompts today";
+    public string TodayTokensFormatted => $"{TodayTokensEstimated / 1000:N0}K est. tokens today";
+    public string AccountRole => !string.IsNullOrWhiteSpace(Profile.AccountRole) ? Profile.AccountRole : (IsDefaultProfile ? "Lead Architect" : "Generalist Worker");
+    public string ModelFamily => !string.IsNullOrWhiteSpace(Profile.ModelFamily) ? Profile.ModelFamily : "Gemini";
+    public string ModelTemperature => !string.IsNullOrWhiteSpace(Profile.ModelTemperature) ? Profile.ModelTemperature : "Medium (0.7)";
+    public string TierDailySummary => $"{AccountRole} • {TierBadgeText}";
     public string AccountRoleText => IsDefaultProfile ? "Primary System Profile" : "Sandboxed Worker Profile";
-    public string HeadroomSummaryText => $"{Math.Max(0, 100 - (int)UsagePercentage)}% headroom remaining";
+    public string HeadroomSummaryText => $"{TodayTurnsCount:N0} turns recorded";
     public string SessionsCountText => AvailableSessions.Count <= 1
         ? "1 active session"
         : $"{AvailableSessions.Count} sessions detected";

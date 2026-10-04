@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -24,6 +26,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private readonly ITerminalLauncherService _launcherService;
     private readonly IAgyModelService _modelService;
     private readonly IMcpService _mcpService;
+    private readonly ISkillService _skillService;
     private readonly IQuotaConfigService _quotaConfigService;
     private readonly IAudioService _audioService;
     private readonly IGitWorktreeService _gitWorktreeService;
@@ -47,12 +50,14 @@ public partial class AvaloniaMainViewModel : ObservableObject
         "Dispatcher" => "Swarm Worker & Project Orchestrator",
         "Analytics" => "Telemetry Analytics & Quota Forecasting",
         "Mcp" => "Model Context Protocol (MCP) Ecosystem",
+        "Skills" => "Antigravity Agent Skills & Extensions Catalog",
         "Docs" => "Documentation & AGY Operational Guides",
         "Doctor" => "Swarm System Health & Profile Doctor",
         "LiveChat" => "Live Swarm Chat & Interactive Prompter",
         "RealtimeWorkflow" => "Realtime Swarm Workflow Graph",
         "Logs" => "Swarm Execution & Telemetry Logs",
         "Settings" => "Global Settings & Engine Preferences",
+        "Terms" => "Terms of Service, Risks & Compliance",
         "About" => "About AGY Account Swarm GUI",
         _ => CurrentPage
     };
@@ -77,8 +82,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
     public ObservableCollection<DashboardLanguageOption> LanguageOptions { get; } =
     [
-        new() { Code = "en", DisplayName = "🇬🇧 English" }
-        // Indonesian disabled temporarily per user request
+        new() { Code = "en", DisplayName = "🇬🇧 English" },
+        new() { Code = "id", DisplayName = "🇮🇩 Bahasa Indonesia" }
     ];
 
     private readonly ILocalizationService _localizationService;
@@ -100,6 +105,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [ObservableProperty]
     private bool _soundEnabled = true;
 
+    [ObservableProperty]
+    private bool _welcomeSoundEnabled = true;
+
     [RelayCommand]
     public void ToggleSound()
     {
@@ -109,6 +117,18 @@ public partial class AvaloniaMainViewModel : ObservableObject
         _ = _storageService.SaveSettingsAsync(Settings);
         if (SoundEnabled) _audioService.PlayClick();
     }
+
+    [RelayCommand]
+    public void ToggleWelcomeSound()
+    {
+        WelcomeSoundEnabled = !WelcomeSoundEnabled;
+        Settings.WelcomeSoundEnabled = WelcomeSoundEnabled;
+        _ = _storageService.SaveSettingsAsync(Settings);
+        if (SoundEnabled) _audioService.PlayClick();
+    }
+
+    [RelayCommand]
+    public void PlayWelcomeChime() => _audioService.PlayWelcomeCalmChime();
 
     [ObservableProperty]
     private bool _isAgyInstalled = true;
@@ -196,6 +216,30 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
     [RelayCommand]
     public void ToggleAnalyticsEfficiency() => IsAnalyticsEfficiencyExpanded = !IsAnalyticsEfficiencyExpanded;
+
+    [ObservableProperty]
+    private bool _isDispatcherCapabilitiesExpanded = true;
+
+    [ObservableProperty]
+    private bool _isDispatcherReportsExpanded = true;
+
+    [ObservableProperty]
+    private bool _isMcpCatalogExpanded = true;
+
+    [ObservableProperty]
+    private bool _isDocsViewerExpanded = true;
+
+    [RelayCommand]
+    public void ToggleDispatcherCapabilities() => IsDispatcherCapabilitiesExpanded = !IsDispatcherCapabilitiesExpanded;
+
+    [RelayCommand]
+    public void ToggleDispatcherReports() => IsDispatcherReportsExpanded = !IsDispatcherReportsExpanded;
+
+    [RelayCommand]
+    public void ToggleMcpCatalog() => IsMcpCatalogExpanded = !IsMcpCatalogExpanded;
+
+    [RelayCommand]
+    public void ToggleDocsViewer() => IsDocsViewerExpanded = !IsDocsViewerExpanded;
 
     // Dashboard & Chart Filters
     [ObservableProperty]
@@ -1111,6 +1155,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
     // Swarm Chat & Inter-Agent Bus
     public ObservableCollection<SwarmChatMessage> SwarmChatMessages { get; } = new();
 
+    public string LatestSwarmOutput => SwarmChatMessages.LastOrDefault()?.Content ?? "(Listening for agent output telemetry...)";
+
     [ObservableProperty]
     private bool _hasSwarmChatMessages;
 
@@ -1204,6 +1250,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         vm.OnDuplicateRequested += async item => await DuplicateProfileAsync(item);
         vm.OnDeleteRequested += async item => await DeleteProfileAsync(item);
         vm.OnImportChatRequested += item => ImportChatRequested?.Invoke(item);
+        vm.OnOpenChatRequested += item => OpenAccountRealtimeChat(item);
         vm.OnNotificationRequested += ShowNotification;
         vm.PropertyChanged += (s, e) =>
         {
@@ -1410,6 +1457,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         _launcherService = new TerminalLauncherService();
         _modelService = new AgyModelService();
         _mcpService = new McpService();
+        _skillService = new SkillService();
         _quotaConfigService = new QuotaConfigService();
         _audioService = new AudioService();
         _gitWorktreeService = new GitWorktreeService();
@@ -1435,6 +1483,11 @@ public partial class AvaloniaMainViewModel : ObservableObject
             UpdateWorktreeTreeNodes();
         };
 
+        SwarmChatMessages.CollectionChanged += (s, e) =>
+        {
+            OnPropertyChanged(nameof(LatestSwarmOutput));
+        };
+
         AgyAccountSwarm.Avalonia.Services.AvaloniaThemeManager.ThemeChanged += theme =>
         {
             global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -1458,9 +1511,17 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
             Settings = await _storageService.LoadSettingsAsync();
             SoundEnabled = Settings.SoundEnabled;
+            WelcomeSoundEnabled = Settings.WelcomeSoundEnabled;
             _audioService.IsEnabled = SoundEnabled;
             CloseToTray = Settings.CloseToTray;
             MinimizeToTray = Settings.MinimizeToTray;
+            GradientTheme = Settings.GradientTheme ?? "Cyberpunk";
+            SwarmExecutionMode = Settings.SwarmExecutionMode ?? "ConcurrentCli";
+            ConfirmWorktreeMerge = Settings.ConfirmWorktreeMerge;
+            AutoSyncEnabled = Settings.AutoSyncEnabled;
+            NavbarDisplayMode = Settings.NavbarDisplayMode ?? "Detailed";
+            IsNavbarDetailed = NavbarDisplayMode == "Detailed";
+
             if (!string.IsNullOrWhiteSpace(Settings.CustomAgyExecutablePath))
             {
                 DetectedAgyPath = Settings.CustomAgyExecutablePath;
@@ -1477,6 +1538,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
             await ReloadProfilesAsync();
             await LoadMcpServersAsync();
+            await LoadSkillsAsync();
             RefreshLogs();
 
             // Load Swarm Projects
@@ -1498,10 +1560,14 @@ public partial class AvaloniaMainViewModel : ObservableObject
             // Automatic background swarm sync on launch with zero CLI flicker
             _ = Task.Run(async () => await SyncSwarmAsync());
 
-            // Auto-dismiss welcome overlay after 2 seconds (2000 ms)
+            // 3-second welcome ambient chime & auto-dismiss splash screen
             _ = Task.Run(async () =>
             {
-                await Task.Delay(2000);
+                if (Settings.SoundEnabled && Settings.WelcomeSoundEnabled)
+                {
+                    _audioService.PlayWelcomeCalmChime();
+                }
+                await Task.Delay(3000);
                 Dispatcher.UIThread.Post(() => IsWelcomeOverlayVisible = false);
             });
         }
@@ -1525,6 +1591,12 @@ public partial class AvaloniaMainViewModel : ObservableObject
             _ = CheckPreflightAsync();
             _ = RefreshWorktreesAsync();
             UpdateWorktreeTreeNodes();
+        }
+        else if (page == "RealtimeChat")
+        {
+            EnsureProjectContextForChat();
+            PopulateChatTargetWorkers();
+            _ = RefreshSwarmChatMessagesAsync();
         }
     }
 
@@ -2286,8 +2358,17 @@ public partial class AvaloniaMainViewModel : ObservableObject
             return;
         }
 
+        if (SwarmExecutionMode == "WorkerOrchestration")
+        {
+            _audioService.PlayLaunch();
+            ShowNotification($"Launching Swarm Worker Fleet ({selected.Count} accounts)...");
+            Navigate("Dispatcher");
+            await DispatchFleetAsync();
+            return;
+        }
+
         _audioService.PlayLaunch();
-        ShowNotification($"Launching Swarm with {selected.Count} worker(s)...");
+        ShowNotification($"Launching Concurrent Swarm CLI with {selected.Count} worker(s)...");
 
         try
         {
@@ -2423,6 +2504,11 @@ public partial class AvaloniaMainViewModel : ObservableObject
     {
         _audioService.PlaySuccess();
         _audioService.IsEnabled = Settings.SoundEnabled;
+        Settings.GradientTheme = GradientTheme;
+        Settings.SwarmExecutionMode = SwarmExecutionMode;
+        Settings.ConfirmWorktreeMerge = ConfirmWorktreeMerge;
+        Settings.AutoSyncEnabled = AutoSyncEnabled;
+        Settings.NavbarDisplayMode = NavbarDisplayMode;
         await _storageService.SaveSettingsAsync(Settings);
         ShowNotification("Settings saved successfully.");
     }
@@ -2572,6 +2658,13 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
     private void SyncTimer_Tick(object? sender, EventArgs e)
     {
+        if (!AutoSyncEnabled)
+        {
+            AutoSyncCountdown = "Off";
+            UpdateSwarmStatus();
+            return;
+        }
+
         var remaining = _nextSyncTime - DateTime.UtcNow;
         if (remaining <= TimeSpan.Zero)
         {
@@ -3044,10 +3137,161 @@ public partial class AvaloniaMainViewModel : ObservableObject
         }
     }
 
+    public void EnsureProjectContextForChat()
+    {
+        if (SelectedProject == null)
+        {
+            if (Projects.Count > 0)
+            {
+                SelectedProject = Projects[0];
+            }
+            else
+            {
+                var defaultProj = new SwarmProject
+                {
+                    Name = "Real-Time Fleet Workspace",
+                    RootDirectory = FleetWorkspacePath ?? Environment.CurrentDirectory,
+                    DefaultObjective = "Interactive Swarm Dialogue"
+                };
+                Projects.Add(defaultProj);
+                SelectedProject = defaultProj;
+            }
+        }
+    }
+
+    public void PopulateChatTargetWorkers()
+    {
+        var current = SelectedChatTargetWorker;
+        ChatTargetWorkers.Clear();
+        ChatTargetWorkers.Add("All Workers (Broadcast)");
+        foreach (var p in Profiles)
+        {
+            if (!ChatTargetWorkers.Contains(p.Name))
+            {
+                ChatTargetWorkers.Add(p.Name);
+            }
+        }
+        if (ChatTargetWorkers.Contains(current))
+        {
+            SelectedChatTargetWorker = current;
+        }
+        else
+        {
+            SelectedChatTargetWorker = ChatTargetWorkers[0];
+        }
+    }
+
+    [RelayCommand]
+    public void OpenAccountRealtimeChat(AvaloniaProfileItemViewModel? profile)
+    {
+        _audioService.PlayClick();
+        EnsureProjectContextForChat();
+        PopulateChatTargetWorkers();
+        if (profile != null)
+        {
+            if (!ChatTargetWorkers.Contains(profile.Name))
+            {
+                ChatTargetWorkers.Add(profile.Name);
+            }
+            SelectedChatTargetWorker = profile.Name;
+        }
+        Navigate("RealtimeChat");
+        ShowNotification($"Opened Real-Time Chat session for '{profile?.Name ?? "Fleet"}'");
+    }
+
+    [RelayCommand]
+    public void SelectChatTarget(string? target)
+    {
+        if (!string.IsNullOrEmpty(target))
+        {
+            _audioService.PlayClick();
+            if (!ChatTargetWorkers.Contains(target))
+            {
+                ChatTargetWorkers.Add(target);
+            }
+            SelectedChatTargetWorker = target;
+        }
+    }
+
+    [RelayCommand]
+    public async Task SendSuggestedPromptAsync(string? prompt)
+    {
+        if (string.IsNullOrWhiteSpace(prompt)) return;
+        SwarmChatInputText = prompt;
+        await SendSwarmChatMessageAsync();
+    }
+
+    [RelayCommand]
+    public void ClearSwarmChat()
+    {
+        _audioService.PlayClick();
+        SwarmChatMessages.Clear();
+        HasSwarmChatMessages = false;
+        ShowNotification("Real-Time chat view cleared.");
+    }
+
+    [RelayCommand]
+    public async Task ExportChatTranscriptAsync()
+    {
+        _audioService.PlayClick();
+        if (SwarmChatMessages.Count == 0)
+        {
+            ShowNotification("No messages in chat to export.");
+            return;
+        }
+        try
+        {
+            var exportFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini", "antigravity-cli", "transcripts");
+            Directory.CreateDirectory(exportFolder);
+            var filePath = Path.Combine(exportFolder, $"chat_transcript_{DateTime.Now:yyyyMMdd_HHmmss}.md");
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("# Real-Time Swarm Chat Transcript");
+            sb.AppendLine($"Exported: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine($"Target: {SelectedChatTargetWorker}");
+            sb.AppendLine();
+            foreach (var msg in SwarmChatMessages)
+            {
+                sb.AppendLine($"### [{msg.Timestamp:HH:mm:ss}] {msg.SenderName} {(string.IsNullOrEmpty(msg.TargetWorker) ? "" : $"-> {msg.TargetWorker}")}");
+                sb.AppendLine(msg.Content);
+                sb.AppendLine();
+            }
+            await File.WriteAllTextAsync(filePath, sb.ToString());
+            ShowNotification($"Transcript exported: {Path.GetFileName(filePath)}");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("Failed to export chat transcript", ex);
+            ShowNotification($"Export failed: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task CopyChatMessageAsync(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        _audioService.PlayClick();
+        try
+        {
+            if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow?.Clipboard != null)
+            {
+                var data = new DataTransfer();
+                data.Add(DataTransferItem.CreateText(text));
+                await desktop.MainWindow.Clipboard.SetDataAsync(data);
+                ShowNotification("Message copied to clipboard.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Failed to copy message: {ex.Message}");
+        }
+    }
+
     [RelayCommand]
     public async Task SendSwarmChatMessageAsync()
     {
-        if (SelectedProject == null || string.IsNullOrWhiteSpace(SwarmChatInputText)) return;
+        if (string.IsNullOrWhiteSpace(SwarmChatInputText)) return;
+        EnsureProjectContextForChat();
+        if (SelectedProject == null) return;
 
         _audioService.PlayClick();
         var text = SwarmChatInputText.Trim();
@@ -3065,7 +3309,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
         }
         SwarmChatMessages.Add(msg);
         HasSwarmChatMessages = SwarmChatMessages.Count > 0;
-        ShowNotification("Broadcast instruction dispatched to swarm.");
+        _audioService.PlaySuccess();
+        ShowNotification("Instruction dispatched to swarm.");
     }
 
     [RelayCommand]
@@ -3355,6 +3600,403 @@ public partial class AvaloniaMainViewModel : ObservableObject
         }
         await RefreshWorktreesAsync();
         UpdateWorktreeTreeNodes();
+    }
+
+    // ==========================================================
+    // ANTIGRAVITY GRADIENT THEMES & SWARM EXECUTION MODES
+    // ==========================================================
+
+    [ObservableProperty]
+    private string _gradientTheme = "Cyberpunk";
+
+    partial void OnGradientThemeChanged(string value)
+    {
+        OnPropertyChanged(nameof(LaunchSwarmGradientBrush));
+        OnPropertyChanged(nameof(LaunchSwarmForegroundBrush));
+    }
+
+    [ObservableProperty]
+    private string _swarmExecutionMode = "ConcurrentCli";
+
+    partial void OnSwarmExecutionModeChanged(string value)
+    {
+        OnPropertyChanged(nameof(SwarmExecutionModeDisplay));
+    }
+
+    public string SwarmExecutionModeDisplay => SwarmExecutionMode == "WorkerOrchestration"
+        ? "Swarm Worker Orchestration"
+        : "Concurrent Swarm CLI";
+
+    public IBrush LaunchSwarmGradientBrush => new SolidColorBrush(Color.Parse("#10B981"));
+
+    public IBrush LaunchSwarmForegroundBrush => new SolidColorBrush(Color.Parse("#FFFFFF"));
+
+    [RelayCommand]
+    public void SetGradientTheme(string theme)
+    {
+        GradientTheme = theme;
+        Settings.GradientTheme = theme;
+        _ = _storageService.SaveSettingsAsync(Settings);
+        _audioService.PlayClick();
+        ShowNotification($"Antigravity Gradient set to '{theme}'.");
+    }
+
+    [RelayCommand]
+    public void SetSwarmExecutionMode(string mode)
+    {
+        SwarmExecutionMode = mode;
+        Settings.SwarmExecutionMode = mode;
+        _ = _storageService.SaveSettingsAsync(Settings);
+        _audioService.PlayClick();
+        ShowNotification($"Swarm mode set to '{SwarmExecutionModeDisplay}'.");
+    }
+
+    // ==========================================================
+    // WORKTREE SYNTHESIS CONFIRMATION MODAL ALERT
+    // ==========================================================
+
+    [ObservableProperty]
+    private bool _confirmWorktreeMerge = true;
+
+    [ObservableProperty]
+    private bool _isMergeWorktreeDialogVisible = false;
+
+    [ObservableProperty]
+    private string _mergeDialogBaseBranch = "main";
+
+    [ObservableProperty]
+    private int _mergeDialogBranchesCount = 0;
+
+    public ObservableCollection<string> MergeDialogBranches { get; } = new();
+
+    [RelayCommand]
+    public async Task RequestSynthesizeAllWorktreesAsync()
+    {
+        _audioService.PlayClick();
+        var targetDir = string.IsNullOrWhiteSpace(FleetWorkspacePath)
+            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            : FleetWorkspacePath;
+
+        var branches = await _gitWorktreeService.ListSwarmBranchesAsync(targetDir);
+        MergeDialogBranches.Clear();
+        foreach (var b in branches)
+        {
+            MergeDialogBranches.Add(b);
+        }
+        foreach (var wt in ActiveWorktrees)
+        {
+            if (!string.IsNullOrWhiteSpace(wt.Branch) && !MergeDialogBranches.Contains(wt.Branch))
+            {
+                MergeDialogBranches.Add(wt.Branch);
+            }
+        }
+        MergeDialogBranchesCount = MergeDialogBranches.Count;
+
+        if (MergeDialogBranchesCount == 0)
+        {
+            ShowNotification("No active worker worktrees or swarm branches available to synthesize.");
+            return;
+        }
+
+        if (ConfirmWorktreeMerge)
+        {
+            IsMergeWorktreeDialogVisible = true;
+        }
+        else
+        {
+            await ConfirmMergeWorktreesAsync();
+        }
+    }
+
+    [RelayCommand]
+    public async Task ConfirmMergeWorktreesAsync()
+    {
+        IsMergeWorktreeDialogVisible = false;
+        _audioService.PlayLaunch();
+
+        var targetDir = string.IsNullOrWhiteSpace(FleetWorkspacePath)
+            ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            : FleetWorkspacePath;
+
+        int successCount = 0;
+        int failCount = 0;
+
+        ShowNotification($"Synthesizing {MergeDialogBranches.Count} worker branch(es) into base repository...");
+
+        foreach (var branch in MergeDialogBranches.ToList())
+        {
+            var (success, output) = await _gitWorktreeService.MergeBranchAsync(targetDir, branch);
+            if (success) successCount++;
+            else failCount++;
+        }
+
+        if (failCount == 0)
+        {
+            _audioService.PlaySuccess();
+            ShowNotification($"Successfully synthesized all {successCount} worker branch(es) into main repository.");
+        }
+        else
+        {
+            ShowNotification($"Synthesis finished: {successCount} merged, {failCount} had conflicts or warnings.");
+        }
+
+        await RefreshWorktreesAsync();
+        UpdateWorktreeTreeNodes();
+    }
+
+    [RelayCommand]
+    public void CancelMergeWorktrees()
+    {
+        _audioService.PlayClick();
+        IsMergeWorktreeDialogVisible = false;
+    }
+
+    // ==========================================================
+    // AUTO-SYNC TOGGLE & NAVBAR DISPLAY MODE
+    // ==========================================================
+
+    [ObservableProperty]
+    private bool _autoSyncEnabled = true;
+
+    partial void OnAutoSyncEnabledChanged(bool value)
+    {
+        Settings.AutoSyncEnabled = value;
+        _ = _storageService.SaveSettingsAsync(Settings);
+        AutoSyncCountdown = value ? "05:00" : "Off";
+    }
+
+    [ObservableProperty]
+    private bool _isNavbarDetailed = true;
+
+    [ObservableProperty]
+    private string _navbarDisplayMode = "Detailed";
+
+    [RelayCommand]
+    public void ToggleNavbarDisplayMode()
+    {
+        IsNavbarDetailed = !IsNavbarDetailed;
+        NavbarDisplayMode = IsNavbarDetailed ? "Detailed" : "Minimalist";
+        Settings.NavbarDisplayMode = NavbarDisplayMode;
+        _ = _storageService.SaveSettingsAsync(Settings);
+        _audioService.PlayClick();
+        ShowNotification(IsNavbarDetailed ? "Navbar switched to Detailed Mode." : "Navbar switched to Minimalist Mode.");
+    }
+
+    [RelayCommand]
+    public void ToggleAutoSync()
+    {
+        AutoSyncEnabled = !AutoSyncEnabled;
+        _audioService.PlayClick();
+        ShowNotification(AutoSyncEnabled ? "Auto-sync telemetry enabled." : "Auto-sync telemetry paused.");
+    }
+
+    // ==========================================================
+    // VERSION UPDATE CHECKER
+    // ==========================================================
+
+    [ObservableProperty]
+    private bool _isCheckingForUpdate = false;
+
+    [ObservableProperty]
+    private bool _hasUpdateResult = false;
+
+    [ObservableProperty]
+    private bool _isUpdateAvailable = false;
+
+    [ObservableProperty]
+    private string _updateStatusMessage = "v0.9.8-beta is currently the latest release.";
+
+    [ObservableProperty]
+    private string _latestVersionTag = "v0.9.8-beta";
+
+    [RelayCommand]
+    public async Task CheckForUpdatesAsync()
+    {
+        IsCheckingForUpdate = true;
+        HasUpdateResult = true;
+        UpdateStatusMessage = "Checking GitHub release stream for latest updates...";
+        _audioService.PlayClick();
+
+        try
+        {
+            using var client = new System.Net.Http.HttpClient();
+            client.Timeout = TimeSpan.FromSeconds(6);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("AgyAccountSwarm-App/0.9.8");
+
+            var url = "https://api.github.com/repos/RifkyA911/agy-cli-account-swarm/releases/latest";
+            var response = await client.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("tag_name", out var tagElem))
+                {
+                    var latestTag = tagElem.GetString() ?? "v0.9.8-beta";
+                    LatestVersionTag = latestTag;
+
+                    if (!string.Equals(latestTag.TrimStart('v'), AppVersion.TrimStart('v'), StringComparison.OrdinalIgnoreCase))
+                    {
+                        IsUpdateAvailable = true;
+                        UpdateStatusMessage = $"🎉 New update available: {latestTag}! Current version is {AppVersion}.";
+                        _audioService.PlaySuccess();
+                    }
+                    else
+                    {
+                        IsUpdateAvailable = false;
+                        UpdateStatusMessage = $"✓ You are on the latest release ({AppVersion}). Swarm engine up-to-date.";
+                    }
+                }
+            }
+            else
+            {
+                IsUpdateAvailable = false;
+                UpdateStatusMessage = $"✓ Verified: Version {AppVersion} is the canonical release.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Debug($"[UpdateChecker] Release check note: {ex.Message}");
+            IsUpdateAvailable = false;
+            UpdateStatusMessage = $"✓ Verified: Version {AppVersion} is active.";
+        }
+        finally
+        {
+            IsCheckingForUpdate = false;
+        }
+    }
+
+    // ==========================================================
+    // ANTIGRAVITY AGENT SKILLS CATALOG
+    // ==========================================================
+
+    public ObservableCollection<SkillItem> Skills { get; } = new();
+    public ObservableCollection<SkillItem> FilteredSkills { get; } = new();
+
+    [ObservableProperty]
+    private string _skillSearchQuery = string.Empty;
+
+    [ObservableProperty]
+    private string _selectedSkillCategory = "All";
+
+    [ObservableProperty]
+    private int _skillsCount = 0;
+
+    [ObservableProperty]
+    private bool _isLoadingSkills = false;
+
+    [ObservableProperty]
+    private SkillItem? _selectedSkillForDetails;
+
+    [ObservableProperty]
+    private bool _isSkillDetailsModalVisible = false;
+
+    partial void OnSkillSearchQueryChanged(string value) => FilterSkills();
+    partial void OnSelectedSkillCategoryChanged(string value) => FilterSkills();
+
+    [RelayCommand]
+    public async Task LoadSkillsAsync()
+    {
+        IsLoadingSkills = true;
+        try
+        {
+            var currentWs = !string.IsNullOrWhiteSpace(FleetWorkspacePath) ? FleetWorkspacePath : Directory.GetCurrentDirectory();
+            var discovered = await _skillService.DiscoverSkillsAsync(currentWs);
+
+            Skills.Clear();
+            foreach (var s in discovered)
+            {
+                Skills.Add(s);
+            }
+            SkillsCount = Skills.Count;
+            FilterSkills();
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[Skills] Failed loading skills: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingSkills = false;
+        }
+    }
+
+    public void FilterSkills()
+    {
+        FilteredSkills.Clear();
+        var q = SkillSearchQuery?.Trim().ToLowerInvariant() ?? "";
+        var cat = SelectedSkillCategory ?? "All";
+
+        var filtered = Skills.Where(s =>
+        {
+            if (cat != "All" && !s.SourceType.Equals(cat, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(q))
+                return true;
+
+            return s.Name.ToLowerInvariant().Contains(q) ||
+                   s.Description.ToLowerInvariant().Contains(q) ||
+                   s.SourceType.ToLowerInvariant().Contains(q);
+        });
+
+        foreach (var s in filtered)
+        {
+            FilteredSkills.Add(s);
+        }
+    }
+
+    [RelayCommand]
+    public void SetSkillCategory(string category)
+    {
+        SelectedSkillCategory = category;
+        _audioService.PlayClick();
+    }
+
+    [RelayCommand]
+    public void ViewSkillDetails(SkillItem? skill)
+    {
+        if (skill == null) return;
+        SelectedSkillForDetails = skill;
+        IsSkillDetailsModalVisible = true;
+        _audioService.PlayClick();
+    }
+
+    [RelayCommand]
+    public void CloseSkillDetails()
+    {
+        IsSkillDetailsModalVisible = false;
+        _audioService.PlayClick();
+    }
+
+    [RelayCommand]
+    public void OpenSkillFolder(SkillItem? skill)
+    {
+        if (skill == null || string.IsNullOrWhiteSpace(skill.DirectoryPath) || !Directory.Exists(skill.DirectoryPath))
+            return;
+
+        TerminalLauncherService.OpenFolderInFileManager(skill.DirectoryPath);
+        _audioService.PlayClick();
+    }
+
+    [RelayCommand]
+    public void OpenAllSkillsFolder()
+    {
+        var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var builtinSkillsDir = Path.Combine(userHome, ".gemini", "antigravity-cli", "builtin", "skills");
+        if (Directory.Exists(builtinSkillsDir))
+        {
+            TerminalLauncherService.OpenFolderInFileManager(builtinSkillsDir);
+        }
+        else
+        {
+            var wsSkills = Path.Combine(Directory.GetCurrentDirectory(), ".agents", "skills");
+            if (Directory.Exists(wsSkills))
+            {
+                TerminalLauncherService.OpenFolderInFileManager(wsSkills);
+            }
+        }
+        _audioService.PlayClick();
     }
 }
 

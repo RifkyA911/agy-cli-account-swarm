@@ -15,6 +15,7 @@ public interface IAudioService
     void PlaySync();
     void PlayQuotaAlert();
     void PlayFluffyPurr();
+    void PlayWelcomeCalmChime();
 }
 
 public class AudioService : IAudioService
@@ -266,6 +267,99 @@ public class AudioService : IAudioService
                 }
 
                 double sampleVal = 128.0 + 55.0 * waveSum * envelope * purrMod;
+                sampleVal = Math.Clamp(sampleVal, 0.0, 255.0);
+                writer.Write((byte)sampleVal);
+            }
+
+            stream.Position = 0;
+            using var player = new SoundPlayer(stream);
+            player.PlaySync();
+        }
+        catch
+        {
+            // Silently fail if audio device is unavailable
+        }
+    }
+
+    public void PlayWelcomeCalmChime()
+    {
+        if (!IsEnabled) return;
+        Task.Run(() =>
+        {
+            try
+            {
+                PlayCalmAmbientChime(new[] { 329.63, 415.30, 493.88, 622.25, 739.99 }, 3000);
+            }
+            catch
+            {
+                // Silently fail if audio device is unavailable
+            }
+        });
+    }
+
+    private static void PlayCalmAmbientChime(double[] frequencies, int durationMs)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        try
+        {
+            var sampleRate = 8000;
+            var numSamples = (sampleRate * durationMs) / 1000;
+            using var stream = new MemoryStream();
+            using var writer = new BinaryWriter(stream);
+
+            // WAV header
+            writer.Write("RIFF"u8.ToArray());
+            writer.Write(36 + numSamples);
+            writer.Write("WAVE"u8.ToArray());
+            writer.Write("fmt "u8.ToArray());
+            writer.Write(16); // Subchunk1Size
+            writer.Write((short)1); // AudioFormat PCM
+            writer.Write((short)1); // NumChannels Mono
+            writer.Write(sampleRate);
+            writer.Write(sampleRate); // ByteRate
+            writer.Write((short)1); // BlockAlign
+            writer.Write((short)8); // BitsPerSample
+            writer.Write("data"u8.ToArray());
+            writer.Write(numSamples);
+
+            // Polyphonic ambient swell and slow crystalline decay
+            for (int i = 0; i < numSamples; i++)
+            {
+                double t = (double)i / sampleRate;
+
+                // Soft attack (500ms) then smooth slow decay over remaining 2.5s
+                double attackDuration = 0.5;
+                double envelope;
+                if (t < attackDuration)
+                {
+                    envelope = Math.Sin((t / attackDuration) * (Math.PI / 2.0));
+                }
+                else
+                {
+                    double decayT = (t - attackDuration) / (3.0 - attackDuration);
+                    envelope = Math.Max(0.0, Math.Pow(1.0 - decayT, 1.6));
+                }
+
+                // Ambient shimmer / soft chorus modulation (3.5Hz)
+                double shimmer = 0.92 + 0.08 * Math.Sin(2.0 * Math.PI * 3.5 * t);
+
+                double waveSum = 0;
+                for (int f = 0; f < frequencies.Length; f++)
+                {
+                    double freq = frequencies[f];
+                    // Gentle staggered chime entry (70ms between notes)
+                    double noteOffset = f * 0.070;
+                    if (t >= noteOffset)
+                    {
+                        double noteT = t - noteOffset;
+                        // Harmonic warmth with fundamental + soft octave overtone
+                        double harmonic = Math.Sin(2.0 * Math.PI * freq * noteT) + 0.3 * Math.Sin(4.0 * Math.PI * freq * noteT);
+                        waveSum += harmonic / (frequencies.Length * 1.3);
+                    }
+                }
+
+                double sampleVal = 128.0 + 50.0 * waveSum * envelope * shimmer;
                 sampleVal = Math.Clamp(sampleVal, 0.0, 255.0);
                 writer.Write((byte)sampleVal);
             }
