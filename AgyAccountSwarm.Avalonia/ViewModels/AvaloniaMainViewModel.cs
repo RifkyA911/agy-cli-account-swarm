@@ -531,7 +531,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
     }
 
     [ObservableProperty]
-    private bool _autoSyncAudioEnabled = true;
+    private bool _autoSyncAudioEnabled = false;
 
     partial void OnAutoSyncAudioEnabledChanged(bool value)
     {
@@ -633,14 +633,18 @@ public partial class AvaloniaMainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task SyncSwarmAsync()
+    public async Task SyncSwarmAsync(bool isPeriodic = false)
     {
         if (!await _syncSemaphore.WaitAsync(0))
         {
             return;
         }
 
-        _audioService.PlayClick();
+        if (!isPeriodic && Settings.SoundEnabled)
+        {
+            _audioService.PlayClick();
+        }
+
         IsSyncing = true;
         _nextSyncTime = DateTime.UtcNow.AddMinutes(5);
         AutoSyncCountdown = "05:00";
@@ -669,7 +673,21 @@ public partial class AvaloniaMainViewModel : ObservableObject
             UpdateWorktreeTreeNodes();
 
             // 6. Audio feedback & status notification
-            _audioService.PlaySync();
+            if (isPeriodic)
+            {
+                if (AutoSyncAudioEnabled && Settings.SoundEnabled)
+                {
+                    _audioService.PlaySync();
+                }
+            }
+            else
+            {
+                if (Settings.SoundEnabled)
+                {
+                    _audioService.PlaySync();
+                }
+            }
+
             LastSyncedAtText = FormatSyncTimestamp(DateTime.Now);
             ShowNotification($"Synchronized {Profiles.Count} swarm account(s) and live telemetry.");
         }
@@ -1519,6 +1537,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
             SwarmExecutionMode = Settings.SwarmExecutionMode ?? "ConcurrentCli";
             ConfirmWorktreeMerge = Settings.ConfirmWorktreeMerge;
             AutoSyncEnabled = Settings.AutoSyncEnabled;
+            AutoSyncAudioEnabled = Settings.AutoSyncAudioEnabled;
             NavbarDisplayMode = Settings.NavbarDisplayMode ?? "Detailed";
             IsNavbarDetailed = NavbarDisplayMode == "Detailed";
 
@@ -1558,7 +1577,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
             ShowNotification("Agy Swarm Avalonia initialized successfully.");
 
             // Automatic background swarm sync on launch with zero CLI flicker
-            _ = Task.Run(async () => await SyncSwarmAsync());
+            _ = Task.Run(async () => await SyncSwarmAsync(isPeriodic: true));
 
             // 3-second welcome ambient chime & auto-dismiss splash screen
             _ = Task.Run(async () =>
@@ -2670,7 +2689,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         {
             _nextSyncTime = DateTime.UtcNow.AddMinutes(5);
             AutoSyncCountdown = "05:00";
-            _ = SyncSwarmAsync();
+            _ = SyncSwarmAsync(isPeriodic: true);
         }
         else
         {

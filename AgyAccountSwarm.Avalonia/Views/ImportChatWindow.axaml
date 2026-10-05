@@ -5,8 +5,9 @@
         x:Class="AgyAccountSwarm.Avalonia.Views.ImportChatWindow"
         x:DataType="vm:ImportChatViewModel"
         Title="Import Chat Conversations"
-        Width="740" Height="620"
-        CanResize="False"
+        Width="680" Height="500"
+        MinHeight="400" MinWidth="540"
+        CanResize="True"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BrushBg}"
         Foreground="{DynamicResource BrushTextPrimary}">

@@ -1,6 +1,6 @@
 # Laporan Perubahan (CHANGES.md) — Agy CLI Account Swarm
 
-Laporan ini merinci seluruh audit keamanan, arsitektur, dan perbaikan menyeluruh yang dilakukan pada repositori **Agy CLI Account Swarm** (.NET 9 WPF) sesuai fase kerja.
+Laporan ini merinci seluruh audit keamanan, arsitektur, dan perbaikan menyeluruh yang dilakukan pada repositori **Agy CLI Account Swarm** (.NET 9 Avalonia UI Flagship) sesuai fase kerja.
 
 ---
 
@@ -88,14 +88,27 @@ Semua temuan audit keamanan, arsitektur, dan permintaan fitur lanjutan (termasuk
 
 ---
 
+### E. Penyempurnaan Ergonomi GUI, Skills Hub & Audio (v0.9.10-beta)
+
+| Komponen | Perubahan | Rationale / Kenapa Diubah |
+|---|---|---|
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml` | Menyesuaikan dimensi default jendela utama menjadi `Width="1240" Height="660"`, `MinWidth="1000" MinHeight="500"`. | Menjawab keluhan ukuran window ("*height window masih ketinggian wey*" lalu "*heightnya krg tinggi wey*"). Menemukan sweet-spot 660px yang proporsional, nyaman di resolusi 1080p dan 1440p tanpa terpotong taskbar. |
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml.cs` | Memperbaiki bug konversi piksel fisik ke DIP (`screen.WorkingArea.Height / screen.Scaling`). Clamp hanya berlaku untuk mencegah window meluber keluar layar (`usableHeightDips - 40`) tanpa memaksa window membesar. | Di Windows high-DPI scaling (125%-150%), `WorkingArea.Height` mengembalikan physical pixels sehingga pengalian langsung menyebabkan jendela terlalu tinggi (832+ DIPs). |
+| `AgyAccountSwarm.Avalonia/Views/ProfileEditWindow.axaml`, `ImportChatWindow.axaml` | Kalibrasi ukuran modal dialog (`ProfileEditWindow`: 620x520, `ImportChatWindow`: 680x500) serta mengaktifkan `CanResize="True"`. | Memberikan fleksibilitas bagi pengguna dengan layar resolusi berbeda agar form dan daftar chat tidak terpotong. |
+| `Models/SkillItem.cs`, `Services/SkillService.cs`, `MainWindow.axaml` | Menambahkan metadata kepemilikan dan hak akses skill: `OwnerTitle`, `AccessibleBy`, `ScopeCategory`, serta badge warna/ikon dinamis. Memperluas pemindaian skill kustom per-profil (`~/.gemini-profiles/{id}/skills`). | Menjawab masukan pengguna ("*agent skills ini kurang detail milik siapa dan siapa*") sehingga pengguna dapat melihat apakah skill bertipe bawaan global, milik workspace proyek, ekstensi plugin, atau privat milik akun/profil tertentu. |
+| `ViewModels/AvaloniaMainViewModel.cs`, `Services/LocalizationService.cs` | Parameter `isPeriodic` pada `SyncSwarmAsync`, membisukan suara klik tombol saat auto-sync berjalan, dan menambahkan opsi `AutoSyncAudioEnabled` (default: `false` / bisu) terpisah dari suara klik manual. | Menjawab permintaan pengguna ("*periodic swarm itu opsikan audionya mau bunyi apa tdk*"). Sinkronisasi latar belakang periodik tidak mengganggu pengguna saat bekerja kecuali diaktifkan secara eksplisit. |
+| Repositori & Pipeline Build | Pruning folder usang `publish-crossplatform/` (menghemat ~805 MB) dan `dist/`, serta membersihkan DLL test runner dari folder produksi `publish/`. | Menjawab permintaan pembersihan ("*prune semua file yg tidak diperlukan*") dan memastikan folder rilis `publish/` bersih dan siap pakai. |
+
+---
+
 ## 3. Apa yang Sengaja Tidak Diubah (Rasionalitas)
 
-1. **Arsitektur WPF .NET 9 Tetap Dipertahankan (Tidak Di-rewrite ke Avalonia Sekarang)**:
-   - *Alasan*: Repo ini adalah aplikasi desktop Windows yang kaya akan animasi XAML, visual tree custom chrome, interop Windows Terminal, dan System Tray Windows Forms. Rewrite ke Avalonia membutuhkan refactor total pada layer Views dan bindings yang berada di luar lingkup perbaikan audit keamanan dan telemetri.
-2. **Tidak Menambah Library Eksternal / NuGet Baru**:
-   - *Alasan*: Implementasi DPAPI dilakukan langsung melalui P/Invoke `crypt32.dll` Windows tanpa menambah dependensi `System.Security.Cryptography.ProtectedData` pihak ketiga, menjaga binary tetap ramping dan terisolasi dari potensi supply chain vulnerability.
-3. **Format history.jsonl agy Asli Tetap Dibaca Read-Only**:
+1. **Format history.jsonl agy Asli Tetap Dibaca Read-Only**:
    - *Alasan*: Aplikasi ini bertindak sebagai sandbox orchestrator yang menghormati data asli CLI Google Antigravity tanpa memodifikasi schema history internal CLI agar tidak merusak kompatibilitas backward/forward.
+2. **Tidak Menambah Library Eksternal / NuGet Berlebihan**:
+   - *Alasan*: Menjaga footprint binary tetap ramping, dependensi terkendali, dan meminimalkan kerentanan rantai pasok (supply chain vulnerability).
+3. **Prototipe Lama WPF Tetap Diarsipkan (Non-Aktif)**:
+   - *Alasan*: Kode WPF lama disimpan sebagai referensi historis semata di subfolder tanpa mengganggu binary utama Avalonia UI (`AgyCliAccountSwarmGUI.exe`).
 
 ---
 

@@ -7,7 +7,7 @@
 > **A high-performance desktop orchestrator & sandbox session manager for Google Antigravity CLI (`agy`).**  
 > Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing.
 
-[![Version](https://img.shields.io/badge/Version-0.9.9--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.9.10--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
 [![Primary UI: Avalonia Cross-Platform](https://img.shields.io/badge/Primary%20UI-Avalonia%20Cross--Platform-10B981?style=flat&logo=avaloniaui)](https://avaloniaui.net/)
 [![WPF: Archived Prototype](https://img.shields.io/badge/WPF-Archived%20Prototype-gray?style=flat&logo=windows)]()
@@ -26,7 +26,7 @@
 
 > [!NOTE]
 > ### 🖥️ PRIMARY FLAGSHIP: AVALONIA UI CROSS-PLATFORM (`AgyCliAccountSwarmGUI.exe`)
-> **Agy CLI Account Swarm (Avalonia Edition)** is the sole active flagship desktop application (`AgyCliAccountSwarmGUI.exe`), delivering cross-platform rendering (Windows, Linux, macOS), modern high-contrast transparent outline controls, interactive node graphs, high-DPI font rendering, and responsive MVVM architecture.  
+> **Agy CLI Account Swarm (Avalonia Edition)** is the sole active flagship desktop application (`AgyCliAccountSwarmGUI.exe`), delivering cross-platform rendering (Windows, Linux, macOS), modern high-contrast transparent outline controls, interactive node graphs, high-DPI font rendering, balanced ergonomic window scaling (`1240x660`), and responsive MVVM architecture.  
 > The legacy Windows Presentation Foundation (WPF) codebase has been **completely archived as an internal pseudo prototype** for historical inspection.
 
 ---
@@ -46,7 +46,8 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 4. **🌐 100% Bilingual Localization (Indonesian 🇮🇩 & English 🇬🇧)**: Complete native localization coverage with instant live switching without restart.
 5. **💬 Dedicated Real-Time Chat Studio (`/realtime-chat`)**: Full-screen collaborative agent chat room with profile shortcuts (`💬 Chat Realtime`) and live channel feeds.
 6. **📡 Live Activity Telemetry ("dia lagi ngapain")**: Authentic real-time command tracking and live output chips showing exactly what each worker is executing.
-7. **🧩 Antigravity Skills Hub & 🔊 Sonic Sentinels**: Inspect custom skills schemas and receive dynamic audio feedback on swarm status changes.
+7. **🧩 Antigravity Skills Hub & Multi-Scope Discovery**: Inspect built-in, workspace, plugin, and per-profile skills schemas with explicit ownership, accessibility tags, and full Markdown modal preview.
+8. **🔊 Sonic Sentinels & Optional Periodic Audio**: Synthesized audio alerts on swarm lifecycle events with configurable silent background periodic sync.
 
 ---
 

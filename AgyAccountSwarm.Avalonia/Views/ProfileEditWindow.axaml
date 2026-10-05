@@ -4,8 +4,9 @@
         x:Class="AgyAccountSwarm.Avalonia.Views.ProfileEditWindow"
         x:DataType="views:ProfileEditWindow"
         Title="{Binding Strings[Edit_Title]}"
-        Width="660" Height="780"
-        CanResize="False"
+        Width="620" Height="520"
+        MinHeight="440" MinWidth="520"
+        CanResize="True"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BrushCard}">
 

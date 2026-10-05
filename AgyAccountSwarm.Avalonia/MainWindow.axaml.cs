@@ -30,10 +30,21 @@ public partial class MainWindow : Window
             var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary ?? Screens.All.FirstOrDefault();
             if (screen != null)
             {
-                double targetHeight = Math.Round(screen.WorkingArea.Height * 0.80);
-                if (targetHeight >= 550)
+                double scaling = screen.Scaling > 0 ? screen.Scaling : 1.0;
+                double usableHeightDips = screen.WorkingArea.Height / scaling;
+                double usableWidthDips = screen.WorkingArea.Width / scaling;
+
+                // Ensure window never overflows display working area (accounting for taskbar)
+                double maxAllowedHeight = usableHeightDips - 48;
+                if (Height > maxAllowedHeight && maxAllowedHeight >= 460)
                 {
-                    Height = targetHeight;
+                    Height = Math.Round(maxAllowedHeight);
+                }
+
+                double maxAllowedWidth = usableWidthDips - 48;
+                if (Width > maxAllowedWidth && maxAllowedWidth >= 900)
+                {
+                    Width = Math.Round(maxAllowedWidth);
                 }
             }
         };

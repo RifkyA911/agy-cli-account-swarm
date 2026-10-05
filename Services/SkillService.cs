@@ -29,12 +29,13 @@ public class SkillService : ISkillService
                 ? workspacePath
                 : Directory.GetCurrentDirectory();
 
+            var workspaceName = Path.GetFileName(currentWorkspace) ?? "Project Workspace";
             var workspaceSkillsDir = Path.Combine(currentWorkspace, ".agents", "skills");
-            ScanDirectoryForSkills(workspaceSkillsDir, "Workspace", skills, seenPaths);
+            ScanDirectoryForSkills(workspaceSkillsDir, "Workspace", skills, seenPaths, workspaceName);
 
             // 2. User Built-in Skills (~/.gemini/antigravity-cli/builtin/skills)
             var builtinSkillsDir = Path.Combine(userHome, ".gemini", "antigravity-cli", "builtin", "skills");
-            ScanDirectoryForSkills(builtinSkillsDir, "Built-in", skills, seenPaths);
+            ScanDirectoryForSkills(builtinSkillsDir, "Built-in", skills, seenPaths, "Global CLI");
 
             // 3. User Plugin Skills (~/.gemini/config/plugins/*/skills/*)
             var pluginsDir = Path.Combine(userHome, ".gemini", "config", "plugins");
@@ -44,8 +45,9 @@ public class SkillService : ISkillService
                 {
                     foreach (var pluginDir in Directory.GetDirectories(pluginsDir))
                     {
+                        var pluginName = Path.GetFileName(pluginDir);
                         var pluginSkillsDir = Path.Combine(pluginDir, "skills");
-                        ScanDirectoryForSkills(pluginSkillsDir, "Plugin", skills, seenPaths);
+                        ScanDirectoryForSkills(pluginSkillsDir, "Plugin", skills, seenPaths, pluginName);
                     }
                 }
                 catch (Exception ex)
@@ -54,11 +56,30 @@ public class SkillService : ISkillService
                 }
             }
 
+            // 4. Per-Profile Sandbox Skills (~/.gemini-profiles/*/.gemini/antigravity-cli/skills)
+            var profilesDir = Path.Combine(userHome, ".gemini-profiles");
+            if (Directory.Exists(profilesDir))
+            {
+                try
+                {
+                    foreach (var pDir in Directory.GetDirectories(profilesDir))
+                    {
+                        var profName = Path.GetFileName(pDir);
+                        var customSkillsDir = Path.Combine(pDir, ".gemini", "antigravity-cli", "skills");
+                        ScanDirectoryForSkills(customSkillsDir, "Profile", skills, seenPaths, profName);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Debug($"[SkillService] Error reading profiles directory '{profilesDir}': {ex.Message}");
+                }
+            }
+
             return skills.OrderBy(s => s.SourceType).ThenBy(s => s.Name).ToList();
         });
     }
 
-    private void ScanDirectoryForSkills(string rootDir, string sourceType, List<SkillItem> skills, HashSet<string> seenPaths)
+    private void ScanDirectoryForSkills(string rootDir, string sourceType, List<SkillItem> skills, HashSet<string> seenPaths, string? ownerContext = null)
     {
         if (!Directory.Exists(rootDir)) return;
 
@@ -79,7 +100,7 @@ public class SkillService : ISkillService
                     if (seenPaths.Contains(fullPath)) continue;
                     seenPaths.Add(fullPath);
 
-                    var skill = ParseSkillFile(skillFile, subDir, sourceType);
+                    var skill = ParseSkillFile(skillFile, subDir, sourceType, ownerContext);
                     skills.Add(skill);
                 }
             }
@@ -90,7 +111,7 @@ public class SkillService : ISkillService
         }
     }
 
-    public static SkillItem ParseSkillFile(string skillFilePath, string skillDirectory, string sourceType)
+    public static SkillItem ParseSkillFile(string skillFilePath, string skillDirectory, string sourceType, string? ownerContext = null)
     {
         var dirName = Path.GetFileName(skillDirectory);
         var item = new SkillItem
@@ -101,6 +122,43 @@ public class SkillService : ISkillService
             SourceType = sourceType,
             HasInstructions = true
         };
+
+        // Determine ownership and accessibility scope
+        switch (sourceType)
+        {
+            case "Built-in":
+                item.OwnerTitle = "Semua Akun (Global CLI Bawaan)";
+                item.AccessibleBy = "Diwarisi otomatis oleh seluruh akun Google & worker swarm.";
+                item.ScopeCategory = "Built-in";
+                break;
+
+            case "Workspace":
+                var wsName = !string.IsNullOrWhiteSpace(ownerContext) ? ownerContext : "Project";
+                item.OwnerTitle = $"Project: {wsName}";
+                item.AccessibleBy = $"Hanya aktif saat akun/worker menjalankan tugas di workspace '{wsName}'.";
+                item.ScopeCategory = "Workspace";
+                break;
+
+            case "Plugin":
+                var pluginName = !string.IsNullOrWhiteSpace(ownerContext) ? ownerContext : "Plugin";
+                item.OwnerTitle = $"Plugin: {pluginName} (Semua Akun)";
+                item.AccessibleBy = $"Tersedia global untuk semua akun yang menggunakan plugin '{pluginName}'.";
+                item.ScopeCategory = "Plugin";
+                break;
+
+            case "Profile":
+                var profName = !string.IsNullOrWhiteSpace(ownerContext) ? ownerContext : "Profil Khusus";
+                item.OwnerTitle = $"Profil: {profName}";
+                item.AccessibleBy = $"Khusus untuk akun sandbox profil '{profName}'.";
+                item.ScopeCategory = "Profile";
+                break;
+
+            default:
+                item.OwnerTitle = "Semua Akun (Global)";
+                item.AccessibleBy = "Dapat diakses oleh seluruh akun swarm.";
+                item.ScopeCategory = "Global";
+                break;
+        }
 
         try
         {

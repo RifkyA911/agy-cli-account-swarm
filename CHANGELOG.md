@@ -2,6 +2,31 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.10-beta] - 2026-10-05
+### Added & Changed
+- **Ergonomic Window Height Calibration & High-DPI Scaling Fix**:
+  - Calibrated default window dimensions to `Width="1240" Height="660"` with `MinWidth="1000" MinHeight="500"`, establishing a balanced visual viewport that eliminates taskbar crowding on 1080p and 1440p displays while preserving ample space for multi-card rosters.
+  - Fixed Windows Avalonia physical-pixel vs device-independent-pixel (DIP) scaling bug where `Screen.WorkingArea.Height` was multiplied by the display scale factor (125%-150%) instead of dividing by `screen.Scaling`, inflating the window height beyond the viewport.
+  - Window loaded clamp logic now cleanly prevents screen bottom overflow (`usableHeightDips - 40`) without forcibly expanding window height.
+  - Sized secondary modal dialogs comfortably (`ProfileEditWindow`: 620x520, `ImportChatWindow`: 680x500) and enabled window resizing (`CanResize="True"`).
+- **Agent Skills Hub Ownership & Multi-Scope Discovery**:
+  - Enhanced `Models/SkillItem.cs` with explicit ownership and accessibility metadata: `OwnerTitle`, `AccessibleBy`, `ScopeCategory`, `OwnerIcon`, and `OwnerBadgeColor`.
+  - Upgraded `Services/SkillService.cs` discovery engine to scan per-profile custom skill directories (`~/.gemini-profiles/{id}/skills`) in addition to built-in skills, workspace skills (`.agents/skills/`), and plugin extensions.
+  - Added visual ownership badges and access scope pills directly onto Skill Cards and within the comprehensive Skill Details modal inspector.
+- **Optional Background Periodic Swarm Audio (`AutoSyncAudioEnabled`)**:
+  - Decoupled manual sync button sound from automatic periodic background sync.
+  - Suppressed tactile click sounds during background periodic synchronizations.
+  - Introduced `AutoSyncAudioEnabled` setting (default: `false` / silent) to ensure background sync cycles run completely unobtrusively unless the user explicitly opts in.
+  - Updated localization strings in English and Indonesian to clarify the setting behavior.
+- **Artifacts & Dead Workspace Pruning**:
+  - Reclaimed over 805 MB of disk space by pruning obsolete build output folders (`publish-crossplatform/`) and legacy release archives (`dist/`).
+  - Purged intermediate test-host dependencies and transient testing DLLs from the production release directory, ensuring `publish/` contains only the clean, isolated flagship `AgyCliAccountSwarmGUI.exe` bundle.
+- **Real-Time Chat Studio Architecture Documentation**:
+  - Added thorough architectural documentation detailing the purpose of the Real-Time Chat Studio: human-in-the-loop steering, inter-agent timeline streaming from `.swarm/bus.jsonl`, shared blackboard synchronization, and per-profile direct conversations.
+- **100% Hermetic Test Suite & Verification**:
+  - Updated unit test assertions in `AvaloniaParityAndPendingLoginTests.cs` matching the calibrated dimensions (1240x660).
+  - Maintained 100% green test pass rate (162/162 passed, 0 failures, 0 warnings, 0 errors).
+
 ## [v0.9.9-beta] - 2026-10-04
 ### Added & Changed
 - **100% Comprehensive Bilingual Localization (Indonesian 🇮🇩 & English 🇬🇧)**:
