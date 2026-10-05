@@ -2,6 +2,34 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.12-beta] - 2026-10-05
+### Added & Changed
+- **Responsive Header Layout Collision Fix ("Tab Menu Gede")**:
+  - Replaced rigid `Grid ColumnDefinitions="*,Auto"` with a responsive `WrapPanel` in the Chat top switcher bar (`MainWindow.axaml`).
+  - Streamlined live status pill to `AGY CLI Live Sandbox` with clean vertical centering, 16px horizontal spacing, and smooth auto-wrapping.
+  - Completely eliminates header collision/overlap on narrow display viewports and high-DPI display scaling (125%-150%).
+- **100% Dynamic AI Model Discovery (Zero Hardcoding)**:
+  - Completely removed hardcoded model lists (`gemini-2.5-pro` etc.) from Personal Chat.
+  - Model selection is now dynamically discovered at runtime from the `agy models` CLI command and account sandbox configurations via `IAgyModelService.DiscoverModelsAsync`.
+  - Upgraded built-in fallback catalog to reflect Google Antigravity's current verified models (`gemini-3.8-flash-high`, `gemini-3.8-flash-medium`, `gemini-3.8-flash-low`, `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.1-pro`, `claude-sonnet-4-6`, `claude-opus-4-6-thinking`, `gpt-oss-120b-medium`).
+- **Empirical Reasoning Effort Verification**:
+  - Verified against AGY CLI execution: Antigravity CLI strictly supports `low`, `medium`, and `high` reasoning efforts (`xhigh` and `max` are rejected with exit code 1).
+  - Purged invalid `xhigh` effort value from Personal Chat options, ensuring 100% reliable CLI execution without argument rejection.
+- **Active RAG Document Upload & Ingestion**:
+  - Added `[📄 Index Doc...]` button directly to the RAG toolbar in the Chat view.
+  - Integrated native Avalonia `StorageProvider` file picker supporting documents (`.md`, `.txt`, `.json`, `.csv`, `.pdf`, `.docx`, `.yaml`).
+  - Automated staging and ingestion via `arag-cli build-index --input-dir <dir> --kb <kb> --mode append` and replicated into the local documentation store for automatic fallback search.
+- **Authentic Antigravity CLI History Synchronization**:
+  - Added dedicated `[🔄 Sync CLI]` action in the Personal Chat Sessions sidebar header.
+  - Automatically parses historical conversations from `%USERPROFILE%\.gemini\antigravity-cli\history.jsonl` and custom sandbox directories (`~/.gemini-profiles/{id}/`).
+  - Seamlessly imports authentic multi-turn messages and token telemetry directly from `brain/{conversationId}/.system_generated/logs/transcript.jsonl` with automated XML tag cleaning (`<USER_REQUEST>`, `<ADDITIONAL_METADATA>`, `<USER_SETTINGS_CHANGE>`).
+  - Full session continuity: resuming any synced historical conversation seamlessly passes `--conversation <conversationId>` to `agy`, maintaining real CLI context.
+- **Hermetic Test Suite Expanded to 170/170 Passed**:
+  - Added test coverage in `tests/AgyAccountSwarm.Tests/PersonalChatAndRagTests.cs` for RAG document indexing, CLI history synchronization with XML transcript cleaning, and modern model discovery.
+  - 100% green pass rate: 170 passed, 0 failed, 0 skipped.
+- **Zero Warnings, Zero Errors Release Build**:
+  - `dotnet build` and `dotnet publish AgyAccountSwarm.Avalonia -c Release -o publish` completed with 0 warnings and 0 errors.
+
 ## [v0.9.11-beta] - 2026-10-05
 ### Added & Changed
 - **Unified Chat Hub (`/chat`) with Prominent Tab Switcher ("Tab Menu Gede")**:

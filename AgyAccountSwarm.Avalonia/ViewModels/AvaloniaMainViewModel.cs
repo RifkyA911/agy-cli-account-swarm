@@ -1293,6 +1293,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
     }
 
     public event Func<Task<string?>>? BrowseFolderRequested;
+    public event Func<Task<string?>>? BrowseRagDocumentFileRequested;
     public event Func<AccountProfile?, Task<AccountProfile?>>? ShowEditDialogRequested;
     public event Func<Task<AccountProfile?>>? ShowAddProfileRequested;
     public event Action<AvaloniaProfileItemViewModel>? ImportChatRequested;
@@ -3480,16 +3481,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private bool _isPersonalChatGenerating = false;
 
     [ObservableProperty]
-    private string _personalChatSelectedModel = "gemini-2.5-pro";
+    private string _personalChatSelectedModel = "gemini-3.8-flash-medium";
 
-    public List<string> PersonalChatModelOptions { get; } = new()
-    {
-        "gemini-2.5-pro",
-        "gemini-2.5-flash",
-        "claude-3-7-sonnet",
-        "claude-3-5-sonnet",
-        "gpt-4o"
-    };
+    public ObservableCollection<string> PersonalChatModelOptions { get; } = [];
 
     [ObservableProperty]
     private string _personalChatSelectedEffort = "medium";
@@ -3498,8 +3492,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
     {
         "low",
         "medium",
-        "high",
-        "xhigh"
+        "high"
     };
 
     [ObservableProperty]
@@ -3557,6 +3550,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 }
             });
 
+            await PopulatePersonalChatDynamicModelsAsync();
             RefreshLiveSwarmTasks();
 
             if (Profiles.Count > 0 && PersonalChatSelectedProfile == null)
@@ -3570,11 +3564,43 @@ public partial class AvaloniaMainViewModel : ObservableObject
         }
     }
 
+    public async Task PopulatePersonalChatDynamicModelsAsync(bool forceCliRefresh = false)
+    {
+        try
+        {
+            var profilePaths = Profiles.Select(p => p.Profile.CustomProfilePath).OfType<string>().ToList();
+            var models = await _modelService.DiscoverModelsAsync(profilePaths, forceCliRefresh);
+            Dispatcher.UIThread.Post(() =>
+            {
+                PersonalChatModelOptions.Clear();
+                foreach (var m in models)
+                {
+                    PersonalChatModelOptions.Add(m.Id);
+                }
+
+                if (!PersonalChatModelOptions.Contains(PersonalChatSelectedModel))
+                {
+                    PersonalChatSelectedModel = PersonalChatModelOptions.FirstOrDefault(m => m.Contains("3.8-flash-medium"))
+                                             ?? PersonalChatModelOptions.FirstOrDefault()
+                                             ?? "gemini-3.8-flash-medium";
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[PersonalChat] Failed to dynamically populate models: {ex.Message}");
+        }
+    }
+
     public void EnsurePersonalChatContext()
     {
         if (PersonalChatSelectedProfile == null && Profiles.Count > 0)
         {
             PersonalChatSelectedProfile = Profiles.FirstOrDefault();
+        }
+        if (PersonalChatModelOptions.Count == 0)
+        {
+            _ = PopulatePersonalChatDynamicModelsAsync();
         }
         RefreshLiveSwarmTasks();
     }
@@ -3827,6 +3853,82 @@ public partial class AvaloniaMainViewModel : ObservableObject
         if (profileVm != null)
         {
             OpenPersonalChatForProfile(profileVm.Id);
+        }
+    }
+
+    [RelayCommand]
+    public async Task UploadRagDocumentAsync()
+    {
+        if (BrowseRagDocumentFileRequested == null) return;
+
+        var filePath = await BrowseRagDocumentFileRequested.Invoke();
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath)) return;
+
+        _audioService.PlayClick();
+        var fileName = Path.GetFileName(filePath);
+        var targetKb = string.IsNullOrWhiteSpace(SelectedRagKnowledgeBase) ? "agy-swarm" : SelectedRagKnowledgeBase;
+
+        ShowNotification($"Indexing '{fileName}' into '{targetKb}'...");
+
+        var (success, message, newChunks) = await _ragService.IndexFileAsync(filePath, targetKb);
+        if (success)
+        {
+            _audioService.PlaySuccess();
+            ShowNotification($"✅ Indexed '{fileName}' (+{newChunks} chunks to '{targetKb}').");
+
+            var kbs = await _ragService.GetKnowledgeBasesAsync();
+            Dispatcher.UIThread.Post(() =>
+            {
+                RagKnowledgeBases.Clear();
+                foreach (var kb in kbs) RagKnowledgeBases.Add(kb.Name);
+                if (!RagKnowledgeBases.Contains(SelectedRagKnowledgeBase) && RagKnowledgeBases.Count > 0)
+                {
+                    SelectedRagKnowledgeBase = RagKnowledgeBases.First();
+                }
+            });
+        }
+        else
+        {
+            _audioService.PlayQuotaAlert();
+            ShowNotification($"⚠️ RAG indexing notice: {message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task SyncCliHistoryAsync()
+    {
+        var targetProfile = PersonalChatSelectedProfile?.Profile ?? Profiles.FirstOrDefault()?.Profile;
+        if (targetProfile == null)
+        {
+            ShowNotification("Please select an active profile before syncing.");
+            return;
+        }
+
+        _audioService.PlayClick();
+        ShowNotification($"Scanning Antigravity CLI history for '{targetProfile.Name}'...");
+
+        try
+        {
+            var count = await _personalChatService.SyncExistingCliHistoryAsync(
+                targetProfile.Id,
+                targetProfile.CustomProfilePath);
+
+            await ReloadPersonalChatSessionsForProfileAsync(targetProfile.Id);
+
+            if (count > 0)
+            {
+                _audioService.PlaySuccess();
+                ShowNotification($"✅ Synced {count} conversations from Antigravity CLI!");
+            }
+            else
+            {
+                ShowNotification("No new historical CLI conversations found to sync.");
+            }
+        }
+        catch (Exception ex)
+        {
+            _audioService.PlayQuotaAlert();
+            ShowNotification($"⚠️ CLI history sync error: {ex.Message}");
         }
     }
 

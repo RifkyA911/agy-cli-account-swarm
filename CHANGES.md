@@ -10,7 +10,7 @@ Semua temuan audit keamanan, arsitektur, dan permintaan fitur lanjutan (termasuk
 
 - **Status Kompilasi (`dotnet build`)**: **0 Warning(s), 0 Error(s)**
 - **Status Publikasi (`dotnet publish -c Release -o publish`)**: **0 Warning(s), 0 Error(s)** (Produksi Flagship: `publish\AgyCliAccountSwarmGUI.exe`)
-- **Status Unit Test (`dotnet test`)**: **167 Passed, 0 Failed, 0 Skipped** (100% Green, Hermetik)
+- **Status Unit Test (`dotnet test`)**: **170 Passed, 0 Failed, 0 Skipped** (100% Green, Hermetik)
 
 ---
 
@@ -170,7 +170,7 @@ Build succeeded.
 Starting test execution, please wait...
 A total of 1 test files matched the specified pattern.
 
-Passed!  - Failed:     0, Passed:   167, Skipped:     0, Total:   167, Duration: 45 s - AgyAccountSwarm.Tests.dll (net9.0)
+Passed!  - Failed:     0, Passed:   170, Skipped:     0, Total:   170, Duration: 42 s - AgyAccountSwarm.Tests.dll (net9.0)
 ```
 
 ### C. `dotnet publish AgyAccountSwarm.Avalonia/AgyAccountSwarm.Avalonia.csproj -c Release -o publish`

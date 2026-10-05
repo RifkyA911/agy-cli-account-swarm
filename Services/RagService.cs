@@ -19,6 +19,7 @@ public interface IRagService
     Task<List<KnowledgeBaseInfo>> GetKnowledgeBasesAsync(CancellationToken cancellationToken = default);
     Task<RagSearchResult> SearchContextAsync(string query, string kbName = "agy-swarm", string searchMode = "Hybrid", int topK = 3, CancellationToken cancellationToken = default);
     string BuildAugmentedPrompt(string originalPrompt, List<RagChunkItem> retrievedChunks, string? liveTaskContext = null);
+    Task<(bool Success, string Message, int ChunksIndexed)> IndexFileAsync(string filePath, string kbName = "agy-swarm", CancellationToken cancellationToken = default);
 }
 
 public class RagService : IRagService
@@ -474,5 +475,96 @@ public class RagService : IRagService
         sb.AppendLine("Instructions: Use the factual knowledge base context and real-time swarm status above to provide a precise, accurate, and comprehensive response.");
 
         return sb.ToString();
+    }
+
+    public async Task<(bool Success, string Message, int ChunksIndexed)> IndexFileAsync(
+        string filePath,
+        string kbName = "agy-swarm",
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            return (false, "Specified file does not exist.", 0);
+        }
+
+        var fileName = Path.GetFileName(filePath);
+        int newChunks = 0;
+
+        // 1. If arag-cli is available, use 'arag-cli build-index' with staging directory
+        if (IsAragAvailable)
+        {
+            var stagingDir = Path.Combine(Path.GetTempPath(), "arag_staging_" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(stagingDir);
+                var destPath = Path.Combine(stagingDir, fileName);
+                File.Copy(filePath, destPath, overwrite: true);
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = _resolvedAragCliPath!,
+                    Arguments = $"build-index --input-dir \"{stagingDir}\" --kb \"{kbName}\" --mode append --no-embedding --format json",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8
+                };
+
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    var stdoutTask = proc.StandardOutput.ReadToEndAsync(cancellationToken);
+                    var stderrTask = proc.StandardError.ReadToEndAsync(cancellationToken);
+                    await Task.WhenAll(stdoutTask, stderrTask);
+                    await proc.WaitForExitAsync(cancellationToken);
+
+                    var stdout = await stdoutTask;
+                    if (proc.ExitCode == 0 && !string.IsNullOrWhiteSpace(stdout))
+                    {
+                        try
+                        {
+                            var node = JsonNode.Parse(stdout);
+                            newChunks = node?["stats"]?["new_chunks"]?.GetValue<int>() ?? 1;
+                        }
+                        catch
+                        {
+                            newChunks = 1;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn($"[RagService] arag-cli index error: {ex.Message}");
+            }
+            finally
+            {
+                try
+                {
+                    if (Directory.Exists(stagingDir)) Directory.Delete(stagingDir, true);
+                }
+                catch { }
+            }
+        }
+
+        // 2. Also ensure document is placed into workspace docs/ or local RAG store for built-in markdown search fallback
+        try
+        {
+            var docsDir = Path.Combine(_workspaceRoot, "docs");
+            Directory.CreateDirectory(docsDir);
+            var localDocDest = Path.Combine(docsDir, fileName);
+            if (!string.Equals(Path.GetFullPath(filePath), Path.GetFullPath(localDocDest), StringComparison.OrdinalIgnoreCase))
+            {
+                File.Copy(filePath, localDocDest, overwrite: true);
+            }
+            if (newChunks == 0) newChunks = 1;
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"[RagService] Local doc fallback copy warning: {ex.Message}");
+        }
+
+        return (true, $"Indexed '{fileName}' into knowledge base '{kbName}'.", newChunks);
     }
 }

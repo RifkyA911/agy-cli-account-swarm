@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AgyAccountSwarm.Models;
@@ -28,6 +29,7 @@ public interface IPersonalChatService
         string? customAgyPath = null,
         CancellationToken cancellationToken = default);
     string GetRealtimeSwarmTaskStatusSummary(string workspaceRoot);
+    Task<int> SyncExistingCliHistoryAsync(string profileId, string? profileSandboxDir = null, CancellationToken cancellationToken = default);
 }
 
 public class PersonalChatService : IPersonalChatService
@@ -426,4 +428,278 @@ public class PersonalChatService : IPersonalChatService
             return $"Swarm Status: Telemetry read note ({ex.Message})";
         }
     }
+
+    public async Task<int> SyncExistingCliHistoryAsync(string profileId, string? profileSandboxDir = null, CancellationToken cancellationToken = default)
+    {
+        return await Task.Run(async () =>
+        {
+            var targetCliDirs = new List<string>();
+
+            // 1. Profile custom sandbox directory if specified
+            if (!string.IsNullOrWhiteSpace(profileSandboxDir))
+            {
+                var customCli = Path.Combine(profileSandboxDir, ".gemini", "antigravity-cli");
+                if (Directory.Exists(customCli)) targetCliDirs.Add(customCli);
+            }
+
+            // 2. Profile folder under ~/.gemini-profiles/
+            var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var profileCliDir = Path.Combine(userHome, ".gemini-profiles", profileId, ".gemini", "antigravity-cli");
+            if (Directory.Exists(profileCliDir) && !targetCliDirs.Contains(profileCliDir))
+            {
+                targetCliDirs.Add(profileCliDir);
+            }
+
+            // 3. User default global ~/.gemini/antigravity-cli/
+            var defaultCliDir = Path.Combine(userHome, ".gemini", "antigravity-cli");
+            if (Directory.Exists(defaultCliDir) && !targetCliDirs.Contains(defaultCliDir))
+            {
+                targetCliDirs.Add(defaultCliDir);
+            }
+
+            if (targetCliDirs.Count == 0) return 0;
+
+            var existingSessions = await GetSessionsAsync(profileId, cancellationToken);
+            var sessionsDict = existingSessions.ToDictionary(s => s.Id, StringComparer.OrdinalIgnoreCase);
+            var importedCount = 0;
+
+            foreach (var cliDir in targetCliDirs)
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+
+                var historyFile = Path.Combine(cliDir, "history.jsonl");
+                var brainDir = Path.Combine(cliDir, "brain");
+
+                // Parse history.jsonl if present
+                var historyEntries = new Dictionary<string, List<(string Display, DateTime Timestamp, string Workspace)>>(StringComparer.OrdinalIgnoreCase);
+
+                if (File.Exists(historyFile))
+                {
+                    try
+                    {
+                        using var stream = new FileStream(historyFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        using var reader = new StreamReader(stream);
+                        string? line;
+                        while ((line = reader.ReadLine()) != null)
+                        {
+                            if (string.IsNullOrWhiteSpace(line)) continue;
+                            try
+                            {
+                                using var doc = JsonDocument.Parse(line);
+                                var root = doc.RootElement;
+                                var convId = root.TryGetProperty("conversationId", out var cProp) ? cProp.GetString() ?? "" : "";
+                                if (string.IsNullOrWhiteSpace(convId)) continue;
+
+                                long epochMs = 0;
+                                if (root.TryGetProperty("timestamp", out var tsProp) && tsProp.TryGetInt64(out var ts))
+                                {
+                                    epochMs = ts;
+                                }
+
+                                var dt = epochMs > 0
+                                    ? DateTimeOffset.FromUnixTimeMilliseconds(epochMs).UtcDateTime
+                                    : File.GetLastWriteTimeUtc(historyFile);
+
+                                var display = root.TryGetProperty("display", out var dispProp) ? dispProp.GetString() ?? "" : "";
+                                var ws = root.TryGetProperty("workspace", out var wsProp) ? wsProp.GetString() ?? "" : "";
+
+                                if (!historyEntries.TryGetValue(convId, out var list))
+                                {
+                                    list = new List<(string Display, DateTime Timestamp, string Workspace)>();
+                                    historyEntries[convId] = list;
+                                }
+                                list.Add((display, dt, ws));
+                            }
+                            catch { }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"[PersonalChatService] Failed to read history.jsonl from {cliDir}: {ex.Message}");
+                    }
+                }
+
+                // Also discover any conversation IDs in brain directory that might not be in history.jsonl
+                if (Directory.Exists(brainDir))
+                {
+                    try
+                    {
+                        foreach (var sub in Directory.GetDirectories(brainDir))
+                        {
+                            var cId = Path.GetFileName(sub);
+                            if (!historyEntries.ContainsKey(cId))
+                            {
+                                historyEntries[cId] = new List<(string Display, DateTime Timestamp, string Workspace)>
+                                {
+                                    ($"Conversation {cId[..Math.Min(8, cId.Length)]}", Directory.GetLastWriteTimeUtc(sub), "")
+                                };
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                // For each discovered conversation, extract messages and generate session
+                foreach (var kvp in historyEntries)
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
+
+                    var convId = kvp.Key;
+                    var entries = kvp.Value;
+                    var transcriptFile = Path.Combine(brainDir, convId, ".system_generated", "logs", "transcript.jsonl");
+
+                    var messages = new List<PersonalChatMessage>();
+
+                    if (File.Exists(transcriptFile))
+                    {
+                        try
+                        {
+                            using var stream = new FileStream(transcriptFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            using var reader = new StreamReader(stream);
+                            string? line;
+                            while ((line = reader.ReadLine()) != null)
+                            {
+                                if (string.IsNullOrWhiteSpace(line)) continue;
+                                try
+                                {
+                                    using var doc = JsonDocument.Parse(line);
+                                    var root = doc.RootElement;
+                                    var source = root.TryGetProperty("source", out var src) ? src.GetString() ?? "" : "";
+                                    var type = root.TryGetProperty("type", out var tp) ? tp.GetString() ?? "" : "";
+                                    var content = root.TryGetProperty("content", out var cnt) ? cnt.GetString() ?? "" : "";
+                                    if (string.IsNullOrWhiteSpace(content)) continue;
+
+                                    DateTime msgDt = DateTime.UtcNow;
+                                    if (root.TryGetProperty("created_at", out var cat) && DateTime.TryParse(cat.GetString(), out var parsedDt))
+                                    {
+                                        msgDt = parsedDt.ToUniversalTime();
+                                    }
+
+                                    bool isUser = source.Equals("USER_EXPLICIT", StringComparison.OrdinalIgnoreCase) ||
+                                                  type.Equals("USER_INPUT", StringComparison.OrdinalIgnoreCase);
+
+                                    if (isUser)
+                                    {
+                                        var cleanContent = CleanUserRequestPrompt(content);
+                                        if (!string.IsNullOrWhiteSpace(cleanContent))
+                                        {
+                                            messages.Add(new PersonalChatMessage
+                                            {
+                                                Role = "user",
+                                                Content = cleanContent,
+                                                Timestamp = msgDt
+                                            });
+                                        }
+                                    }
+                                    else if (source.Equals("MODEL", StringComparison.OrdinalIgnoreCase) ||
+                                             type.Equals("PLANNER_RESPONSE", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        int inTokens = root.TryGetProperty("input_tokens", out var it) ? it.GetInt32() : 0;
+                                        int outTokens = root.TryGetProperty("output_tokens", out var ot) ? ot.GetInt32() : 0;
+
+                                        messages.Add(new PersonalChatMessage
+                                        {
+                                            Role = "assistant",
+                                            Content = content.Trim(),
+                                            Model = "gemini-3.8-flash",
+                                            InputTokens = inTokens,
+                                            OutputTokens = outTokens,
+                                            TotalTokens = inTokens + outTokens,
+                                            Timestamp = msgDt
+                                        });
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Warn($"[PersonalChatService] Failed to parse transcript for {convId}: {ex.Message}");
+                        }
+                    }
+
+                    // Fallback to entries from history.jsonl if transcript yielded no messages
+                    if (messages.Count == 0 && entries.Count > 0)
+                    {
+                        foreach (var e in entries)
+                        {
+                            messages.Add(new PersonalChatMessage
+                            {
+                                Role = "user",
+                                Content = e.Display,
+                                Timestamp = e.Timestamp
+                            });
+                        }
+                    }
+
+                    if (messages.Count == 0) continue;
+
+                    var firstTime = messages.Min(m => m.Timestamp);
+                    var lastTime = messages.Max(m => m.Timestamp);
+                    var firstUserMsg = messages.FirstOrDefault(m => m.IsUser)?.Content ?? entries.FirstOrDefault().Display;
+                    var cleanTitle = string.IsNullOrWhiteSpace(firstUserMsg)
+                        ? $"Session {convId[..Math.Min(8, convId.Length)]}"
+                        : (firstUserMsg.Length > 50 ? firstUserMsg[..50] + "..." : firstUserMsg).Replace("\r", " ").Replace("\n", " ");
+
+                    var session = new PersonalChatSession
+                    {
+                        Id = convId,
+                        ProfileId = profileId,
+                        Title = cleanTitle,
+                        CreatedAt = firstTime,
+                        UpdatedAt = lastTime,
+                        TurnCount = messages.Count(m => m.IsUser),
+                        LastQuerySnippet = messages.LastOrDefault(m => m.IsUser)?.Content ?? "",
+                        Model = "gemini-3.8-flash-medium"
+                    };
+
+                    sessionsDict[convId] = session;
+
+                    // Save session messages to disk
+                    var dir = GetProfileDir(profileId);
+                    var msgFile = Path.Combine(dir, $"{convId}.json");
+                    try
+                    {
+                        var json = JsonSerializer.Serialize(messages, new JsonSerializerOptions { WriteIndented = true });
+                        File.WriteAllText(msgFile, json);
+                        importedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Warn($"[PersonalChatService] Failed writing session {convId}: {ex.Message}");
+                    }
+                }
+            }
+
+            if (importedCount > 0)
+            {
+                var profileDir = GetProfileDir(profileId);
+                var sortedSessions = sessionsDict.Values.OrderByDescending(s => s.UpdatedAt).ToList();
+                await SaveSessionIndexAsync(profileDir, sortedSessions, cancellationToken);
+            }
+
+            return importedCount;
+        });
+    }
+
+    private static string CleanUserRequestPrompt(string rawContent)
+    {
+        if (string.IsNullOrWhiteSpace(rawContent)) return string.Empty;
+
+        // 1. If wrapped in <USER_REQUEST>...</USER_REQUEST>, extract inside
+        var match = Regex.Match(rawContent, @"<USER_REQUEST>([\s\S]*?)</USER_REQUEST>", RegexOptions.IgnoreCase);
+        if (match.Success)
+        {
+            return match.Groups[1].Value.Trim();
+        }
+
+        // 2. Remove metadata and settings XML-like tags
+        var cleaned = Regex.Replace(rawContent, @"<ADDITIONAL_METADATA>[\s\S]*?</ADDITIONAL_METADATA>", "", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, @"<USER_SETTINGS_CHANGE>[\s\S]*?</USER_SETTINGS_CHANGE>", "", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, @"<SYSTEM_INFORMATION>[\s\S]*?</SYSTEM_INFORMATION>", "", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, @"</?[A-Z_]+>", "", RegexOptions.IgnoreCase);
+
+        return cleaned.Trim();
+    }
 }
+

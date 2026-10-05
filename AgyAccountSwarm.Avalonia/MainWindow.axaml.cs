@@ -106,6 +106,24 @@ public partial class MainWindow : Window
             return files.Count > 0 ? files[0].Path.LocalPath : null;
         };
 
+        _viewModel.BrowseRagDocumentFileRequested += async () =>
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Select Document to Index into Knowledge Base",
+                AllowMultiple = false,
+                FileTypeFilter =
+                [
+                    new FilePickerFileType("Supported Documents (*.md;*.txt;*.json;*.csv;*.pdf;*.docx;*.yaml)")
+                    {
+                        Patterns = ["*.md", "*.markdown", "*.txt", "*.json", "*.csv", "*.pdf", "*.docx", "*.xml", "*.yaml", "*.yml"]
+                    },
+                    new FilePickerFileType("All Files (*.*)") { Patterns = ["*"] }
+                ]
+            });
+            return files.Count > 0 ? files[0].Path.LocalPath : null;
+        };
+
         _viewModel.ShowAddProfileRequested += async () =>
         {
             var newProfile = new AccountProfile

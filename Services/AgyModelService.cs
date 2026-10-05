@@ -50,14 +50,15 @@ public class AgyModelService : IAgyModelService
         new("gemini-3.8-flash-low", "Gemini 3.8 Flash (Low)"),
         new("gemini-3.7-flash-medium", "Gemini 3.7 Flash (Medium)"),
         new("gemini-3.7-flash-high", "Gemini 3.7 Flash (High)"),
+        new("gemini-3.7-flash-low", "Gemini 3.7 Flash (Low)"),
         new("gemini-3.6-flash-medium", "Gemini 3.6 Flash (Medium)"),
+        new("gemini-3.6-flash-high", "Gemini 3.6 Flash (High)"),
+        new("gemini-3.6-flash-low", "Gemini 3.6 Flash (Low)"),
         new("gemini-3.1-pro-high", "Gemini 3.1 Pro (High)"),
+        new("gemini-3.1-pro-low", "Gemini 3.1 Pro (Low)"),
         new("claude-sonnet-4-6", "Claude Sonnet 4.6 (Thinking)"),
         new("claude-opus-4-6-thinking", "Claude Opus 4.6 (Thinking)"),
-        new("gpt-oss-120b-medium", "GPT-OSS 120B (Medium)"),
-        new("gemini-2.5-pro", "Gemini 2.5 Pro"),
-        new("gemini-2.5-flash", "Gemini 2.5 Flash"),
-        new("gemini-1.5-pro", "Gemini 1.5 Pro")
+        new("gpt-oss-120b-medium", "GPT-OSS 120B (Medium)")
     ];
 
     private List<AgyModelInfo>? _cachedModels;
@@ -77,8 +78,8 @@ public class AgyModelService : IAgyModelService
             modelsDict[m.Id] = m;
         }
 
-        // 2. Discover live models from 'agy models' CLI only if forced (e.g. manual refresh)
-        if (forceCliRefresh)
+        // 2. Discover live models from 'agy models' CLI
+        if (forceCliRefresh || _cachedModels == null)
         {
             try
             {
