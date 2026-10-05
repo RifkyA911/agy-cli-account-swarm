@@ -3434,6 +3434,22 @@ public partial class AvaloniaMainViewModel : ObservableObject
     public ObservableCollection<string> RagKnowledgeBases { get; } = new();
     public ObservableCollection<RagChunkItem> LastRetrievedRagChunks { get; } = new();
 
+    private readonly List<PersonalChatMessage> _allSessionMessages = [];
+    private const int InitialMessageWindow = 35;
+    private const int PageBatchSize = 35;
+    private int _currentlyDisplayedCount = 0;
+    private string? _lastLoadedProfileIdForSessions;
+    private string? _lastLoadedSessionId;
+
+    [ObservableProperty]
+    private bool _hasEarlierMessages = false;
+
+    [ObservableProperty]
+    private int _earlierMessagesCount = 0;
+
+    [ObservableProperty]
+    private bool _isLoadingPersonalChatMessages = false;
+
     [ObservableProperty]
     private PersonalChatSession? _selectedPersonalChatSession;
 
@@ -3442,6 +3458,15 @@ public partial class AvaloniaMainViewModel : ObservableObject
         if (value != null)
         {
             _ = LoadPersonalChatSessionMessagesAsync(value);
+        }
+        else
+        {
+            _allSessionMessages.Clear();
+            _currentlyDisplayedCount = 0;
+            HasEarlierMessages = false;
+            EarlierMessagesCount = 0;
+            _lastLoadedSessionId = null;
+            PersonalChatMessages.Clear();
         }
     }
 
@@ -3580,10 +3605,16 @@ public partial class AvaloniaMainViewModel : ObservableObject
         {
             PersonalChatSelectedProfile = Profiles.FirstOrDefault();
         }
+        else if (PersonalChatSelectedProfile != null && PersonalChatSessions.Count == 0)
+        {
+            _ = ReloadPersonalChatSessionsForProfileAsync(PersonalChatSelectedProfile.Id);
+        }
+
         if (PersonalChatModelOptions.Count == 0)
         {
             _ = PopulatePersonalChatDynamicModelsAsync();
         }
+
         RefreshLiveSwarmTasks();
     }
 
@@ -3628,7 +3659,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
             Content = userText,
             Timestamp = DateTime.UtcNow
         };
+        _allSessionMessages.Add(userMsg);
         PersonalChatMessages.Add(userMsg);
+        _currentlyDisplayedCount++;
 
         IsPersonalChatGenerating = true;
         _personalChatCts = new CancellationTokenSource();
@@ -3682,7 +3715,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 Settings.CustomAgyExecutablePath ?? DetectedAgyPath,
                 _personalChatCts.Token);
 
+            _allSessionMessages.Add(assistantMsg);
             PersonalChatMessages.Add(assistantMsg);
+            _currentlyDisplayedCount++;
             _audioService.PlaySuccess();
 
             // 5. Update session metadata and save to disk
@@ -3692,30 +3727,36 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 {
                     SelectedPersonalChatSession.Title = userText.Length > 40 ? userText.Substring(0, 40) + "..." : userText;
                 }
-                SelectedPersonalChatSession.TurnCount = PersonalChatMessages.Count(m => m.IsUser);
+                SelectedPersonalChatSession.TurnCount = _allSessionMessages.Count(m => m.IsUser);
                 SelectedPersonalChatSession.UpdatedAt = DateTime.UtcNow;
                 SelectedPersonalChatSession.Model = PersonalChatSelectedModel;
 
-                await _personalChatService.SaveSessionAsync(SelectedPersonalChatSession, PersonalChatMessages.ToList());
+                await _personalChatService.SaveSessionAsync(SelectedPersonalChatSession, _allSessionMessages.ToList());
             }
         }
         catch (OperationCanceledException)
         {
-            PersonalChatMessages.Add(new PersonalChatMessage
+            var stopMsg = new PersonalChatMessage
             {
                 Role = "assistant",
                 Content = "⏹️ Generation stopped by user.",
                 Timestamp = DateTime.UtcNow
-            });
+            };
+            _allSessionMessages.Add(stopMsg);
+            PersonalChatMessages.Add(stopMsg);
+            _currentlyDisplayedCount++;
         }
         catch (Exception ex)
         {
-            PersonalChatMessages.Add(new PersonalChatMessage
+            var errMsg = new PersonalChatMessage
             {
                 Role = "assistant",
                 Content = $"⚠️ Error during chat execution: {ex.Message}",
                 Timestamp = DateTime.UtcNow
-            });
+            };
+            _allSessionMessages.Add(errMsg);
+            PersonalChatMessages.Add(errMsg);
+            _currentlyDisplayedCount++;
             _audioService.PlayQuotaAlert();
         }
         finally
@@ -3746,6 +3787,12 @@ public partial class AvaloniaMainViewModel : ObservableObject
             UpdatedAt = DateTime.UtcNow,
             Model = PersonalChatSelectedModel
         };
+
+        _allSessionMessages.Clear();
+        _currentlyDisplayedCount = 0;
+        HasEarlierMessages = false;
+        EarlierMessagesCount = 0;
+        _lastLoadedSessionId = newSession.Id;
 
         PersonalChatSessions.Insert(0, newSession);
         SelectedPersonalChatSession = newSession;
@@ -3778,12 +3825,13 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [RelayCommand]
     public async Task ExportPersonalChatSessionAsync()
     {
-        if (PersonalChatMessages.Count == 0) return;
+        var msgsToExport = _allSessionMessages.Count > 0 ? _allSessionMessages : PersonalChatMessages.ToList();
+        if (msgsToExport.Count == 0) return;
         var sb = new StringBuilder();
         sb.AppendLine($"# Chat Transcript: {SelectedPersonalChatSession?.Title ?? "Session"}");
         sb.AppendLine($"*Exported: {DateTime.Now:yyyy-MM-dd HH:mm:ss} | Profile: {PersonalChatSelectedProfile?.Name}*");
         sb.AppendLine();
-        foreach (var msg in PersonalChatMessages)
+        foreach (var msg in msgsToExport)
         {
             sb.AppendLine($"### {(msg.IsUser ? "🧑 You" : "🤖 " + (msg.Model ?? "Assistant"))} ({msg.FormattedTime})");
             if (msg.HasRagChunks)
@@ -3801,34 +3849,115 @@ public partial class AvaloniaMainViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task SelectPersonalChatSessionAsync(PersonalChatSession? session)
+    public void LoadEarlierMessages()
+    {
+        if (_allSessionMessages.Count <= _currentlyDisplayedCount) return;
+
+        int targetCount = Math.Min(_allSessionMessages.Count, _currentlyDisplayedCount + PageBatchSize);
+        int itemsToAdd = targetCount - _currentlyDisplayedCount;
+        int startIndex = Math.Max(0, _allSessionMessages.Count - targetCount);
+
+        var earlierItems = _allSessionMessages.GetRange(startIndex, itemsToAdd);
+        for (int i = earlierItems.Count - 1; i >= 0; i--)
+        {
+            PersonalChatMessages.Insert(0, earlierItems[i]);
+        }
+
+        _currentlyDisplayedCount = targetCount;
+        HasEarlierMessages = _allSessionMessages.Count > _currentlyDisplayedCount;
+        EarlierMessagesCount = Math.Max(0, _allSessionMessages.Count - _currentlyDisplayedCount);
+    }
+
+    [RelayCommand]
+    public void SelectPersonalChatSession(PersonalChatSession? session)
     {
         if (session == null) return;
+        if (SelectedPersonalChatSession?.Id == session.Id && PersonalChatMessages.Count > 0) return;
         SelectedPersonalChatSession = session;
-        await LoadPersonalChatSessionMessagesAsync(session);
     }
 
-    public async Task LoadPersonalChatSessionMessagesAsync(PersonalChatSession session)
+    public async Task LoadPersonalChatSessionMessagesAsync(PersonalChatSession? session, bool forceReload = false)
     {
-        PersonalChatMessages.Clear();
-        var msgs = await _personalChatService.LoadMessagesAsync(session.ProfileId, session.Id);
-        foreach (var m in msgs) PersonalChatMessages.Add(m);
+        if (session == null) return;
+        if (!forceReload && _lastLoadedSessionId == session.Id && PersonalChatMessages.Count > 0)
+        {
+            return;
+        }
+
+        _lastLoadedSessionId = session.Id;
+        IsLoadingPersonalChatMessages = true;
+
+        try
+        {
+            var msgs = await Task.Run(() => _personalChatService.LoadMessagesAsync(session.ProfileId, session.Id));
+
+            _allSessionMessages.Clear();
+            _allSessionMessages.AddRange(msgs);
+
+            PersonalChatMessages.Clear();
+            int window = Math.Min(_allSessionMessages.Count, InitialMessageWindow);
+            int startIndex = _allSessionMessages.Count - window;
+            if (startIndex >= 0 && window > 0)
+            {
+                var toShow = _allSessionMessages.GetRange(startIndex, window);
+                foreach (var m in toShow)
+                {
+                    PersonalChatMessages.Add(m);
+                }
+            }
+
+            _currentlyDisplayedCount = window;
+            HasEarlierMessages = _allSessionMessages.Count > _currentlyDisplayedCount;
+            EarlierMessagesCount = Math.Max(0, _allSessionMessages.Count - _currentlyDisplayedCount);
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Failed to load messages for session {session.Id}: {ex.Message}");
+        }
+        finally
+        {
+            IsLoadingPersonalChatMessages = false;
+        }
     }
 
-    public async Task ReloadPersonalChatSessionsForProfileAsync(string profileId)
+    public async Task ReloadPersonalChatSessionsForProfileAsync(string profileId, bool forceReload = false)
     {
+        if (!forceReload && _lastLoadedProfileIdForSessions == profileId && PersonalChatSessions.Count > 0)
+        {
+            return;
+        }
+
+        _lastLoadedProfileIdForSessions = profileId;
+        var sessions = await Task.Run(() => _personalChatService.GetSessionsAsync(profileId));
+
         PersonalChatSessions.Clear();
-        var sessions = await _personalChatService.GetSessionsAsync(profileId);
-        foreach (var s in sessions) PersonalChatSessions.Add(s);
-        SelectedPersonalChatSession = PersonalChatSessions.FirstOrDefault();
+        foreach (var s in sessions)
+        {
+            PersonalChatSessions.Add(s);
+        }
+
+        if (SelectedPersonalChatSession == null || !PersonalChatSessions.Any(s => s.Id == SelectedPersonalChatSession.Id))
+        {
+            SelectedPersonalChatSession = PersonalChatSessions.FirstOrDefault();
+        }
     }
 
     [RelayCommand]
     public void RefreshLiveSwarmTasks()
     {
-        var summary = _personalChatService.GetRealtimeSwarmTaskStatusSummary(Directory.GetCurrentDirectory());
-        LiveSwarmTaskSummary = summary;
-        HasLiveSwarmTasks = !string.IsNullOrEmpty(summary) && !summary.Contains("Idle");
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                var summary = _personalChatService.GetRealtimeSwarmTaskStatusSummary(Directory.GetCurrentDirectory());
+                Dispatcher.UIThread.Post(() =>
+                {
+                    LiveSwarmTaskSummary = summary;
+                    HasLiveSwarmTasks = !string.IsNullOrEmpty(summary) && !summary.Contains("Idle");
+                });
+            }
+            catch { }
+        });
     }
 
     [RelayCommand]

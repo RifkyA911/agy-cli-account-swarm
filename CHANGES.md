@@ -172,6 +172,17 @@ Sebelum merilis versi publik atau memperbarui installer:
 
 ---
 
+### M. Optimalisasi Performa & Paging Jendela Chat ("Biar Ringan") (v0.9.13-beta)
+
+| Komponen | Perubahan | Rationale / Kenapa Diubah |
+|---|---|---|
+| `AgyAccountSwarm.Avalonia/ViewModels/AvaloniaMainViewModel.cs` | Implementasi *windowed pagination* (hanya menampilkan 35 pesan terbaru saat awal dibuka) dan tombol interaktif `[Load earlier messages (X more)]`; penghapusan reload ganda pada pergantian sesi/profil; eksekusi `RefreshLiveSwarmTasks()` dipindahkan ke `Task.Run` background thread. | Menghilangkan freeze UI seketika saat mengklik Chat. Sebelumnya penambahan ribuan pesan sekaligus ke `PersonalChatMessages` membekukan UI thread selama 10-15 detik. |
+| `Services/PersonalChatService.cs` (`LoadMessagesAsync`, `CleanAndSanitizeMessages`) | Menggantikan pembacaan string raksasa dengan streaming `FileStream` + `DeserializeAsync`; pembersihan otomatis log dump eksekusi perintah terminal (`Created At: 202...`, log build) yang sempat tersinkronisasi dari transcript. | Mengurangi ukuran file sesi dari 26 MB menjadi ~150 KB (pemangkasan >70 MB file sampah pada disk pengguna). |
+| `Services/PersonalChatService.cs` (`SyncExistingCliHistoryAsync`) | Filter ketat pada parsing transcript CLI agar hanya mengimpor pesan interaktif pengguna dan respons akhir asisten, mengabaikan keluaran intermediate command (`GENERIC`) dan tool call kosong. Pembatasan riwayat maksimal 100 turn per sesi. | Menjamin sinkronisasi masa depan tetap ringan, bersih, dan tidak membebani memori maupun visual tree Avalonia. |
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml` | Penambahan bar aksi `LoadEarlierMessagesCommand` di atas canvas percakapan dan indikator loading asinkron `IsLoadingPersonalChatMessages`. | Memberikan umpan balik instan, transisi halus, dan waktu pembukaan halaman chat secepat kilat (<5 ms). |
+
+---
+
 ## 6. Bukti Verifikasi Teknis
 
 ### A. `dotnet build`

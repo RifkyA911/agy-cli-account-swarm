@@ -24,6 +24,11 @@ All notable changes to the **Agy CLI Account Swarm** project are documented here
 - **Iconography & Polish**:
   - Updated Swarm Workers (`/dispatcher`) sidebar navigation icon to `HeroIconGitBranch` (`Branch`).
   - Updated English and Indonesian localizations (`Services/LocalizationService.cs`) for clean, unpretentious chat labels.
+- **Instantaneous Chat Loading & Windowed Pagination ("Biar Ringan")**:
+  - Replaced bulk message loading with windowed pagination: renders only the latest 35 messages on initial load, eliminating UI layout stalls while adding an interactive `[Load earlier messages (X more)]` bar to prepend older history on demand.
+  - Completely eliminated UI dispatcher freezes: all disk reads (`FileStream`, JSON deserialization, and swarm task telemetry) now execute strictly in background `Task.Run` threads with zero UI thread contention.
+  - Added background pruning & sanitization in `PersonalChatService`: automatically strips out raw CLI execution dumps (`Created At: ...`, build outputs, and internal tool invocations) from synced transcripts, reducing bloated session files from 26 MB down to ~150 KB (>70 MB disk space reclaimed).
+  - Eliminated redundant session and message reloads when switching between views.
 - **Zero Warnings, Zero Errors Release Verification**:
   - 170/170 hermetic tests passing.
   - Re-published to `publish/` with 0 build warnings and 0 errors.

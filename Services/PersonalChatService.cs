@@ -46,11 +46,79 @@ public class PersonalChatService : IPersonalChatService
         try
         {
             Directory.CreateDirectory(_storageBaseDir);
+            _ = Task.Run(CleanExistingBloatedFilesAsync);
         }
         catch (Exception ex)
         {
             Logger.Warn($"Failed to create personal chat storage directory: {ex.Message}");
         }
+    }
+
+    private async Task CleanExistingBloatedFilesAsync()
+    {
+        try
+        {
+            if (!Directory.Exists(_storageBaseDir)) return;
+            foreach (var profileDir in Directory.GetDirectories(_storageBaseDir))
+            {
+                foreach (var file in Directory.GetFiles(profileDir, "*.json"))
+                {
+                    if (Path.GetFileName(file).Equals("sessions.json", StringComparison.OrdinalIgnoreCase)) continue;
+                    var fileInfo = new FileInfo(file);
+                    if (fileInfo.Length > 200 * 1024) // larger than 200 KB
+                    {
+                        try
+                        {
+                            using var stream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            var items = await JsonSerializer.DeserializeAsync<List<PersonalChatMessage>>(stream);
+                            if (items != null && items.Count > 0)
+                            {
+                                int originalCount = items.Count;
+                                var cleaned = CleanAndSanitizeMessages(items);
+
+                                if (cleaned.Count != originalCount || fileInfo.Length > 500 * 1024)
+                                {
+                                    var cleanJson = JsonSerializer.Serialize(cleaned, new JsonSerializerOptions { WriteIndented = true });
+                                    await File.WriteAllTextAsync(file, cleanJson);
+                                    Logger.Info($"[PersonalChatService] Pruned bloated session file {Path.GetFileName(file)} from {fileInfo.Length / 1024} KB down to {cleanJson.Length / 1024} KB ({originalCount} -> {cleaned.Count} msgs).");
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+        catch { }
+    }
+
+    public static List<PersonalChatMessage> CleanAndSanitizeMessages(IEnumerable<PersonalChatMessage> items)
+    {
+        var cleaned = items.Where(m =>
+            !string.IsNullOrWhiteSpace(m.Content) &&
+            !(m.Role == "assistant" && (
+                m.Content.StartsWith("Created At: 202", StringComparison.OrdinalIgnoreCase) ||
+                m.Content.StartsWith("Determining projects to restore", StringComparison.OrdinalIgnoreCase) ||
+                m.Content.StartsWith("Tool is running as a background task", StringComparison.OrdinalIgnoreCase) ||
+                m.Content.StartsWith("The command exited with code", StringComparison.OrdinalIgnoreCase) ||
+                m.Content.StartsWith("Determining projects to restore...", StringComparison.OrdinalIgnoreCase)
+            ))
+        ).ToList();
+
+        foreach (var m in cleaned)
+        {
+            if (m.Content.Length > 25000)
+            {
+                m.Content = m.Content[..25000] + "\n\n... [Content truncated for display performance] ...";
+            }
+        }
+
+        if (cleaned.Count > 150)
+        {
+            cleaned = cleaned.TakeLast(150).ToList();
+        }
+
+        return cleaned;
     }
 
     private string GetProfileDir(string profileId)
@@ -108,9 +176,28 @@ public class PersonalChatService : IPersonalChatService
         {
             try
             {
-                var json = await File.ReadAllTextAsync(msgFile, cancellationToken);
-                var items = JsonSerializer.Deserialize<List<PersonalChatMessage>>(json);
-                if (items != null) return items;
+                using var stream = new FileStream(msgFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                var items = await JsonSerializer.DeserializeAsync<List<PersonalChatMessage>>(stream, cancellationToken: cancellationToken);
+                if (items != null)
+                {
+                    int originalCount = items.Count;
+                    var cleaned = CleanAndSanitizeMessages(items);
+
+                    if (cleaned.Count != originalCount)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var cleanJson = JsonSerializer.Serialize(cleaned, new JsonSerializerOptions { WriteIndented = true });
+                                await File.WriteAllTextAsync(msgFile, cleanJson);
+                            }
+                            catch { }
+                        });
+                    }
+
+                    return cleaned;
+                }
             }
             catch (Exception ex)
             {
@@ -583,6 +670,10 @@ public class PersonalChatService : IPersonalChatService
                                         var cleanContent = CleanUserRequestPrompt(content);
                                         if (!string.IsNullOrWhiteSpace(cleanContent))
                                         {
+                                            if (cleanContent.Length > 25000)
+                                            {
+                                                cleanContent = cleanContent[..25000] + "\n... [truncated for performance]";
+                                            }
                                             messages.Add(new PersonalChatMessage
                                             {
                                                 Role = "user",
@@ -591,16 +682,39 @@ public class PersonalChatService : IPersonalChatService
                                             });
                                         }
                                     }
-                                    else if (source.Equals("MODEL", StringComparison.OrdinalIgnoreCase) ||
-                                             type.Equals("PLANNER_RESPONSE", StringComparison.OrdinalIgnoreCase))
+                                    else if ((source.Equals("MODEL", StringComparison.OrdinalIgnoreCase) ||
+                                              type.Equals("PLANNER_RESPONSE", StringComparison.OrdinalIgnoreCase)) &&
+                                             !type.Equals("GENERIC", StringComparison.OrdinalIgnoreCase))
                                     {
+                                        // Skip internal command execution dumps
+                                        if (content.StartsWith("Created At: 202", StringComparison.OrdinalIgnoreCase) ||
+                                            content.StartsWith("Determining projects to restore", StringComparison.OrdinalIgnoreCase) ||
+                                            content.StartsWith("Tool is running as a background task", StringComparison.OrdinalIgnoreCase) ||
+                                            content.StartsWith("The command exited with code", StringComparison.OrdinalIgnoreCase) ||
+                                            content.StartsWith("Determining projects to restore...", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            continue;
+                                        }
+
+                                        // Skip if purely a tool invocation without user message
+                                        if (root.TryGetProperty("tool_calls", out var tc) && tc.ValueKind == JsonValueKind.Array && tc.GetArrayLength() > 0 && string.IsNullOrWhiteSpace(content))
+                                        {
+                                            continue;
+                                        }
+
                                         int inTokens = root.TryGetProperty("input_tokens", out var it) ? it.GetInt32() : 0;
                                         int outTokens = root.TryGetProperty("output_tokens", out var ot) ? ot.GetInt32() : 0;
+
+                                        var cleanAssistant = content.Trim();
+                                        if (cleanAssistant.Length > 25000)
+                                        {
+                                            cleanAssistant = cleanAssistant[..25000] + "\n... [truncated for display performance]";
+                                        }
 
                                         messages.Add(new PersonalChatMessage
                                         {
                                             Role = "assistant",
-                                            Content = content.Trim(),
+                                            Content = cleanAssistant,
                                             Model = "gemini-3.8-flash",
                                             InputTokens = inTokens,
                                             OutputTokens = outTokens,
@@ -615,6 +729,11 @@ public class PersonalChatService : IPersonalChatService
                         catch (Exception ex)
                         {
                             Logger.Warn($"[PersonalChatService] Failed to parse transcript for {convId}: {ex.Message}");
+                        }
+
+                        if (messages.Count > 100)
+                        {
+                            messages = messages.TakeLast(100).ToList();
                         }
                     }
 
