@@ -157,84 +157,41 @@
                                 </Button>
                             </Border>
 
-                            <!-- /personal-chat -->
+                            <!-- /chat (Unified Swarm Realtime & Personal RAG) -->
                             <Border BorderThickness="1" CornerRadius="8"
-                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=PersonalChat}"
-                                    BorderBrush="{Binding CurrentPage, Converter={StaticResource ActiveNavBorderConverter}, ConverterParameter=PersonalChat}">
-                                <Button Command="{Binding NavigateCommand}" CommandParameter="PersonalChat"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=Chat}"
+                                    BorderBrush="{Binding CurrentPage, Converter={StaticResource ActiveNavBorderConverter}, ConverterParameter=Chat}">
+                                <Button Command="{Binding NavigateCommand}" CommandParameter="Chat"
                                         Background="Transparent" BorderThickness="0" CornerRadius="8"
                                         Padding="8,10" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                        ToolTip.Tip="{Binding Strings[Nav_PersonalChat_Tip]}">
+                                        ToolTip.Tip="{Binding Strings[Nav_Chat_Tip]}">
                                     <Grid HorizontalAlignment="Stretch">
                                         <!-- Expanded View -->
                                         <Grid IsVisible="{Binding !IsSidebarCollapsed}" ColumnDefinitions="Auto,*,Auto">
                                             <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                                    Background="#8B5CF6" Margin="0,0,8,0"
-                                                    IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=PersonalChat}" />
+                                                    Background="#38BDF8" Margin="0,0,8,0"
+                                                    IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Chat}" />
                                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
-                                                <Path Data="{StaticResource HeroIconSparkles}"
-                                                      Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=PersonalChat}"
+                                                <Path Data="{StaticResource HeroIconChatBubbleOvalLeftEllipsis}"
+                                                      Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Chat}"
                                                       StrokeThickness="1.75" StrokeLineCap="Round" StrokeJoin="Round"
                                                       Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center" />
-                                                <TextBlock Text="{Binding Strings[Nav_PersonalChat]}" FontSize="13"
-                                                           FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=PersonalChat}"
-                                                           Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=PersonalChat}"
+                                                <TextBlock Text="{Binding Strings[Nav_Chat]}" FontSize="13"
+                                                           FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=Chat}"
+                                                           Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Chat}"
                                                            VerticalAlignment="Center" />
                                             </StackPanel>
-                                            <Border Grid.Column="2" Background="#158B5CF6" BorderBrush="#358B5CF6" BorderThickness="1"
+                                            <Border Grid.Column="2" Background="#1538BDF8" BorderBrush="#3538BDF8" BorderThickness="1"
                                                     CornerRadius="10" Padding="6,2" Margin="4,0,0,0"
                                                     HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                <TextBlock Text="RAG" FontSize="10" FontWeight="Bold" Foreground="#8B5CF6" />
+                                                <TextBlock Text="Live &amp; RAG" FontSize="10" FontWeight="Bold" Foreground="#38BDF8" />
                                             </Border>
                                         </Grid>
 
                                         <!-- Collapsed View -->
                                         <Grid IsVisible="{Binding IsSidebarCollapsed}" Height="28" Width="44" HorizontalAlignment="Center">
-                                            <Path Data="{StaticResource HeroIconSparkles}"
-                                                  Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=PersonalChat}"
-                                                  StrokeThickness="1.75" StrokeLineCap="Round" StrokeJoin="Round"
-                                                  Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        </Grid>
-                                    </Grid>
-                                </Button>
-                            </Border>
-
-                            <!-- /realtime-chat -->
-                            <Border BorderThickness="1" CornerRadius="8"
-                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=RealtimeChat}"
-                                    BorderBrush="{Binding CurrentPage, Converter={StaticResource ActiveNavBorderConverter}, ConverterParameter=RealtimeChat}">
-                                <Button Command="{Binding NavigateCommand}" CommandParameter="RealtimeChat"
-                                        Background="Transparent" BorderThickness="0" CornerRadius="8"
-                                        Padding="8,10" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                                        ToolTip.Tip="{Binding Strings[Nav_RealtimeChat_Tip]}">
-                                    <Grid HorizontalAlignment="Stretch">
-                                        <!-- Expanded View -->
-                                        <Grid IsVisible="{Binding !IsSidebarCollapsed}" ColumnDefinitions="Auto,*,Auto">
-                                            <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
-                                                    Background="#10B981" Margin="0,0,8,0"
-                                                    IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=RealtimeChat}" />
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
-                                                <Path Data="{StaticResource HeroIconChatBubble}"
-                                                      Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=RealtimeChat}"
-                                                      StrokeThickness="1.75" StrokeLineCap="Round" StrokeJoin="Round"
-                                                      Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center" />
-                                                <TextBlock Text="{Binding Strings[Nav_RealtimeChat]}" FontSize="13"
-                                                           FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=RealtimeChat}"
-                                                           Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=RealtimeChat}"
-                                                           VerticalAlignment="Center" />
-                                            </StackPanel>
-                                            <Border Grid.Column="2" Background="#1510B981" BorderBrush="#3510B981" BorderThickness="1"
-                                                    CornerRadius="10" Padding="7,2" Margin="4,0,0,0"
-                                                    HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                    IsVisible="{Binding HasSwarmChatMessages}">
-                                                <TextBlock Text="{Binding SwarmChatMessages.Count}" FontSize="11" FontWeight="Bold" Foreground="#10B981" />
-                                            </Border>
-                                        </Grid>
-
-                                        <!-- Collapsed View -->
-                                        <Grid IsVisible="{Binding IsSidebarCollapsed}" Height="28" Width="44" HorizontalAlignment="Center">
-                                            <Path Data="{StaticResource HeroIconChatBubble}"
-                                                  Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=RealtimeChat}"
+                                            <Path Data="{StaticResource HeroIconChatBubbleOvalLeftEllipsis}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Chat}"
                                                   StrokeThickness="1.75" StrokeLineCap="Round" StrokeJoin="Round"
                                                   Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             <Border Background="#1510B981" BorderBrush="#3510B981" BorderThickness="1"
@@ -2079,12 +2036,108 @@
                 </Grid>
 
                 <!-- ============================================================== -->
-                <!-- VIEW: PERSONAL CHAT (/personal-chat)                           -->
+                <!-- VIEW: CHAT (/chat) - Unified Swarm Realtime & Personal RAG     -->
                 <!-- ============================================================== -->
                 <Grid Grid.Row="2"
-                      IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=PersonalChat}"
-                      RowDefinitions="Auto,Auto,*"
+                      IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=Chat}"
+                      RowDefinitions="Auto,*"
                       Margin="0">
+
+                    <!-- PROMINENT TOP MODE SWITCHER ("Tab Menu Gede") -->
+                    <Border Grid.Row="0"
+                            Background="{DynamicResource BrushCard}"
+                            BorderBrush="{DynamicResource BrushCardBorder}"
+                            BorderThickness="0,0,0,1"
+                            Padding="24,10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <!-- Left: Big Tab Navigation Buttons -->
+                            <Border Grid.Column="0"
+                                    Background="{DynamicResource BrushSurface}"
+                                    BorderBrush="{DynamicResource BrushCardBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="4"
+                                    HorizontalAlignment="Left">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <!-- Tab 1: Realtime Swarm Chat -->
+                                    <Button Command="{Binding SwitchChatTabCommand}" CommandParameter="Realtime"
+                                            Background="{Binding SelectedChatTab, Converter={StaticResource ActiveTabBgConverter}, ConverterParameter=Realtime}"
+                                            BorderBrush="{Binding SelectedChatTab, Converter={StaticResource ActiveNavBorderConverter}, ConverterParameter=Realtime}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="18,8"
+                                            Height="44">
+                                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconChatBubbleOvalLeftEllipsis}"
+                                                  Stroke="{Binding SelectedChatTab, Converter={StaticResource ActiveTabFgConverter}, ConverterParameter=Realtime}"
+                                                  StrokeThickness="1.8" Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Strings[Chat_TabRealtimeTitle]}"
+                                                               FontWeight="Bold" FontSize="13"
+                                                               Foreground="{DynamicResource BrushTextPrimary}" />
+                                                    <Border Background="#1A38BDF8" BorderBrush="#4038BDF8" BorderThickness="1"
+                                                            CornerRadius="8" Padding="5,1" VerticalAlignment="Center">
+                                                        <TextBlock Text="BUS STREAM" FontSize="9" FontWeight="Bold" Foreground="#38BDF8" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Strings[Chat_TabRealtimeSubtitle]}"
+                                                           FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Tab 2: Personal 1-on-1 Chat (RAG) -->
+                                    <Button Command="{Binding SwitchChatTabCommand}" CommandParameter="Personal"
+                                            Background="{Binding SelectedChatTab, Converter={StaticResource ActiveTabBgConverter}, ConverterParameter=Personal}"
+                                            BorderBrush="{Binding SelectedChatTab, Converter={StaticResource ActiveNavBorderConverter}, ConverterParameter=Personal}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="18,8"
+                                            Height="44">
+                                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconSparkles}"
+                                                  Stroke="{Binding SelectedChatTab, Converter={StaticResource ActiveTabFgConverter}, ConverterParameter=Personal}"
+                                                  StrokeThickness="1.8" Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <StackPanel VerticalAlignment="Center" Spacing="1">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Strings[Chat_TabPersonalTitle]}"
+                                                               FontWeight="Bold" FontSize="13"
+                                                               Foreground="{DynamicResource BrushTextPrimary}" />
+                                                    <Border Background="#1AA855F7" BorderBrush="#40A855F7" BorderThickness="1"
+                                                            CornerRadius="8" Padding="5,1" VerticalAlignment="Center">
+                                                        <TextBlock Text="RAG AUGMENTED" FontSize="9" FontWeight="Bold" Foreground="#A855F7" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Strings[Chat_TabPersonalSubtitle]}"
+                                                           FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Right: Status / Context Indicator -->
+                            <Border Grid.Column="1" VerticalAlignment="Center"
+                                    Background="{DynamicResource BrushSurface}"
+                                    BorderBrush="{DynamicResource BrushCardBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="12,7">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Border Width="8" Height="8" CornerRadius="4" Background="#10B981" VerticalAlignment="Center" />
+                                    <TextBlock Text="AGY CLI Live Sandbox Environment" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <!-- TAB CONTENT CONTAINER (Row 1) -->
+                    <Grid Grid.Row="1">
+                        <!-- SUB-VIEW: PERSONAL CHAT -->
+                        <Grid IsVisible="{Binding SelectedChatTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Personal}"
+                              RowDefinitions="Auto,Auto,*"
+                              Margin="0">
 
                     <!-- Chat Header Bar -->
                     <Border Grid.Row="0"
@@ -2490,13 +2543,10 @@
                     </Grid>
                 </Grid>
 
-                <!-- ============================================================== -->
-                <!-- VIEW: REAL-TIME CHAT (/realtime-chat)                          -->
-                <!-- ============================================================== -->
-                <Grid Grid.Row="2"
-                      IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=RealtimeChat}"
-                      RowDefinitions="Auto,*"
-                      Margin="0">
+                <!-- SUB-VIEW: REAL-TIME SWARM CHAT -->
+                        <Grid IsVisible="{Binding SelectedChatTab, Converter={StaticResource EqualityConverter}, ConverterParameter=Realtime}"
+                              RowDefinitions="Auto,*"
+                              Margin="0">
 
                     <!-- Chat Header & Control Bar -->
                     <Border Grid.Row="0"
@@ -2844,6 +2894,8 @@
                         </Border>
                     </Grid>
                 </Grid>
+            </Grid>
+        </Grid>
 
                 <!-- ====================================================== -->
                 <!-- PAGE 2: SWARM FLEET VIEW                               -->

@@ -246,10 +246,10 @@ public partial class MainWindow : Window
         var isCtrl = (e.KeyModifiers & KeyModifiers.Control) == KeyModifiers.Control;
         var isShift = (e.KeyModifiers & KeyModifiers.Shift) == KeyModifiers.Shift;
 
-        // Ctrl+Shift+C: Jump directly to Realtime Chat
+        // Ctrl+Shift+C: Jump directly to Chat
         if (isCtrl && isShift && e.Key == Key.C)
         {
-            _viewModel.Navigate("RealtimeChat");
+            _viewModel.Navigate("Chat");
             e.Handled = true;
             return;
         }

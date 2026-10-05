@@ -46,10 +46,26 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [ObservableProperty]
     private string _appVersion = "v0.9.11-beta";
 
+    [ObservableProperty]
+    private string _selectedChatTab = "Realtime"; // "Realtime" or "Personal"
+
+    partial void OnSelectedChatTabChanged(string value)
+    {
+        OnPropertyChanged(nameof(CurrentPageTitle));
+        OnPropertyChanged(nameof(IsRealtimeChatTabSelected));
+        OnPropertyChanged(nameof(IsPersonalChatTabSelected));
+    }
+
+    public bool IsRealtimeChatTabSelected => SelectedChatTab == "Realtime";
+    public bool IsPersonalChatTabSelected => SelectedChatTab == "Personal";
+
     public string CurrentPageTitle => CurrentPage switch
     {
         "Dashboard" => "System Dashboard & Telemetry Overview",
         "Accounts" => "Fleet Accounts & Quota Governance",
+        "Chat" => SelectedChatTab == "Personal" 
+            ? "Personal Chat Studio & RAG Intelligence Hub" 
+            : "Real-Time Swarm Chat & Inter-Agent Bus",
         "PersonalChat" => "Personal Chat Studio & RAG Intelligence Hub",
         "RealtimeChat" => "Real-Time Swarm Chat & Inter-Agent Bus",
         "Dispatcher" => "Swarm Worker & Project Orchestrator",
@@ -69,6 +85,24 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
     partial void OnCurrentPageChanged(string value)
     {
+        if (value == "PersonalChat")
+        {
+            _currentPage = "Chat";
+            _selectedChatTab = "Personal";
+            OnPropertyChanged(nameof(CurrentPage));
+            OnPropertyChanged(nameof(SelectedChatTab));
+            OnPropertyChanged(nameof(IsRealtimeChatTabSelected));
+            OnPropertyChanged(nameof(IsPersonalChatTabSelected));
+        }
+        else if (value == "RealtimeChat")
+        {
+            _currentPage = "Chat";
+            _selectedChatTab = "Realtime";
+            OnPropertyChanged(nameof(CurrentPage));
+            OnPropertyChanged(nameof(SelectedChatTab));
+            OnPropertyChanged(nameof(IsRealtimeChatTabSelected));
+            OnPropertyChanged(nameof(IsPersonalChatTabSelected));
+        }
         OnPropertyChanged(nameof(CurrentPageTitle));
     }
 
@@ -1624,13 +1658,49 @@ public partial class AvaloniaMainViewModel : ObservableObject
         }
         else if (page == "RealtimeChat")
         {
+            CurrentPage = "Chat";
+            SelectedChatTab = "Realtime";
             EnsureProjectContextForChat();
             PopulateChatTargetWorkers();
             _ = RefreshSwarmChatMessagesAsync();
         }
         else if (page == "PersonalChat")
         {
+            CurrentPage = "Chat";
+            SelectedChatTab = "Personal";
             EnsurePersonalChatContext();
+        }
+        else if (page == "Chat")
+        {
+            CurrentPage = "Chat";
+            if (SelectedChatTab == "Personal")
+            {
+                EnsurePersonalChatContext();
+            }
+            else
+            {
+                EnsureProjectContextForChat();
+                PopulateChatTargetWorkers();
+                _ = RefreshSwarmChatMessagesAsync();
+            }
+        }
+    }
+
+    [RelayCommand]
+    public void SwitchChatTab(string tab)
+    {
+        if (string.IsNullOrWhiteSpace(tab)) return;
+        SelectedChatTab = tab;
+        _audioService.PlayClick();
+        if (tab == "Personal")
+        {
+            EnsurePersonalChatContext();
+        }
+        else
+        {
+            EnsureProjectContextForChat();
+            PopulateChatTargetWorkers();
+            _ = RefreshSwarmChatMessagesAsync();
         }
     }
 
@@ -3741,7 +3811,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [RelayCommand]
     public void OpenPersonalChatForProfile(string profileId)
     {
-        CurrentPage = "PersonalChat";
+        SelectedChatTab = "Personal";
+        CurrentPage = "Chat";
         var targetProfile = Profiles.FirstOrDefault(p => p.Id == profileId) ?? Profiles.FirstOrDefault();
         if (targetProfile != null)
         {

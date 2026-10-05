@@ -4,7 +4,15 @@ All notable changes to the **Agy CLI Account Swarm** project are documented here
 
 ## [v0.9.11-beta] - 2026-10-05
 ### Added & Changed
-- **Dedicated 1-on-1 Personal Chat Studio (`/personal-chat`)**:
+- **Unified Chat Hub (`/chat`) with Prominent Tab Switcher ("Tab Menu Gede")**:
+  - Consolidated separate Realtime Chat and Personal Chat menus into a single clean **"Chat"** menu in the sidebar navigation with a `Live & RAG` badge and active message count pill.
+  - Implemented a prominent, generous top mode switcher toolbar ("tab menu gede" with 44px height, multi-row labels, subtitles, and badges) allowing users to switch between:
+    - **⚡ Realtime Swarm Chat** (`BUS STREAM`): Collaborative multi-agent bus, broadcast dispatch, worker targeting, and architecture blackboard (`.swarm/blackboard.md`).
+    - **✨ Personal 1-on-1 Chat** (`RAG AUGMENTED`): Isolated agy CLI sandbox with multi-turn memory (`--conversation`), high-speed local Rust RAG (`arag-cli`), and live task awareness.
+  - State-preserving toggle: Switching between Realtime Swarm and Personal Chat preserves ongoing drafts, loaded sessions, and worker selections without re-rendering or losing context.
+  - Kept backward-compatible navigation routing (`/realtime-chat` and `/personal-chat` cleanly redirect into the unified `/chat` view with the appropriate sub-tab selected).
+  - Shortcut `Ctrl+Shift+C` navigates directly to the unified Chat studio.
+- **Dedicated 1-on-1 Personal Chat Studio with Native CLI Memory**:
   - Implemented interactive single personal chat GUI directly connected to the Google Antigravity CLI (`agy`).
   - Native multi-turn conversational memory via `agy --conversation <conversation_id> -p "<prompt>" --output-format json`, maintaining full context across turns without history loss.
   - Per-profile session isolation stored in `%APPDATA%\AgyAccountSwarm\personal_chats\{profileId}\` with automatic history persistence and fast JSON loading.

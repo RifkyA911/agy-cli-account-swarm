@@ -44,11 +44,10 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 2. Decoupling the OS keyring via virtualized client parameters (`SSH_CONNECTION=1`, `SSH_CLIENT=1`), forcing `agy` to use isolated file-based credentials (`oauth_credentials.json`).
 3. Reading and visualizing authentic telemetry parsed directly from local JSONL logs and JWT tokens with zero synthetic dummy data.
 4. **🌐 100% Bilingual Localization (Indonesian 🇮🇩 & English 🇬🇧)**: Complete native localization coverage with instant live switching without restart.
-5. **💬 Dedicated Real-Time Chat Studio (`/realtime-chat`)**: Full-screen collaborative agent chat room with profile shortcuts (`💬 Chat Realtime`) and live channel feeds.
+5. **💬 Unified Chat Hub (`/chat`) with Prominent Mode Switcher**: Comprehensive workspace combining Real-Time Swarm Chat (multi-agent bus stream, broadcast dispatch, architecture blackboard) and Personal 1-on-1 Chat (isolated sandbox, multi-turn memory, token telemetry, live task awareness, and 1-9ms hybrid project RAG via local Rust `arag-cli`), switched effortlessly via a prominent top segmented switcher.
 6. **📡 Live Activity Telemetry ("dia lagi ngapain")**: Authentic real-time command tracking and live output chips showing exactly what each worker is executing.
 7. **🧩 Antigravity Skills Hub & Multi-Scope Discovery**: Inspect built-in, workspace, plugin, and per-profile skills schemas with explicit ownership, accessibility tags, and full Markdown modal preview.
 8. **🔊 Sonic Sentinels & Optional Periodic Audio**: Synthesized audio alerts on swarm lifecycle events with configurable silent background periodic sync.
-9. **✨ Dedicated Personal Chat Studio (`/personal-chat`) & Ultra-Fast Project RAG**: 1-on-1 direct conversation with `agy CLI` sandboxed profiles, multi-turn memory (`--conversation`), per-session isolation, token telemetry, real-time swarm task context injection, and instant 1-9ms hybrid project search via local Rust `arag-cli`.
 
 ---
 
