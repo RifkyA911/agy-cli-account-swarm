@@ -101,6 +101,7 @@ public partial class AvaloniaProfileItemViewModel : ObservableObject
     public event Action<AvaloniaProfileItemViewModel>? OnDuplicateRequested;
     public event Action<AvaloniaProfileItemViewModel>? OnImportChatRequested;
     public event Action<AvaloniaProfileItemViewModel>? OnOpenChatRequested;
+    public event Action<AvaloniaProfileItemViewModel>? OnOpenPersonalChatRequested;
     public event Action<string>? OnNotificationRequested;
 
     public AvaloniaProfileItemViewModel(
@@ -892,6 +893,13 @@ public partial class AvaloniaProfileItemViewModel : ObservableObject
     {
         _audioService.PlayClick();
         OnOpenChatRequested?.Invoke(this);
+    }
+
+    [RelayCommand]
+    public void OpenPersonalChat()
+    {
+        _audioService.PlayClick();
+        OnOpenPersonalChatRequested?.Invoke(this);
     }
 
     [RelayCommand]

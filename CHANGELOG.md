@@ -2,6 +2,36 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.11-beta] - 2026-10-05
+### Added & Changed
+- **Dedicated 1-on-1 Personal Chat Studio (`/personal-chat`)**:
+  - Implemented interactive single personal chat GUI directly connected to the Google Antigravity CLI (`agy`).
+  - Native multi-turn conversational memory via `agy --conversation <conversation_id> -p "<prompt>" --output-format json`, maintaining full context across turns without history loss.
+  - Per-profile session isolation stored in `%APPDATA%\AgyAccountSwarm\personal_chats\{profileId}\` with automatic history persistence and fast JSON loading.
+  - Live session management: create new chat sessions (`+ New Chat`), delete sessions, and export sessions to clean Markdown documents.
+  - Accurate token & execution duration telemetry per turn (e.g. `1,420 tokens • 2.5s • gemini-2.5-pro`) displayed directly within assistant message bubbles.
+  - Integrated model selector (`gemini-2.5-pro`, `gemini-2.5-flash`, `claude-3-7-sonnet`, `claude-3-5-sonnet`, `claude-3-5-haiku`, `gpt-4o`, `o3-mini`, `o1`) and reasoning effort selector (`low`, `medium`, `high`).
+- **High-Performance Rust-Powered Project RAG (`arag-cli`) & Multi-Tier Fallback**:
+  - Zero heavy external dependencies (no LangChain, ChromaDB, or Python overhead; ~0 MB idle memory footprint).
+  - Integrates directly with pre-indexed local Rust `arag-cli.exe` binary (`~/.cargo/bin/arag-cli.exe` or system PATH).
+  - High-speed hybrid & BM25 keyword search (1-9ms latency) querying indexed knowledge bases (e.g. `agy-swarm`).
+  - Seamless automatic fallback pipeline: Hybrid Vector/BM25 Search -> BM25 Keyword Search -> Hermetic local Markdown paragraph scanner (`docs/` and root `*.md`).
+  - Transparent RAG chunk badges in assistant responses showing Chunk ID, source knowledge base, keyword matches, and relevance score percentages.
+  - Augmented prompt synthesis cleanly injecting project documentation into the prompt without corrupting user intent.
+- **Real-Time Swarm Task Status Ingestion**:
+  - Live monitoring of active swarm worker tasks and message bus streams via native .NET 9 file streaming of `.swarm/tasks.json` and `.swarm/bus.jsonl`.
+  - Live Swarm Task Status banner in Personal Chat header with one-click manual telemetry refresh.
+  - Checkbox toggle (`Inject Live Swarm Tasks`) in the chat input toolbar to dynamically include real-time task counts, execution progress, and worker assignments in prompt context.
+- **Account Card Direct Shortcuts & UI Cleanliness Standards**:
+  - Added dedicated `💬 Personal Chat` outline button on every account card in the Accounts view (`AccountsView`), allowing users to jump directly into a 1-on-1 session bound to that specific account sandbox.
+  - Separated Real-Time Swarm & Personal Chat header toolbars into dedicated secondary rows with generous spacing, preventing layout crowding.
+  - Enforced strict icon cleanliness guidelines across all views: replaced all download icons with document/report icons (`HeroIconDocumentText`).
+- **Expanded Hermetic Test Suite (167/167 Passed)**:
+  - Added `tests/AgyAccountSwarm.Tests/PersonalChatAndRagTests.cs` verifying RAG prompt augmentation, session JSON persistence, token telemetry formatting, and swarm task telemetry parsing.
+  - 100% green test pass rate (167 passed, 0 failed, 0 skipped).
+- **Clean Release Publishing**:
+  - `dotnet build` and `dotnet publish -c Release -o publish` completed with zero warnings and zero errors.
+
 ## [v0.9.10-beta] - 2026-10-05
 ### Added & Changed
 - **Ergonomic Window Height Calibration & High-DPI Scaling Fix**:

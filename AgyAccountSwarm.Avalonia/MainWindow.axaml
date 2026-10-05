@@ -157,6 +157,48 @@
                                 </Button>
                             </Border>
 
+                            <!-- /personal-chat -->
+                            <Border BorderThickness="1" CornerRadius="8"
+                                    Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=PersonalChat}"
+                                    BorderBrush="{Binding CurrentPage, Converter={StaticResource ActiveNavBorderConverter}, ConverterParameter=PersonalChat}">
+                                <Button Command="{Binding NavigateCommand}" CommandParameter="PersonalChat"
+                                        Background="Transparent" BorderThickness="0" CornerRadius="8"
+                                        Padding="8,10" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                        ToolTip.Tip="{Binding Strings[Nav_PersonalChat_Tip]}">
+                                    <Grid HorizontalAlignment="Stretch">
+                                        <!-- Expanded View -->
+                                        <Grid IsVisible="{Binding !IsSidebarCollapsed}" ColumnDefinitions="Auto,*,Auto">
+                                            <Border Grid.Column="0" Width="3.5" Height="18" CornerRadius="1.75"
+                                                    Background="#8B5CF6" Margin="0,0,8,0"
+                                                    IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=PersonalChat}" />
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                                                <Path Data="{StaticResource HeroIconSparkles}"
+                                                      Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=PersonalChat}"
+                                                      StrokeThickness="1.75" StrokeLineCap="Round" StrokeJoin="Round"
+                                                      Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding Strings[Nav_PersonalChat]}" FontSize="13"
+                                                           FontWeight="{Binding CurrentPage, Converter={StaticResource PageToFontWeightConverter}, ConverterParameter=PersonalChat}"
+                                                           Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=PersonalChat}"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                            <Border Grid.Column="2" Background="#158B5CF6" BorderBrush="#358B5CF6" BorderThickness="1"
+                                                    CornerRadius="10" Padding="6,2" Margin="4,0,0,0"
+                                                    HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <TextBlock Text="RAG" FontSize="10" FontWeight="Bold" Foreground="#8B5CF6" />
+                                            </Border>
+                                        </Grid>
+
+                                        <!-- Collapsed View -->
+                                        <Grid IsVisible="{Binding IsSidebarCollapsed}" Height="28" Width="44" HorizontalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconSparkles}"
+                                                  Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=PersonalChat}"
+                                                  StrokeThickness="1.75" StrokeLineCap="Round" StrokeJoin="Round"
+                                                  Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Grid>
+                                </Button>
+                            </Border>
+
                             <!-- /realtime-chat -->
                             <Border BorderThickness="1" CornerRadius="8"
                                     Background="{Binding CurrentPage, Converter={StaticResource ActiveNavBgConverter}, ConverterParameter=RealtimeChat}"
@@ -1955,6 +1997,15 @@
                                                                     <TextBlock Text="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).Strings[Accounts_ChatRealtime]}" FontWeight="SemiBold" FontSize="11" Foreground="#38BDF8" VerticalAlignment="Center" />
                                                                 </StackPanel>
                                                             </Button>
+                                                            <Button Command="{Binding OpenPersonalChatCommand}"
+                                                                    IsEnabled="{Binding IsAuthenticated}"
+                                                                    Classes="outline" Padding="12,7"
+                                                                    ToolTip.Tip="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).Strings[Accounts_PersonalChatShortcutTooltip]}">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
+                                                                    <Path Data="{StaticResource HeroIconSparkles}" Stroke="#A855F7" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                                                    <TextBlock Text="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).Strings[Accounts_PersonalChat]}" FontWeight="SemiBold" FontSize="11" Foreground="#A855F7" VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </Button>
                                                             <Button Command="{Binding CopyCliSnippetCommand}"
                                                                     CommandParameter="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).SelectedTerminal}"
                                                                     IsEnabled="{Binding IsAuthenticated}"
@@ -2028,6 +2079,418 @@
                 </Grid>
 
                 <!-- ============================================================== -->
+                <!-- VIEW: PERSONAL CHAT (/personal-chat)                           -->
+                <!-- ============================================================== -->
+                <Grid Grid.Row="2"
+                      IsVisible="{Binding CurrentPage, Converter={StaticResource EqualityConverter}, ConverterParameter=PersonalChat}"
+                      RowDefinitions="Auto,Auto,*"
+                      Margin="0">
+
+                    <!-- Chat Header Bar -->
+                    <Border Grid.Row="0"
+                            Background="{DynamicResource BrushSurfaceHover}"
+                            BorderBrush="{DynamicResource BrushCardBorder}"
+                            BorderThickness="0,0,0,1"
+                            Padding="24,12">
+                        <Grid RowDefinitions="Auto,Auto">
+                            <!-- Row 0: Title, Icon, Subtitle, & Session Actions -->
+                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconSparkles}"
+                                              Stroke="#8B5CF6" StrokeThickness="1.8"
+                                              Width="18" Height="18" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Strings[PersonalChat_Title]}"
+                                                   FontWeight="Bold" FontSize="16"
+                                                   Foreground="{DynamicResource BrushTextPrimary}"
+                                                   VerticalAlignment="Center" />
+                                        <Border Background="#158B5CF6" BorderBrush="#308B5CF6" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                            <TextBlock Text="1-on-1 CLI" FontSize="10" FontWeight="Bold" Foreground="#8B5CF6" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Strings[PersonalChat_Subtitle]}"
+                                               FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                                </StackPanel>
+
+                                <!-- Right: Session Actions -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Command="{Binding CreateNewPersonalChatSessionCommand}"
+                                            Classes="outline" Height="34" Padding="12,0" VerticalAlignment="Center"
+                                            ToolTip.Tip="Start a fresh conversation thread">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconPlus}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="2" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[PersonalChat_NewChat]}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding ExportPersonalChatSessionCommand}"
+                                            Classes="outline" Height="34" Padding="12,0" VerticalAlignment="Center"
+                                            ToolTip.Tip="Export conversation to Markdown file">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconDocumentText}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <TextBlock Text="Export MD" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding DeletePersonalChatSessionCommand}"
+                                            Classes="outline" Height="34" Padding="10,0" VerticalAlignment="Center"
+                                            ToolTip.Tip="Delete active session">
+                                        <Path Data="{StaticResource HeroIconTrash}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Row 1: Model & RAG Selector Controls Row -->
+                            <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto" Margin="0,10,0,0">
+                                <!-- Profile Sandbox Selector -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                                    <TextBlock Text="Account:" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding Profiles}"
+                                              SelectedItem="{Binding PersonalChatSelectedProfile}"
+                                              MinWidth="180" Height="32" FontSize="11.5" VerticalAlignment="Center">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate DataType="vm:AvaloniaProfileItemViewModel">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <Ellipse Width="7" Height="7" Fill="{Binding ColorTag, Converter={StaticResource HexBrushConverter}}" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Name}" FontSize="11" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+
+                                <!-- Model Selector -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                                    <TextBlock Text="{Binding Strings[PersonalChat_ModelSelect], StringFormat='{}{0}:'}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding PersonalChatModelOptions}"
+                                              SelectedItem="{Binding PersonalChatSelectedModel}"
+                                              Width="160" Height="32" FontSize="11.5" VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <!-- Reasoning Effort Selector -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,14,0">
+                                    <TextBlock Text="{Binding Strings[PersonalChat_ThinkingEffort], StringFormat='{}{0}:'}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding PersonalChatEffortOptions}"
+                                              SelectedItem="{Binding PersonalChatSelectedEffort}"
+                                              Width="95" Height="32" FontSize="11.5" VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <!-- RAG Status Pill Indicator -->
+                                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <Border Background="{DynamicResource BrushBadgeBg}" BorderBrush="{DynamicResource BrushBadgeBorder}" BorderThickness="1" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                            <TextBlock Text="📚 RAG:" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="{Binding SelectedRagKnowledgeBase}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <!-- Real-Time Swarm Task Status Banner (Row 1) -->
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource BrushCard}"
+                            BorderBrush="{DynamicResource BrushCardBorder}"
+                            BorderThickness="0,0,0,1"
+                            Padding="24,6">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="📊" FontSize="12" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Strings[PersonalChat_LiveTasksTitle], StringFormat='{}{0}:'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding LiveSwarmTaskSummary}"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource BrushTextPrimary}"
+                                       VerticalAlignment="Center"
+                                       Margin="8,0"
+                                       TextTrimming="CharacterEllipsis" />
+                            <Button Grid.Column="2"
+                                    Command="{Binding RefreshLiveSwarmTasksCommand}"
+                                    Classes="outline" Height="26" Padding="6,2" VerticalAlignment="Center"
+                                    ToolTip.Tip="Refresh live swarm tasks status">
+                                <Path Data="{StaticResource HeroIconArrowPath}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.5" Width="10" Height="10" Stretch="Uniform" VerticalAlignment="Center" />
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Main Chat Studio Body: Left Sessions (Width 270) + Right Conversation Canvas (*) -->
+                    <Grid Grid.Row="2" ColumnDefinitions="270,*" Margin="24,14,24,20">
+                        <!-- Left: Sessions Sidebar -->
+                        <Border Grid.Column="0"
+                                Background="{DynamicResource BrushCard}"
+                                BorderBrush="{DynamicResource BrushCardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Margin="0,0,16,0"
+                                ClipToBounds="True">
+                            <Grid RowDefinitions="Auto,*">
+                                <!-- Sessions Header -->
+                                <Border Grid.Row="0" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="0,0,0,1" Padding="14,10">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="Chat History" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                        <Border Grid.Column="1" Background="{DynamicResource BrushSurfaceHover}" CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{Binding PersonalChatSessions.Count, StringFormat='{}{0} Sesi'}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Sessions List -->
+                                <ScrollViewer Grid.Row="1" Padding="10">
+                                    <StackPanel Spacing="6">
+                                        <ItemsControl ItemsSource="{Binding PersonalChatSessions}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="models:PersonalChatSession">
+                                                    <Button Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).SelectPersonalChatSessionCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="{DynamicResource BrushSurfaceHover}"
+                                                            BorderBrush="{DynamicResource BrushCardBorder}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="8"
+                                                            Padding="10,8"
+                                                            HorizontalAlignment="Stretch"
+                                                            HorizontalContentAlignment="Stretch"
+                                                            Margin="0,0,0,6">
+                                                        <Grid RowDefinitions="Auto,Auto">
+                                                            <TextBlock Grid.Row="0" Text="{Binding Title}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
+                                                                <TextBlock Text="{Binding RelativeTimeDisplay}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                <TextBlock Text="•" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                <TextBlock Text="{Binding TurnCount, StringFormat='{}{0} turns'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <TextBlock Text="{Binding Strings[PersonalChat_NoSessions]}"
+                                                   FontSize="11" Foreground="{DynamicResource BrushTextMuted}"
+                                                   HorizontalAlignment="Center" Margin="12,24"
+                                                   IsVisible="{Binding !PersonalChatSessions.Count}" />
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+
+                        <!-- Right: Active Chat Conversation Canvas -->
+                        <Border Grid.Column="1"
+                                Background="{DynamicResource BrushCard}"
+                                BorderBrush="{DynamicResource BrushCardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                ClipToBounds="True">
+                            <Grid RowDefinitions="*,Auto">
+                                <!-- Messages Scroll Area -->
+                                <ScrollViewer Grid.Row="0" Padding="18">
+                                    <StackPanel Spacing="16">
+                                        <!-- Welcome state if empty -->
+                                        <Border IsVisible="{Binding !PersonalChatMessages.Count}"
+                                                Background="{DynamicResource BrushSurfaceHover}"
+                                                BorderBrush="{DynamicResource BrushCardBorder}"
+                                                BorderThickness="1"
+                                                CornerRadius="10"
+                                                Padding="28"
+                                                Margin="0,20,0,0">
+                                            <StackPanel Spacing="10" HorizontalAlignment="Center" MaxWidth="600">
+                                                <TextBlock Text="✨ Antigravity Personal Chat" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" HorizontalAlignment="Center" />
+                                                <TextBlock Text="Direct 1-on-1 interactive session with Google Antigravity CLI, augmented with real-time RAG knowledge from your project and live swarm status."
+                                                           FontSize="12.5" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" TextAlignment="Center" />
+                                                <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="12,8" Margin="0,10,0,0">
+                                                    <TextBlock Text="💡 Tip: Type a question about project architecture, or ask for the latest swarm tasks status." FontSize="11" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" />
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Messages List -->
+                                        <ItemsControl ItemsSource="{Binding PersonalChatMessages}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="models:PersonalChatMessage">
+                                                    <Panel Margin="0,0,0,14">
+                                                        <!-- User Message Bubble -->
+                                                        <Grid IsVisible="{Binding IsUser}" HorizontalAlignment="Right" MaxWidth="750">
+                                                            <Border Background="{DynamicResource BrushSurfaceHover}"
+                                                                    BorderBrush="{DynamicResource BrushCardBorder}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="12,12,2,12"
+                                                                    Padding="14,10">
+                                                                <StackPanel Spacing="4">
+                                                                    <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+                                                                        <TextBlock Text="🧑 You" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                                                        <TextBlock Text="{Binding FormattedTime}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                    </StackPanel>
+                                                                    <SelectableTextBlock Text="{Binding Content}" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" TextWrapping="Wrap" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Grid>
+
+                                                        <!-- Assistant Message Bubble -->
+                                                        <Grid IsVisible="{Binding !IsUser}" HorizontalAlignment="Left" MaxWidth="850">
+                                                            <Border Background="{DynamicResource BrushSurface}"
+                                                                    BorderBrush="{DynamicResource BrushCardBorder}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="12,12,12,2"
+                                                                    Padding="16,12">
+                                                                <StackPanel Spacing="8">
+                                                                    <!-- Header: Assistant Model & Time -->
+                                                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                                        <Path Data="{StaticResource HeroIconSparkles}" Stroke="#8B5CF6" StrokeThickness="1.5" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                                                        <TextBlock Text="{Binding Model, FallbackValue='Antigravity Assistant'}" FontSize="11" FontWeight="Bold" Foreground="#8B5CF6" />
+                                                                        <TextBlock Text="{Binding FormattedTime}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                                                                    </StackPanel>
+
+                                                                    <!-- RAG Injected Chunks Card -->
+                                                                    <Border IsVisible="{Binding HasRagChunks}"
+                                                                            Background="{DynamicResource BrushSurfaceHover}"
+                                                                            BorderBrush="{DynamicResource BrushCardBorder}"
+                                                                            BorderThickness="1"
+                                                                            CornerRadius="6"
+                                                                            Padding="10,8">
+                                                                        <StackPanel Spacing="6">
+                                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                                <TextBlock Text="📚" FontSize="11" />
+                                                                                <TextBlock Text="{Binding InjectedRagChunks.Count, StringFormat='{}{0} Knowledge Chunks Injected (RAG)'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                                                            </StackPanel>
+                                                                            <ItemsControl ItemsSource="{Binding InjectedRagChunks}">
+                                                                                <ItemsControl.ItemTemplate>
+                                                                                    <DataTemplate DataType="models:RagChunkItem">
+                                                                                        <Border Background="{DynamicResource BrushCard}" CornerRadius="4" Padding="8,6" Margin="0,0,0,4">
+                                                                                            <StackPanel Spacing="3">
+                                                                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                                                    <Border Background="#203B82F6" CornerRadius="3" Padding="4,1">
+                                                                                                        <TextBlock Text="{Binding ChunkId, StringFormat='{}Chunk #{0}'}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushAccent}" />
+                                                                                                    </Border>
+                                                                                                    <TextBlock Text="{Binding ScoreDisplay, StringFormat='{}Score: {0}'}" FontSize="9.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                                                    <TextBlock Text="{Binding KbName}" FontSize="9.5" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                                                                </StackPanel>
+                                                                                                <TextBlock Text="{Binding Snippet}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" />
+                                                                                            </StackPanel>
+                                                                                        </Border>
+                                                                                    </DataTemplate>
+                                                                                </ItemsControl.ItemTemplate>
+                                                                            </ItemsControl>
+                                                                        </StackPanel>
+                                                                    </Border>
+
+                                                                    <!-- Message Content -->
+                                                                    <SelectableTextBlock Text="{Binding Content}" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" TextWrapping="Wrap" />
+
+                                                                    <!-- Telemetry Footer -->
+                                                                    <TextBlock Text="{Binding TokenTelemetryDisplay}"
+                                                                               FontSize="10"
+                                                                               Foreground="{DynamicResource BrushTextMuted}"
+                                                                               Margin="0,4,0,0"
+                                                                               IsVisible="{Binding TokenTelemetryDisplay, Converter={StaticResource NullOrEmptyToBoolConverter}, ConverterParameter=Inverse}" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Grid>
+                                                    </Panel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <!-- Generating / Thinking Pulse Banner -->
+                                        <Border IsVisible="{Binding IsPersonalChatGenerating}"
+                                                Background="{DynamicResource BrushSurfaceHover}"
+                                                BorderBrush="{DynamicResource BrushCardBorder}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="14,10"
+                                                HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource HeroIconArrowPath}"
+                                                      Stroke="{DynamicResource BrushAccent}"
+                                                      StrokeThickness="2" Width="13" Height="13" Stretch="Uniform"
+                                                      Classes="spin" />
+                                                <TextBlock Text="⚡ Antigravity CLI is thinking &amp; generating response..." FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushAccent}" VerticalAlignment="Center" />
+                                                <Button Command="{Binding CancelPersonalChatGenerationCommand}"
+                                                        Classes="outline" Padding="8,4" Height="26" VerticalAlignment="Center"
+                                                        ToolTip.Tip="Cancel active generation">
+                                                    <TextBlock Text="⏹️ Stop" FontSize="10.5" FontWeight="Bold" Foreground="#EF4444" />
+                                                </Button>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </ScrollViewer>
+
+                                <!-- Bottom Input Dock -->
+                                <Border Grid.Row="1"
+                                        Background="{DynamicResource BrushSurfaceHover}"
+                                        BorderBrush="{DynamicResource BrushCardBorder}"
+                                        BorderThickness="0,1,0,0"
+                                        Padding="16,12">
+                                    <StackPanel Spacing="10">
+                                        <!-- RAG & Task Options Strip -->
+                                        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                                            <CheckBox Grid.Column="0"
+                                                      IsChecked="{Binding IsRagEnabled}"
+                                                      Content="{Binding Strings[PersonalChat_RagToggle]}"
+                                                      FontSize="11" Margin="0,0,14,0" />
+
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0" IsVisible="{Binding IsRagEnabled}">
+                                                <TextBlock Text="KB:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                                                <ComboBox ItemsSource="{Binding RagKnowledgeBases}"
+                                                          SelectedItem="{Binding SelectedRagKnowledgeBase}"
+                                                          MinWidth="120" Height="28" FontSize="11" VerticalAlignment="Center" />
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,12,0" IsVisible="{Binding IsRagEnabled}">
+                                                <TextBlock Text="Mode:" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                                                <ComboBox ItemsSource="{Binding RagSearchModes}"
+                                                          SelectedItem="{Binding SelectedRagSearchMode}"
+                                                          MinWidth="160" Height="28" FontSize="11" VerticalAlignment="Center" />
+                                            </StackPanel>
+
+                                            <CheckBox Grid.Column="4"
+                                                      IsChecked="{Binding IncludeLiveTaskContextInPrompt}"
+                                                      Content="Inject Live Swarm Tasks"
+                                                      FontSize="11" />
+                                        </Grid>
+
+                                        <!-- Message Input Box & Send Button -->
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBox Grid.Column="0"
+                                                     Text="{Binding PersonalChatInputText, Mode=TwoWay}"
+                                                     PlaceholderText="{Binding Strings[PersonalChat_Placeholder]}"
+                                                     AcceptsReturn="True"
+                                                     TextWrapping="Wrap"
+                                                     MinHeight="42"
+                                                     MaxHeight="120"
+                                                     FontSize="12.5"
+                                                     Margin="0,0,10,0" />
+
+                                            <!-- Send Button / Stop Button -->
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Bottom">
+                                                <Button Command="{Binding SendPersonalChatMessageCommand}"
+                                                        Classes="primary"
+                                                        Height="42"
+                                                        Padding="18,0"
+                                                        IsVisible="{Binding !IsPersonalChatGenerating}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                        <Path Data="{StaticResource HeroIconPlay}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding Strings[PersonalChat_Send]}" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <Button Command="{Binding CancelPersonalChatGenerationCommand}"
+                                                        Classes="danger"
+                                                        Height="42"
+                                                        Padding="16,0"
+                                                        IsVisible="{Binding IsPersonalChatGenerating}">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                        <Path Data="{StaticResource HeroIconStop}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding Strings[PersonalChat_Stop]}" FontWeight="Bold" FontSize="12" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <!-- ============================================================== -->
                 <!-- VIEW: REAL-TIME CHAT (/realtime-chat)                          -->
                 <!-- ============================================================== -->
                 <Grid Grid.Row="2"
@@ -2040,63 +2503,73 @@
                             Background="{DynamicResource BrushSurfaceHover}"
                             BorderBrush="{DynamicResource BrushCardBorder}"
                             BorderThickness="0,0,0,1"
-                            Padding="24,14">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <!-- Left: Title, Icon, Subtitle -->
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="3">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource HeroIconChatBubbleOvalLeftEllipsis}"
-                                          Stroke="#38BDF8" StrokeThickness="1.8"
-                                          Width="18" Height="18" Stretch="Uniform" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding Strings[Chat_Title]}"
-                                               FontWeight="Bold" FontSize="16"
-                                               Foreground="{DynamicResource BrushTextPrimary}"
-                                               VerticalAlignment="Center" />
-                                    <Border Background="#1538BDF8" BorderBrush="#3038BDF8" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding SwarmChatMessages.Count, StringFormat='{}{0} messages'}"
-                                                   FontSize="10.5" FontWeight="Bold" Foreground="#38BDF8" />
-                                    </Border>
+                            Padding="24,12">
+                        <Grid RowDefinitions="Auto,Auto">
+                            <!-- Row 0: Title, Icon, Badge & Subtitle -->
+                            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconChatBubbleOvalLeftEllipsis}"
+                                              Stroke="#38BDF8" StrokeThickness="1.8"
+                                              Width="18" Height="18" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Strings[Chat_Title]}"
+                                                   FontWeight="Bold" FontSize="16"
+                                                   Foreground="{DynamicResource BrushTextPrimary}"
+                                                   VerticalAlignment="Center" />
+                                        <Border Background="#1538BDF8" BorderBrush="#3038BDF8" BorderThickness="1" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding SwarmChatMessages.Count, StringFormat='{}{0} messages'}"
+                                                       FontSize="10.5" FontWeight="Bold" Foreground="#38BDF8" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Strings[Chat_Subtitle]}"
+                                               FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" />
                                 </StackPanel>
-                                <TextBlock Text="{Binding Strings[Chat_Subtitle]}"
-                                           FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" />
-                            </StackPanel>
+                            </Grid>
 
-                            <!-- Right: Target Worker Dropdown, Blackboard, Export Transcript, Clear Chat -->
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <ComboBox ItemsSource="{Binding ChatTargetWorkers}"
-                                          SelectedItem="{Binding SelectedChatTargetWorker}"
-                                          MinWidth="200" Height="34" FontSize="11.5" VerticalAlignment="Center"
-                                          ToolTip.Tip="Select broadcast target or specific agent worker" />
-                                <Button Command="{Binding OpenProjectBlackboardCommand}"
-                                        Classes="outline" Height="34" Padding="12,0" VerticalAlignment="Center"
-                                        ToolTip.Tip="Open shared architecture blackboard (.swarm/blackboard.md)">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <TextBlock Text="📋" FontSize="12" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Chat_Blackboard]}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding ExportChatTranscriptCommand}"
-                                        Classes="outline" Height="34" Padding="12,0" VerticalAlignment="Center"
-                                        ToolTip.Tip="Export current conversation session to Markdown file">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Chat_ExportTranscript]}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding ClearSwarmChatCommand}"
-                                        Classes="outline" Height="34" Padding="12,0" VerticalAlignment="Center"
-                                        ToolTip.Tip="Clear local messages in the active chat view">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Path Data="{StaticResource HeroIconTrash}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Strings[Chat_ClearFeed]}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Command="{Binding RefreshSwarmChatMessagesCommand}"
-                                        Classes="outline" Height="34" Padding="10,0" VerticalAlignment="Center"
-                                        ToolTip.Tip="Refresh message bus from disk">
-                                    <Path Data="{StaticResource HeroIconArrowPath}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
-                                </Button>
-                            </StackPanel>
+                            <!-- Row 1: Dedicated Controls & Actions Toolbar Row (Separated with breathing room) -->
+                            <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,10,0,0">
+                                <!-- Left: Target Worker Selection -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="Target:" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+                                    <ComboBox ItemsSource="{Binding ChatTargetWorkers}"
+                                              SelectedItem="{Binding SelectedChatTargetWorker}"
+                                              MinWidth="220" Height="34" FontSize="11.5" VerticalAlignment="Center"
+                                              ToolTip.Tip="Select broadcast target or specific agent worker" />
+                                </StackPanel>
+
+                                <!-- Right: Blackboard, Export Transcript, Clear Chat, Refresh -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Command="{Binding OpenProjectBlackboardCommand}"
+                                            Classes="outline" Height="34" Padding="12,0" VerticalAlignment="Center"
+                                            ToolTip.Tip="Open shared architecture blackboard (.swarm/blackboard.md)">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <TextBlock Text="📋" FontSize="12" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Chat_Blackboard]}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding ExportChatTranscriptCommand}"
+                                            Classes="outline" Height="34" Padding="12,0" VerticalAlignment="Center"
+                                            ToolTip.Tip="Export current conversation session to Markdown file">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconDocumentText}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Chat_ExportTranscript]}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding ClearSwarmChatCommand}"
+                                            Classes="outline" Height="34" Padding="12,0" VerticalAlignment="Center"
+                                            ToolTip.Tip="Clear local messages in the active chat view">
+                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <Path Data="{StaticResource HeroIconTrash}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Strings[Chat_ClearFeed]}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding RefreshSwarmChatMessagesCommand}"
+                                            Classes="outline" Height="34" Padding="10,0" VerticalAlignment="Center"
+                                            ToolTip.Tip="Refresh message bus from disk">
+                                        <Path Data="{StaticResource HeroIconArrowPath}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
                         </Grid>
                     </Border>
 

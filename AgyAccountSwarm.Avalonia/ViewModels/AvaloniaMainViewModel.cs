@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -31,6 +32,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private readonly IAudioService _audioService;
     private readonly IGitWorktreeService _gitWorktreeService;
     private readonly IFleetDispatcherService _fleetDispatcherService;
+    private readonly IRagService _ragService;
+    private readonly IPersonalChatService _personalChatService;
 
     private readonly DispatcherTimer _syncTimer;
     private readonly SemaphoreSlim _syncSemaphore = new(1, 1);
@@ -41,12 +44,14 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private string _currentPage = "Dashboard";
 
     [ObservableProperty]
-    private string _appVersion = "v0.9.8-beta";
+    private string _appVersion = "v0.9.11-beta";
 
     public string CurrentPageTitle => CurrentPage switch
     {
         "Dashboard" => "System Dashboard & Telemetry Overview",
         "Accounts" => "Fleet Accounts & Quota Governance",
+        "PersonalChat" => "Personal Chat Studio & RAG Intelligence Hub",
+        "RealtimeChat" => "Real-Time Swarm Chat & Inter-Agent Bus",
         "Dispatcher" => "Swarm Worker & Project Orchestrator",
         "Analytics" => "Telemetry Analytics & Quota Forecasting",
         "Mcp" => "Model Context Protocol (MCP) Ecosystem",
@@ -1269,6 +1274,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         vm.OnDeleteRequested += async item => await DeleteProfileAsync(item);
         vm.OnImportChatRequested += item => ImportChatRequested?.Invoke(item);
         vm.OnOpenChatRequested += item => OpenAccountRealtimeChat(item);
+        vm.OnOpenPersonalChatRequested += item => OpenPersonalChatFromCard(item);
         vm.OnNotificationRequested += ShowNotification;
         vm.PropertyChanged += (s, e) =>
         {
@@ -1482,6 +1488,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
         _swarmAggregatorService = new SwarmAggregatorService();
         _fleetDispatcherService = new FleetDispatcherService(_gitWorktreeService, _launcherService, _swarmAggregatorService);
         _localizationService = new LocalizationService();
+        _ragService = new RagService();
+        _personalChatService = new PersonalChatService();
 
         _syncTimer = new DispatcherTimer
         {
@@ -1579,6 +1587,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
             // Automatic background swarm sync on launch with zero CLI flicker
             _ = Task.Run(async () => await SyncSwarmAsync(isPeriodic: true));
 
+            // Initialize Personal Chat & RAG Knowledge Bases
+            _ = Task.Run(async () => await InitializePersonalChatAsync());
+
             // 3-second welcome ambient chime & auto-dismiss splash screen
             _ = Task.Run(async () =>
             {
@@ -1616,6 +1627,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
             EnsureProjectContextForChat();
             PopulateChatTargetWorkers();
             _ = RefreshSwarmChatMessagesAsync();
+        }
+        else if (page == "PersonalChat")
+        {
+            EnsurePersonalChatContext();
         }
     }
 
@@ -3356,6 +3371,392 @@ public partial class AvaloniaMainViewModel : ObservableObject
             SwarmChatMessages.Add(m);
         }
         HasSwarmChatMessages = SwarmChatMessages.Count > 0;
+    }
+
+    // =========================================================================
+    // PERSONAL CHAT & RAG HUB SUBSYSTEM
+    // =========================================================================
+    public ObservableCollection<PersonalChatSession> PersonalChatSessions { get; } = new();
+    public ObservableCollection<PersonalChatMessage> PersonalChatMessages { get; } = new();
+    public ObservableCollection<string> RagKnowledgeBases { get; } = new();
+    public ObservableCollection<RagChunkItem> LastRetrievedRagChunks { get; } = new();
+
+    [ObservableProperty]
+    private PersonalChatSession? _selectedPersonalChatSession;
+
+    partial void OnSelectedPersonalChatSessionChanged(PersonalChatSession? value)
+    {
+        if (value != null)
+        {
+            _ = LoadPersonalChatSessionMessagesAsync(value);
+        }
+    }
+
+    [ObservableProperty]
+    private AvaloniaProfileItemViewModel? _personalChatSelectedProfile;
+
+    partial void OnPersonalChatSelectedProfileChanged(AvaloniaProfileItemViewModel? value)
+    {
+        if (value != null)
+        {
+            _ = ReloadPersonalChatSessionsForProfileAsync(value.Id);
+        }
+    }
+
+    [ObservableProperty]
+    private string _personalChatInputText = string.Empty;
+
+    [ObservableProperty]
+    private bool _isPersonalChatGenerating = false;
+
+    [ObservableProperty]
+    private string _personalChatSelectedModel = "gemini-2.5-pro";
+
+    public List<string> PersonalChatModelOptions { get; } = new()
+    {
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "claude-3-7-sonnet",
+        "claude-3-5-sonnet",
+        "gpt-4o"
+    };
+
+    [ObservableProperty]
+    private string _personalChatSelectedEffort = "medium";
+
+    public List<string> PersonalChatEffortOptions { get; } = new()
+    {
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+    };
+
+    [ObservableProperty]
+    private bool _isRagEnabled = true;
+
+    [ObservableProperty]
+    private bool _isAragAvailable = false;
+
+    [ObservableProperty]
+    private string _selectedRagKnowledgeBase = "agy-swarm";
+
+    [ObservableProperty]
+    private string _selectedRagSearchMode = "Hybrid (BM25 + Semantic)";
+
+    public List<string> RagSearchModes { get; } = new()
+    {
+        "Hybrid (BM25 + Semantic)",
+        "Keyword (BM25)",
+        "Semantic Vector"
+    };
+
+    [ObservableProperty]
+    private int _ragTopK = 3;
+
+    [ObservableProperty]
+    private bool _hasLastRetrievedRagChunks = false;
+
+    [ObservableProperty]
+    private bool _isRagSearching = false;
+
+    [ObservableProperty]
+    private string _liveSwarmTaskSummary = "Swarm Status: Checking live telemetry...";
+
+    [ObservableProperty]
+    private bool _hasLiveSwarmTasks = false;
+
+    [ObservableProperty]
+    private bool _includeLiveTaskContextInPrompt = true;
+
+    private CancellationTokenSource? _personalChatCts;
+
+    public async Task InitializePersonalChatAsync()
+    {
+        try
+        {
+            IsAragAvailable = _ragService.IsAragAvailable;
+            var kbs = await _ragService.GetKnowledgeBasesAsync();
+            Dispatcher.UIThread.Post(() =>
+            {
+                RagKnowledgeBases.Clear();
+                foreach (var kb in kbs) RagKnowledgeBases.Add(kb.Name);
+                if (RagKnowledgeBases.Count > 0 && string.IsNullOrEmpty(SelectedRagKnowledgeBase))
+                {
+                    SelectedRagKnowledgeBase = RagKnowledgeBases.First();
+                }
+            });
+
+            RefreshLiveSwarmTasks();
+
+            if (Profiles.Count > 0 && PersonalChatSelectedProfile == null)
+            {
+                PersonalChatSelectedProfile = Profiles.FirstOrDefault();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Failed to initialize personal chat: {ex.Message}");
+        }
+    }
+
+    public void EnsurePersonalChatContext()
+    {
+        if (PersonalChatSelectedProfile == null && Profiles.Count > 0)
+        {
+            PersonalChatSelectedProfile = Profiles.FirstOrDefault();
+        }
+        RefreshLiveSwarmTasks();
+    }
+
+    [RelayCommand]
+    public async Task SendPersonalChatMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(PersonalChatInputText) || IsPersonalChatGenerating) return;
+
+        var userText = PersonalChatInputText.Trim();
+        PersonalChatInputText = string.Empty;
+
+        var profile = PersonalChatSelectedProfile?.Profile ?? Profiles.FirstOrDefault()?.Profile;
+        if (profile == null)
+        {
+            ShowNotification("Please select an active profile before chatting.");
+            return;
+        }
+
+        if (SelectedPersonalChatSession == null)
+        {
+            CreateNewPersonalChatSession();
+        }
+
+        var userMsg = new PersonalChatMessage
+        {
+            Role = "user",
+            Content = userText,
+            Timestamp = DateTime.UtcNow
+        };
+        PersonalChatMessages.Add(userMsg);
+
+        IsPersonalChatGenerating = true;
+        _personalChatCts = new CancellationTokenSource();
+        _audioService.PlayClick();
+
+        try
+        {
+            List<RagChunkItem>? retrievedChunks = null;
+
+            // 1. RAG retrieval if enabled
+            if (IsRagEnabled)
+            {
+                IsRagSearching = true;
+                var ragRes = await _ragService.SearchContextAsync(
+                    userText,
+                    SelectedRagKnowledgeBase,
+                    SelectedRagSearchMode,
+                    RagTopK,
+                    _personalChatCts.Token);
+
+                IsRagSearching = false;
+                if (ragRes.IsSuccess && ragRes.Chunks.Count > 0)
+                {
+                    retrievedChunks = ragRes.Chunks;
+                    LastRetrievedRagChunks.Clear();
+                    foreach (var c in ragRes.Chunks) LastRetrievedRagChunks.Add(c);
+                    HasLastRetrievedRagChunks = true;
+                }
+            }
+
+            // 2. Real-time task context if enabled
+            string? taskContext = null;
+            if (IncludeLiveTaskContextInPrompt)
+            {
+                taskContext = _personalChatService.GetRealtimeSwarmTaskStatusSummary(Directory.GetCurrentDirectory());
+                LiveSwarmTaskSummary = taskContext;
+                HasLiveSwarmTasks = !string.IsNullOrEmpty(taskContext) && !taskContext.Contains("Idle");
+            }
+
+            // 3. Build Augmented Prompt
+            var augmentedPrompt = _ragService.BuildAugmentedPrompt(userText, retrievedChunks ?? new List<RagChunkItem>(), taskContext);
+
+            // 4. Send to agy CLI
+            var assistantMsg = await _personalChatService.SendMessageAsync(
+                profile,
+                augmentedPrompt,
+                PersonalChatSelectedModel,
+                PersonalChatSelectedEffort,
+                SelectedPersonalChatSession?.Id,
+                retrievedChunks,
+                Settings.CustomAgyExecutablePath ?? DetectedAgyPath,
+                _personalChatCts.Token);
+
+            PersonalChatMessages.Add(assistantMsg);
+            _audioService.PlaySuccess();
+
+            // 5. Update session metadata and save to disk
+            if (SelectedPersonalChatSession != null)
+            {
+                if (SelectedPersonalChatSession.TurnCount == 0)
+                {
+                    SelectedPersonalChatSession.Title = userText.Length > 40 ? userText.Substring(0, 40) + "..." : userText;
+                }
+                SelectedPersonalChatSession.TurnCount = PersonalChatMessages.Count(m => m.IsUser);
+                SelectedPersonalChatSession.UpdatedAt = DateTime.UtcNow;
+                SelectedPersonalChatSession.Model = PersonalChatSelectedModel;
+
+                await _personalChatService.SaveSessionAsync(SelectedPersonalChatSession, PersonalChatMessages.ToList());
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            PersonalChatMessages.Add(new PersonalChatMessage
+            {
+                Role = "assistant",
+                Content = "⏹️ Generation stopped by user.",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            PersonalChatMessages.Add(new PersonalChatMessage
+            {
+                Role = "assistant",
+                Content = $"⚠️ Error during chat execution: {ex.Message}",
+                Timestamp = DateTime.UtcNow
+            });
+            _audioService.PlayQuotaAlert();
+        }
+        finally
+        {
+            IsPersonalChatGenerating = false;
+            IsRagSearching = false;
+            _personalChatCts?.Dispose();
+            _personalChatCts = null;
+        }
+    }
+
+    [RelayCommand]
+    public void CancelPersonalChatGeneration()
+    {
+        _personalChatCts?.Cancel();
+    }
+
+    [RelayCommand]
+    public void CreateNewPersonalChatSession()
+    {
+        var profileId = PersonalChatSelectedProfile?.Id ?? "main";
+        var newSession = new PersonalChatSession
+        {
+            Id = Guid.NewGuid().ToString(),
+            ProfileId = profileId,
+            Title = "New Conversation",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            Model = PersonalChatSelectedModel
+        };
+
+        PersonalChatSessions.Insert(0, newSession);
+        SelectedPersonalChatSession = newSession;
+        PersonalChatMessages.Clear();
+        LastRetrievedRagChunks.Clear();
+        HasLastRetrievedRagChunks = false;
+        _audioService.PlayClick();
+    }
+
+    [RelayCommand]
+    public async Task DeletePersonalChatSessionAsync(PersonalChatSession? session)
+    {
+        var target = session ?? SelectedPersonalChatSession;
+        if (target == null) return;
+
+        await _personalChatService.DeleteSessionAsync(target.ProfileId, target.Id);
+        PersonalChatSessions.Remove(target);
+
+        if (SelectedPersonalChatSession == target)
+        {
+            SelectedPersonalChatSession = PersonalChatSessions.FirstOrDefault();
+            if (SelectedPersonalChatSession == null)
+            {
+                CreateNewPersonalChatSession();
+            }
+        }
+        _audioService.PlayClick();
+    }
+
+    [RelayCommand]
+    public async Task ExportPersonalChatSessionAsync()
+    {
+        if (PersonalChatMessages.Count == 0) return;
+        var sb = new StringBuilder();
+        sb.AppendLine($"# Chat Transcript: {SelectedPersonalChatSession?.Title ?? "Session"}");
+        sb.AppendLine($"*Exported: {DateTime.Now:yyyy-MM-dd HH:mm:ss} | Profile: {PersonalChatSelectedProfile?.Name}*");
+        sb.AppendLine();
+        foreach (var msg in PersonalChatMessages)
+        {
+            sb.AppendLine($"### {(msg.IsUser ? "🧑 You" : "🤖 " + (msg.Model ?? "Assistant"))} ({msg.FormattedTime})");
+            if (msg.HasRagChunks)
+            {
+                sb.AppendLine($"> 📚 Injected RAG Chunks: {msg.InjectedRagChunks.Count} chunks from {msg.InjectedRagChunks.FirstOrDefault()?.KbName}");
+            }
+            sb.AppendLine(msg.Content);
+            sb.AppendLine();
+        }
+
+        var exportPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"agy_chat_{DateTime.Now:yyyyMMdd_HHmmss}.md");
+        await File.WriteAllTextAsync(exportPath, sb.ToString());
+        ShowNotification($"Transcript exported to Desktop: {Path.GetFileName(exportPath)}");
+        _audioService.PlaySuccess();
+    }
+
+    [RelayCommand]
+    public async Task SelectPersonalChatSessionAsync(PersonalChatSession? session)
+    {
+        if (session == null) return;
+        SelectedPersonalChatSession = session;
+        await LoadPersonalChatSessionMessagesAsync(session);
+    }
+
+    public async Task LoadPersonalChatSessionMessagesAsync(PersonalChatSession session)
+    {
+        PersonalChatMessages.Clear();
+        var msgs = await _personalChatService.LoadMessagesAsync(session.ProfileId, session.Id);
+        foreach (var m in msgs) PersonalChatMessages.Add(m);
+    }
+
+    public async Task ReloadPersonalChatSessionsForProfileAsync(string profileId)
+    {
+        PersonalChatSessions.Clear();
+        var sessions = await _personalChatService.GetSessionsAsync(profileId);
+        foreach (var s in sessions) PersonalChatSessions.Add(s);
+        SelectedPersonalChatSession = PersonalChatSessions.FirstOrDefault();
+    }
+
+    [RelayCommand]
+    public void RefreshLiveSwarmTasks()
+    {
+        var summary = _personalChatService.GetRealtimeSwarmTaskStatusSummary(Directory.GetCurrentDirectory());
+        LiveSwarmTaskSummary = summary;
+        HasLiveSwarmTasks = !string.IsNullOrEmpty(summary) && !summary.Contains("Idle");
+    }
+
+    [RelayCommand]
+    public void OpenPersonalChatForProfile(string profileId)
+    {
+        CurrentPage = "PersonalChat";
+        var targetProfile = Profiles.FirstOrDefault(p => p.Id == profileId) ?? Profiles.FirstOrDefault();
+        if (targetProfile != null)
+        {
+            PersonalChatSelectedProfile = targetProfile;
+        }
+        EnsurePersonalChatContext();
+    }
+
+    [RelayCommand]
+    public void OpenPersonalChatFromCard(AvaloniaProfileItemViewModel? profileVm)
+    {
+        if (profileVm != null)
+        {
+            OpenPersonalChatForProfile(profileVm.Id);
+        }
     }
 
     [RelayCommand]

@@ -7,13 +7,13 @@
 > **A high-performance desktop orchestrator & sandbox session manager for Google Antigravity CLI (`agy`).**  
 > Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing.
 
-[![Version](https://img.shields.io/badge/Version-0.9.10--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.9.11--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
 [![Primary UI: Avalonia Cross-Platform](https://img.shields.io/badge/Primary%20UI-Avalonia%20Cross--Platform-10B981?style=flat&logo=avaloniaui)](https://avaloniaui.net/)
 [![WPF: Archived Prototype](https://img.shields.io/badge/WPF-Archived%20Prototype-gray?style=flat&logo=windows)]()
 [![Pattern: MVVM](https://img.shields.io/badge/Pattern-MVVM-10B981?style=flat)]()
 [![Platform: Windows | Linux | macOS](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-0078D7?style=flat&logo=linux)](https://github.com/RifkyA911/agy-cli-account-swarm)
-[![Tests: 162 Passed](https://img.shields.io/badge/Tests-162%20Passed-brightgreen?logo=xunit)]()
+[![Tests: 167 Passed](https://img.shields.io/badge/Tests-167%20Passed-brightgreen?logo=xunit)]()
 [![Localization: 100% ID & EN](https://img.shields.io/badge/Localization-100%25%20ID%20%7C%20EN-6366F1?style=flat&logo=translate)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Author: RifkyA911](https://img.shields.io/badge/Author-RifkyA911-blueviolet?logo=github)](https://github.com/RifkyA911)
@@ -48,6 +48,7 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 6. **📡 Live Activity Telemetry ("dia lagi ngapain")**: Authentic real-time command tracking and live output chips showing exactly what each worker is executing.
 7. **🧩 Antigravity Skills Hub & Multi-Scope Discovery**: Inspect built-in, workspace, plugin, and per-profile skills schemas with explicit ownership, accessibility tags, and full Markdown modal preview.
 8. **🔊 Sonic Sentinels & Optional Periodic Audio**: Synthesized audio alerts on swarm lifecycle events with configurable silent background periodic sync.
+9. **✨ Dedicated Personal Chat Studio (`/personal-chat`) & Ultra-Fast Project RAG**: 1-on-1 direct conversation with `agy CLI` sandboxed profiles, multi-turn memory (`--conversation`), per-session isolation, token telemetry, real-time swarm task context injection, and instant 1-9ms hybrid project search via local Rust `arag-cli`.
 
 ---
 
@@ -223,6 +224,8 @@ flowchart TD
         Mcp["McpService (stdio IPC Bridge)"]
         Skills["SkillService (Custom & Builtin Skills Discovery)"]
         Audio["AudioService (Synthesized Feedback Alerts)"]
+        PersonalChat["PersonalChatService (1-on-1 agy CLI Session Memory)"]
+        Rag["RagService (Rust arag-cli 1-9ms Fast RAG Engine)"]
         DailyLog["Logger Subsystem (Daily agyswarm_YYYY-MM-DD.log)"]
         
         UI --> Loc
@@ -235,6 +238,9 @@ flowchart TD
         UI --> Mcp
         UI --> Skills
         UI --> Audio
+        UI --> PersonalChat
+        UI --> Rag
+        PersonalChat --> Rag
         UI --> DailyLog
     end
 

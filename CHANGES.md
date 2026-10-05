@@ -10,7 +10,7 @@ Semua temuan audit keamanan, arsitektur, dan permintaan fitur lanjutan (termasuk
 
 - **Status Kompilasi (`dotnet build`)**: **0 Warning(s), 0 Error(s)**
 - **Status Publikasi (`dotnet publish -c Release -o publish`)**: **0 Warning(s), 0 Error(s)** (Produksi Flagship: `publish\AgyCliAccountSwarmGUI.exe`)
-- **Status Unit Test (`dotnet test`)**: **162 Passed, 0 Failed, 0 Skipped** (100% Green, Hermetik)
+- **Status Unit Test (`dotnet test`)**: **167 Passed, 0 Failed, 0 Skipped** (100% Green, Hermetik)
 
 ---
 
@@ -138,6 +138,18 @@ Sebelum merilis versi publik atau memperbarui installer:
 
 ---
 
+### J. Personal Chat Studio & Fast RAG Integration via `arag-cli` (v0.9.11-beta)
+
+| Komponen | Perubahan | Rationale / Kenapa Diubah |
+|---|---|---|
+| `Services/PersonalChatService.cs`, `Models/PersonalChatMessage.cs` | Studio percakapan 1-on-1 interaktif dengan `agy CLI` sandboxed via multi-turn conversation memory (`agy --conversation <id> -p ... --output-format json`). Penyimpanan sesi terisolasi di `%APPDATA%\AgyAccountSwarm\personal_chats\{profileId}\` dan ekspor markdown. | Memberikan GUI percakapan personal mandiri tanpa memerlukan terminal external, dengan pelacakan token dan durasi per turn. |
+| `Services/RagService.cs`, `Models/RagSearchResult.cs` | Deteksi dan integrasi mesin RAG Rust `arag-cli` (`~/.cargo/bin/arag-cli.exe` atau PATH) dengan hybrid/BM25 search berkecepatan 1-9ms, dilengkapi fallback scanner markdown lokal. | Menghilangkan dependensi Python/LangChain/ChromaDB yang boros RAM (idle ~0 MB), memungkinkan augmentasi konteks dokumentasi proyek secara instan dan akurat. |
+| `Services/PersonalChatService.cs` (`GetRealtimeSwarmTaskStatusSummary`) | Ingesti telemetri task dan event bus real-time dari `.swarm/tasks.json` dan `.swarm/bus.jsonl` menggunakan file streaming native .NET 9. | Memberikan pemahaman instan mengenai status eksekusi pekerja swarm langsung ke model AI personal chat tanpa perantara database eksternal. |
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml` | Pemisahan toolbar header Real-Time Swarm dan Personal Chat ke dedicated row tersendiri dengan margin bernapas; penggantian seluruh ikon download dengan ikon dokumen/laporan (`HeroIconDocumentText`); penambahan tombol `💬 Personal Chat` pada kartu profil. | Memenuhi standar visual anti-cramped UI/UX, ergonomi bernapas, dan kepatuhan aturan ikon aplikasi. |
+| `tests/AgyAccountSwarm.Tests/PersonalChatAndRagTests.cs` | Penambahan unit test hermetik mencakup kalkulasi telemetri, persistensi sesi JSON, augmentasi prompt RAG, dan parsing telemetri task swarm. | Menjamin keandalan fungsionalitas chat dan RAG tanpa regresi, memperluas cakupan test menjadi 167 tes lulus. |
+
+---
+
 ## 6. Bukti Verifikasi Teknis
 
 ### A. `dotnet build`
@@ -158,16 +170,15 @@ Build succeeded.
 Starting test execution, please wait...
 A total of 1 test files matched the specified pattern.
 
-Passed!  - Failed:     0, Passed:   162, Skipped:     0, Total:   162, Duration: 37 s - AgyAccountSwarm.Tests.dll (net9.0)
+Passed!  - Failed:     0, Passed:   167, Skipped:     0, Total:   167, Duration: 45 s - AgyAccountSwarm.Tests.dll (net9.0)
 ```
 
-### C. `dotnet publish -c Release -o publish`
+### C. `dotnet publish AgyAccountSwarm.Avalonia/AgyAccountSwarm.Avalonia.csproj -c Release -o publish`
 ```
   Determining projects to restore...
   Restored D:\Works\Project\C#\agy-cli-account-swarm\AgyAccountSwarm.Avalonia\AgyAccountSwarm.Avalonia.csproj.
-  AgyAccountSwarm -> D:\Works\Project\C#\agy-cli-account-swarm\publish\
-  AgyAccountSwarm.Tests -> D:\Works\Project\C#\agy-cli-account-swarm\publish\
-  AgyAccountSwarm.Avalonia -> D:\Works\Project\C#\agy-cli-account-swarm\publish\AgyCliAccountSwarmGUI.dll
+  AgyAccountSwarm.Avalonia -> D:\Works\Project\C#\agy-cli-account-swarm\AgyAccountSwarm.Avalonia\bin\Release\net9.0\AgyCliAccountSwarmGUI.dll
+  AgyAccountSwarm.Avalonia -> D:\Works\Project\C#\agy-cli-account-swarm\publish\
 
 Build succeeded.
     0 Warning(s)
