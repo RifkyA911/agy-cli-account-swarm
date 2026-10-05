@@ -67,6 +67,8 @@
             <StreamGeometry x:Key="HeroIconChevronDown">m19.5 8.25-7.5 7.5-7.5-7.5</StreamGeometry>
             <StreamGeometry x:Key="HeroIconChevronLeft">M15.75 19.5 8.25 12l7.5-7.5</StreamGeometry>
             <StreamGeometry x:Key="HeroIconChevronRight">m8.25 4.5 7.5 7.5-7.5 7.5</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconGitBranch">M17.25 6.75A2.25 2.25 0 1 0 15 4.5a2.25 2.25 0 0 0 .25 1.026l-4.5 2.6a2.24 2.24 0 0 0-.75-.126 2.25 2.25 0 0 0-2.25 2.25v3.498a2.25 2.25 0 1 0 1.5 2.126V10.25a.75.75 0 0 1 .75-.75h.18a2.24 2.24 0 0 0 .57-.074l4.5 2.6a2.25 2.25 0 1 0 1.5-2.126 2.25 2.25 0 0 0-.25-1.026l-4.5-2.6a2.25 2.25 0 0 0 0-1.048l4.5-2.6a2.25 2.25 0 0 0 .25.124Z</StreamGeometry>
+            <StreamGeometry x:Key="HeroIconPaperClip">m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.37l-10.94 10.94a1.5 1.5 0 0 1-2.122-2.122l8.82-8.82</StreamGeometry>
 
             <!-- Mesh Dot-Grid Canvas Background Brush -->
             <DrawingBrush x:Key="MeshGridBrush" TileMode="Tile" SourceRect="0,0,24,24" DestinationRect="0,0,24,24">

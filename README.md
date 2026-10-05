@@ -7,7 +7,7 @@
 > **A high-performance desktop orchestrator & sandbox session manager for Google Antigravity CLI (`agy`).**  
 > Run multiple Antigravity AI agent sessions concurrently with strictly isolated Google accounts, authentic real-time telemetry, session turn tracking, and workspace sandboxing.
 
-[![Version](https://img.shields.io/badge/Version-0.9.12--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-0.9.13--beta-blue?style=flat&logo=semver)](CHANGELOG.md)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
 [![Primary UI: Avalonia Cross-Platform](https://img.shields.io/badge/Primary%20UI-Avalonia%20Cross--Platform-10B981?style=flat&logo=avaloniaui)](https://avaloniaui.net/)
 [![WPF: Archived Prototype](https://img.shields.io/badge/WPF-Archived%20Prototype-gray?style=flat&logo=windows)]()
@@ -44,7 +44,7 @@ Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation 
 2. Decoupling the OS keyring via virtualized client parameters (`SSH_CONNECTION=1`, `SSH_CLIENT=1`), forcing `agy` to use isolated file-based credentials (`oauth_credentials.json`).
 3. Reading and visualizing authentic telemetry parsed directly from local JSONL logs and JWT tokens with zero synthetic dummy data.
 4. **🌐 100% Bilingual Localization (Indonesian 🇮🇩 & English 🇬🇧)**: Complete native localization coverage with instant live switching without restart.
-5. **💬 Unified Chat Hub (`/chat`) with Prominent Mode Switcher**: Comprehensive workspace combining Real-Time Swarm Chat (multi-agent bus stream, broadcast dispatch, architecture blackboard) and Personal 1-on-1 Chat (dynamic runtime model discovery from `agy models`, verified `low|medium|high` reasoning effort, multi-turn memory, authentic CLI history sync from `history.jsonl`, live task awareness, and active document indexing with 1-9ms hybrid project RAG via local Rust `arag-cli`), switched effortlessly via a responsive collision-free top mode switcher.
+5. **💬 Dedicated 1-on-1 Personal Chat Studio (`/chat`) & Integrated Swarm Workers Chat**: Streamlined 1-on-1 personal chat studio with isolated account routing, dynamic CLI model discovery from `agy models`, verified `low|medium|high` reasoning effort, multi-turn memory (`--conversation`), authentic CLI history synchronization (`[🔄 Sync CLI]`), subtle project knowledge indexing (`Attach Doc`), and 4 key differentiators vs the single-account Antigravity app. Realtime multi-agent bus chat is neatly integrated inside Swarm Workers (`/dispatcher` Tab 0).
 6. **📡 Live Activity Telemetry ("dia lagi ngapain")**: Authentic real-time command tracking and live output chips showing exactly what each worker is executing.
 7. **🧩 Antigravity Skills Hub & Multi-Scope Discovery**: Inspect built-in, workspace, plugin, and per-profile skills schemas with explicit ownership, accessibility tags, and full Markdown modal preview.
 8. **🔊 Sonic Sentinels & Optional Periodic Audio**: Synthesized audio alerts on swarm lifecycle events with configurable silent background periodic sync.
@@ -110,18 +110,14 @@ Autonomous multi-worker execution engine that distributes high-level technical o
 
 ---
 
-### 5. Dedicated Real-Time Chat Studio (`/realtime-chat`) & Event Bus
-Real-time collaborative chat workspace streaming live messages from the append-only `.swarm/bus.jsonl` event bus, human-in-the-loop directives, and individual account session streams.
+### 5. Dedicated Personal Chat Studio (`/chat`) & Swarm Workers Chat
+Dedicated 1-on-1 personal chat studio directly connected to Google Antigravity CLI (`agy`) with isolated multi-account sandboxing, alongside collaborative multi-agent bus chat integrated into Swarm Workers (`/dispatcher`).
 
-<p align="center">
-  <img src="docs/assets/screenshots/05_live_swarm_chat.png" alt="05 Live Swarm Chat" width="100%" />
-</p>
-
-- **Dedicated Chat Workspace (`/realtime-chat`)**: Full workspace view with responsive channels, quick tips, interactive blackboard specs, and profile shortcuts (`💬 Chat Realtime`).
-- **Live Output Stream Chips ("dia lagi ngapain")**: Dynamic chips and status banners displaying the exact shell command and real-time execution output for each active worker.
-- **Distinct Role Badges & Avatars**: Color-coded badges differentiating System, User/Commander, Architect, Implementer, Reviewer, and Security roles with crisp circular avatars.
-- **Reactive Stream Watching**: Low-overhead `FileSystemWatcher` with byte-offset tracking renders new worker events with zero polling overhead.
-- **Human Directive Bar**: Send broadcasts to the entire swarm or target specific agents (`@WorkerName`) directly from the input bar.
+- **Streamlined 1-Row Control Header**: Choose which account sandbox executes the conversation, dynamic CLI model discovery from `agy models`, reasoning effort (`low`, `medium`, `high`), export session to Markdown, and delete session.
+- **Authentic CLI History Continuity**: Sync and load historical conversations from `history.jsonl` with full multi-turn context retention via `--conversation <conversation_id>`.
+- **4 Built-in Capability Differentiators**: Empty state highlights how this studio transcends the standard Antigravity app: Multi-Account Sandboxing, Dynamic CLI Models, Live Swarm Awareness, and CLI History Continuity.
+- **Subtle Project Knowledge Integration**: Attach project files (`Attach Doc`) to index documents into the local Rust RAG knowledge base (`arag-cli`) with clean collapsible reference tags in responses.
+- **Realtime Swarm Workers Chat (`/dispatcher` Tab 0)**: Multi-agent event bus streaming, broadcast dispatch, architecture blackboard inspection, and agent logs are housed together in the Swarm Workers center.
 
 ---
 

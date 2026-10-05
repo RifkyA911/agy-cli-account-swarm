@@ -2,6 +2,32 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
+## [v0.9.13-beta] - 2026-10-05
+### Added & Changed
+- **Relocated Realtime Swarm Chat to Swarm Workers (`/dispatcher`)**:
+  - Eliminated the bulky 2-tab switcher ("Tab Menu Gede") from the Chat page that was taking up excessive vertical screen estate.
+  - Integrated the Realtime Swarm multi-agent event bus feed directly into Swarm Workers (`/dispatcher`, Tab 0) alongside worker dispatching, blackboard specs, and live agent streams.
+  - Added streamlined Swarm Chat tools in Tab 0: Export Transcript, Clear Chat, and 1-click message clipboard copying.
+- **Dedicated, High-Craft Personal Chat Studio (`/chat`)**:
+  - Re-engineered `/chat` into a dedicated 1-on-1 Personal Chat studio with clean, focused typography and breathing room.
+  - **Streamlined 1-Row Header Bar**: Consolidated Chat Title, Account Sandbox selector (with color tag and tier chip), live CLI status indicator, dynamic runtime Model selector, Reasoning Effort selector (`low`, `medium`, `high`), `[Export MD]`, and `[🗑️]` Delete session into a single elegant bar.
+  - **Sleek Attachment Integration**: Replaced the clunky oversized "Index Doc" button with a sleek paperclip attachment button (`HeroIconPaperClip`, "Attach Doc") directly inside the composer toolbar.
+  - **Purged Loud Badges & Boasting**: Removed tacky, intrusive labels ("Live & RAG" pill in sidebar navigation, "RAG AUGMENTED", "1-on-1 CLI", "📚 RAG: agy-swarm" banners).
+  - **Subtle Collapsible Context References**: Assistant message context references are now quiet and collapsible (`📎 X knowledge context references used`) instead of loud full-width banners.
+- **App Differentiators vs Single-Account Antigravity App**:
+  - Empty conversation canvas now displays 4 distinct capability cards highlighting why this GUI chat studio outclasses the default Antigravity app:
+    1. **Multi-Account Sandboxing**: Route conversations across isolated Google account quotas and workspaces with zero auth conflicts.
+    2. **Dynamic CLI Models**: Direct runtime discovery of official Antigravity CLI models without obsolete hardcoding.
+    3. **Live Swarm Awareness**: Optional real-time context injection from active background swarm workers and tasks.
+    4. **CLI History Continuity**: 1-click synchronization of authentic terminal conversations with `--conversation` continuity.
+  - Quick-start prompt chips for instant developer workflow.
+- **Iconography & Polish**:
+  - Updated Swarm Workers (`/dispatcher`) sidebar navigation icon to `HeroIconGitBranch` (`Branch`).
+  - Updated English and Indonesian localizations (`Services/LocalizationService.cs`) for clean, unpretentious chat labels.
+- **Zero Warnings, Zero Errors Release Verification**:
+  - 170/170 hermetic tests passing.
+  - Re-published to `publish/` with 0 build warnings and 0 errors.
+
 ## [v0.9.12-beta] - 2026-10-05
 ### Added & Changed
 - **Responsive Header Layout Collision Fix ("Tab Menu Gede")**:

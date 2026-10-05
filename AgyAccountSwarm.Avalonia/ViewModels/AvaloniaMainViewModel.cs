@@ -47,7 +47,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private string _appVersion = "v0.9.11-beta";
 
     [ObservableProperty]
-    private string _selectedChatTab = "Realtime"; // "Realtime" or "Personal"
+    private string _selectedChatTab = "Personal"; // "Personal"
 
     partial void OnSelectedChatTabChanged(string value)
     {
@@ -63,11 +63,9 @@ public partial class AvaloniaMainViewModel : ObservableObject
     {
         "Dashboard" => "System Dashboard & Telemetry Overview",
         "Accounts" => "Fleet Accounts & Quota Governance",
-        "Chat" => SelectedChatTab == "Personal" 
-            ? "Personal Chat Studio & RAG Intelligence Hub" 
-            : "Real-Time Swarm Chat & Inter-Agent Bus",
-        "PersonalChat" => "Personal Chat Studio & RAG Intelligence Hub",
-        "RealtimeChat" => "Real-Time Swarm Chat & Inter-Agent Bus",
+        "Chat" => "Antigravity CLI Interactive Chat",
+        "PersonalChat" => "Antigravity CLI Interactive Chat",
+        "RealtimeChat" => "Swarm Worker & Project Orchestrator",
         "Dispatcher" => "Swarm Worker & Project Orchestrator",
         "Analytics" => "Telemetry Analytics & Quota Forecasting",
         "Mcp" => "Model Context Protocol (MCP) Ecosystem",
@@ -96,12 +94,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
         }
         else if (value == "RealtimeChat")
         {
-            _currentPage = "Chat";
-            _selectedChatTab = "Realtime";
+            _currentPage = "Dispatcher";
+            SelectedProjectTabIndex = 0;
             OnPropertyChanged(nameof(CurrentPage));
-            OnPropertyChanged(nameof(SelectedChatTab));
-            OnPropertyChanged(nameof(IsRealtimeChatTabSelected));
-            OnPropertyChanged(nameof(IsPersonalChatTabSelected));
+            OnPropertyChanged(nameof(SelectedProjectTabIndex));
         }
         OnPropertyChanged(nameof(CurrentPageTitle));
     }
@@ -1659,31 +1655,17 @@ public partial class AvaloniaMainViewModel : ObservableObject
         }
         else if (page == "RealtimeChat")
         {
-            CurrentPage = "Chat";
-            SelectedChatTab = "Realtime";
+            CurrentPage = "Dispatcher";
+            SelectedProjectTabIndex = 0;
             EnsureProjectContextForChat();
             PopulateChatTargetWorkers();
             _ = RefreshSwarmChatMessagesAsync();
         }
-        else if (page == "PersonalChat")
+        else if (page == "PersonalChat" || page == "Chat")
         {
             CurrentPage = "Chat";
             SelectedChatTab = "Personal";
             EnsurePersonalChatContext();
-        }
-        else if (page == "Chat")
-        {
-            CurrentPage = "Chat";
-            if (SelectedChatTab == "Personal")
-            {
-                EnsurePersonalChatContext();
-            }
-            else
-            {
-                EnsureProjectContextForChat();
-                PopulateChatTargetWorkers();
-                _ = RefreshSwarmChatMessagesAsync();
-            }
         }
     }
 
@@ -3603,6 +3585,21 @@ public partial class AvaloniaMainViewModel : ObservableObject
             _ = PopulatePersonalChatDynamicModelsAsync();
         }
         RefreshLiveSwarmTasks();
+    }
+
+    [RelayCommand]
+    public async Task SendStarterPromptAsync(string prompt)
+    {
+        if (string.IsNullOrWhiteSpace(prompt)) return;
+        PersonalChatInputText = prompt;
+        await SendPersonalChatMessageAsync();
+    }
+
+    [RelayCommand]
+    public void SetPersonalChatPrompt(string prompt)
+    {
+        if (string.IsNullOrWhiteSpace(prompt)) return;
+        PersonalChatInputText = prompt;
     }
 
     [RelayCommand]

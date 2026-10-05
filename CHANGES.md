@@ -145,8 +145,30 @@ Sebelum merilis versi publik atau memperbarui installer:
 | `Services/PersonalChatService.cs`, `Models/PersonalChatMessage.cs` | Studio percakapan 1-on-1 interaktif dengan `agy CLI` sandboxed via multi-turn conversation memory (`agy --conversation <id> -p ... --output-format json`). Penyimpanan sesi terisolasi di `%APPDATA%\AgyAccountSwarm\personal_chats\{profileId}\` dan ekspor markdown. | Memberikan GUI percakapan personal mandiri tanpa memerlukan terminal external, dengan pelacakan token dan durasi per turn. |
 | `Services/RagService.cs`, `Models/RagSearchResult.cs` | Deteksi dan integrasi mesin RAG Rust `arag-cli` (`~/.cargo/bin/arag-cli.exe` atau PATH) dengan hybrid/BM25 search berkecepatan 1-9ms, dilengkapi fallback scanner markdown lokal. | Menghilangkan dependensi Python/LangChain/ChromaDB yang boros RAM (idle ~0 MB), memungkinkan augmentasi konteks dokumentasi proyek secara instan dan akurat. |
 | `Services/PersonalChatService.cs` (`GetRealtimeSwarmTaskStatusSummary`) | Ingesti telemetri task dan event bus real-time dari `.swarm/tasks.json` dan `.swarm/bus.jsonl` menggunakan file streaming native .NET 9. | Memberikan pemahaman instan mengenai status eksekusi pekerja swarm langsung ke model AI personal chat tanpa perantara database eksternal. |
-| `AgyAccountSwarm.Avalonia/MainWindow.axaml`, `AgyAccountSwarm.Avalonia/MainWindow.axaml.cs`, `AvaloniaMainViewModel.cs` | Unifikasi menu navigasi menjadi satu menu "Chat" di sidebar dengan badge "Live & RAG"; penambahan "tab menu gede" (prominent segmented switcher 44px) di bagian atas untuk beralih antara Realtime Swarm Chat dan Personal Chat (RAG); pemisahan toolbar header ke baris tersendiri dengan margin bernapas; penggantian seluruh ikon download dengan ikon dokumen/laporan (`HeroIconDocumentText`); penambahan shortcut `💬 Personal Chat` pada kartu profil. | Mengurangi kepadatan menu sidebar, menyatukan ekosistem komunikasi swarm dan personal dalam satu workspace terpadu tanpa kehilangan state draft atau riwayat percakapan. |
 | `tests/AgyAccountSwarm.Tests/PersonalChatAndRagTests.cs` | Penambahan unit test hermetik mencakup kalkulasi telemetri, persistensi sesi JSON, augmentasi prompt RAG, dan parsing telemetri task swarm. | Menjamin keandalan fungsionalitas chat dan RAG tanpa regresi, memperluas cakupan test menjadi 167 tes lulus. |
+
+---
+
+### K. Dynamic Model Discovery, Effort Verification, & Document Ingestion (v0.9.12-beta)
+
+| Komponen | Perubahan | Rationale / Kenapa Diubah |
+|---|---|---|
+| `Services/AgyModelService.cs`, `IAgyModelService.cs` | Penemuan model dinamis runtime dari perintah `agy models` dan profil sandbox. Menghapus hardcoding model lama. Update katalog fallback ke Gemini 3.8 Flash, 3.1 Pro, Claude Sonnet/Opus 4.6. | Model AI selalu up-to-date mengikuti update resmi Google Antigravity tanpa perlu compile ulang. |
+| `AgyAccountSwarm.Avalonia/ViewModels/AvaloniaMainViewModel.cs` | Menghapus opsi reasoning effort invalid `xhigh` dan `max`. CLI Antigravity diverifikasi hanya mendukung `low`, `medium`, dan `high`. | Menghilangkan crash/argumen ditolak CLI saat pengguna mengirim pesan dengan reasoning effort. |
+| `Services/RagService.cs` (`IndexDocumentAsync`) | Penambahan integrasi file picker dan proses indexing dokumen via `arag-cli build-index --input-dir <dir> --kb <kb> --mode append`. | Memungkinkan pengguna mengindeks file lokal (`.md`, `.txt`, `.pdf`, `.docx`, dll.) langsung ke knowledge base RAG proyek. |
+| `Services/CliHistorySyncService.cs` | Sinkronisasi riwayat percakapan otentik dari `%USERPROFILE%\.gemini\antigravity-cli\history.jsonl` dan pembersihan tag XML internal. | Memungkinkan pengguna melanjutkan percakapan yang pernah dibuat di terminal CLI dengan kontinuitas `--conversation`. |
+
+---
+
+### L. Total Overhaul UI/UX Chat & Migrasi Swarm Chat ke Swarm Workers (v0.9.13-beta)
+
+| Komponen | Perubahan | Rationale / Kenapa Diubah |
+|---|---|---|
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml` (Chat View) | Penghapusan 2-tab segmented mode switcher ("tab menu gede") yang memakan area layar; `/chat` kini 100% didedikasikan untuk Personal Chat Studio. Konsolidasi toolbar menjadi 1 baris ramping (Title, Sandbox Profile, CLI Status, Model selector, Effort selector, Export MD, Delete Session). | Menghilangkan kepadatan layar, memberikan ruang percakapan yang bersih, lapang, dan nyaman untuk konsentrasi coding. |
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml` (Swarm Workers View) | Realtime Swarm Chat (multi-agent bus stream, broadcast human directive, agent logs) dipindahkan ke Tab 0 Swarm Workers (`/dispatcher`), dilengkapi tool Export Transcript, Clear Chat, dan Copy Message. | Menempatkan kolaborasi multi-agent di tempat alaminya bersama worker targeting, worktree dispatcher, dan status eksekusi. |
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml` (Composer & Attachments) | Mengganti tombol kaku `[Index Doc...]` dengan ikon attachment paperclip ramping (`HeroIconPaperClip`, "Attach Doc") di composer dock; menghilangkan banner tag mencolok ("Live & RAG", "RAG AUGMENTED", dll.); referensi konteks dibuat collapsible rapi (`📎 X knowledge context references used`). | Tampilan modern, bersih, bebas badge norak ("anti-slop"), dan tidak memamerkan fitur secara berlebihan. |
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml` (Empty State Canvas) | Menambahkan 4 kartu kapabilitas pembeda autentik (Multi-Account Sandboxing, Dynamic CLI Models, Live Swarm Awareness, CLI History Continuity) serta chip prompt awal interaktif (`SendStarterPromptCommand`). | Memberikan pembeda jelas mengapa GUI ini lebih unggul dibandingkan aplikasi single-account bawaan Antigravity. |
+| `AgyAccountSwarm.Avalonia/MainWindow.axaml` & `App.axaml` | Ikon navigasi Swarm Workers (`/dispatcher`) diganti menjadi `HeroIconGitBranch` (`Branch`). | Menghilangkan kebingungan akibat duplikasi ikon bubble chat pada dua menu sidebar berbeda. |
 
 ---
 
