@@ -44,7 +44,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private string _currentPage = "Dashboard";
 
     [ObservableProperty]
-    private string _appVersion = "v0.9.11-beta";
+    private string _appVersion = "v0.9.13-beta";
 
     [ObservableProperty]
     private string _selectedChatTab = "Personal"; // "Personal"
@@ -4523,10 +4523,10 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private bool _isUpdateAvailable = false;
 
     [ObservableProperty]
-    private string _updateStatusMessage = "v0.9.8-beta is currently the latest release.";
+    private string _updateStatusMessage = "v0.9.13-beta is currently the latest release.";
 
     [ObservableProperty]
-    private string _latestVersionTag = "v0.9.8-beta";
+    private string _latestVersionTag = "v0.9.13-beta";
 
     [RelayCommand]
     public async Task CheckForUpdatesAsync()
@@ -4540,7 +4540,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         {
             using var client = new System.Net.Http.HttpClient();
             client.Timeout = TimeSpan.FromSeconds(6);
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("AgyAccountSwarm-App/0.9.8");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("AgyAccountSwarm-App/0.9.13");
 
             var url = "https://api.github.com/repos/RifkyA911/agy-cli-account-swarm/releases/latest";
             var response = await client.GetAsync(url);
@@ -4551,7 +4551,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 if (doc.RootElement.TryGetProperty("tag_name", out var tagElem))
                 {
-                    var latestTag = tagElem.GetString() ?? "v0.9.8-beta";
+                    var latestTag = tagElem.GetString() ?? "v0.9.13-beta";
                     LatestVersionTag = latestTag;
 
                     if (!string.Equals(latestTag.TrimStart('v'), AppVersion.TrimStart('v'), StringComparison.OrdinalIgnoreCase))

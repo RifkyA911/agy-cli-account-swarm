@@ -4,9 +4,9 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>AgyCliAccountSwarmGUI</AssemblyName>
-    <Version>0.9.8-beta</Version>
-    <AssemblyVersion>0.9.8.0</AssemblyVersion>
-    <FileVersion>0.9.8.0</FileVersion>
+    <Version>0.9.13-beta</Version>
+    <AssemblyVersion>0.9.13.0</AssemblyVersion>
+    <FileVersion>0.9.13.0</FileVersion>
     <AssemblyTitle>Agy CLI Account Swarm (Avalonia UI)</AssemblyTitle>
     <Product>Agy CLI Account Swarm (Avalonia UI)</Product>
     <Description>Cross-platform desktop GUI orchestrator and sandbox session manager for Google Antigravity CLI</Description>

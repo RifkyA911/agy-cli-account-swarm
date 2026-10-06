@@ -4,7 +4,7 @@
 ; ==============================================================================
 
 #define MyAppName "Agy CLI Account Swarm"
-#define MyAppVersion "0.9.8-beta"
+#define MyAppVersion "0.9.13-beta"
 #define MyAppPublisher "RifkyA911"
 #define MyAppURL "https://github.com/RifkyA911/agy-cli-account-swarm"
 #define MyAppExeName "AgyCliAccountSwarmGUI.exe"

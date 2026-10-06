@@ -31,6 +31,24 @@
 
 ---
 
+## 📦 Download & Quick Installation (v0.9.13-beta)
+
+Ready-to-use binaries and installers with zero compilation required:
+
+| OS & Architecture | Format | Description / Command |
+| :--- | :--- | :--- |
+| **Windows x64** | [**Setup Installer (.exe)**](https://github.com/RifkyA911/agy-cli-account-swarm/releases/latest) | Inno Setup GUI with Desktop shortcut & uninstaller |
+| **Windows x64** | [**Portable (.zip)**](https://github.com/RifkyA911/agy-cli-account-swarm/releases/latest) | Standalone portable archive (extract and run) |
+| **Windows ARM64** | [**Portable (.zip)**](https://github.com/RifkyA911/agy-cli-account-swarm/releases/latest) | Native ARM64 for Snapdragon X Elite & Surface Pro Copilot+ |
+| **Linux x64** | [**Tarball (.tar.gz)**](https://github.com/RifkyA911/agy-cli-account-swarm/releases/latest) | `tar -xzf Agy-*-linux-x64.tar.gz && cd agy-* && bash install.sh` |
+| **Linux ARM64** | [**Tarball (.tar.gz)**](https://github.com/RifkyA911/agy-cli-account-swarm/releases/latest) | `tar -xzf Agy-*-linux-arm64.tar.gz && cd agy-* && bash install.sh` |
+| **macOS Apple Silicon** | [**Tarball (.tar.gz)**](https://github.com/RifkyA911/agy-cli-account-swarm/releases/latest) | `tar -xzf Agy-*-macos-arm64.tar.gz && cd agy-* && bash install.sh` |
+| **macOS Intel** | [**Tarball (.tar.gz)**](https://github.com/RifkyA911/agy-cli-account-swarm/releases/latest) | `tar -xzf Agy-*-macos-x64.tar.gz && cd agy-* && bash install.sh` |
+
+👉 **Complete Step-by-Step Guide**: Read the [**Multiplatform Installation Guide (docs/INSTALLATION.md)**](docs/INSTALLATION.md).
+
+---
+
 ## 💡 Why Agy CLI Account Swarm?
 
 Google's **Antigravity CLI (`agy`)** stores its OAuth credentials, conversation history, memory caches, and session configuration inside the host user's home directory (`~/.gemini/antigravity-cli`). Running multiple CLI terminal instances simultaneously on different Google accounts typically causes:
@@ -357,6 +375,7 @@ This application orchestrates local Antigravity CLI sessions and parses telemetr
 ## 📖 Technical Reference & Documentation
 
 ### 🏛️ Core Architecture & Security
+- [`docs/INSTALLATION.md`](docs/INSTALLATION.md): Comprehensive multiplatform installation, setup, and troubleshooting guide (Windows, Linux, macOS).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): Deep-dive into process sandboxing, environment variable virtualization, and process tree architecture.
 - [`docs/SECURITY_ISOLATION.md`](docs/SECURITY_ISOLATION.md): Keyring decoupling (`SSH_CONNECTION=1`), BOM-free token preservation, DPAPI protection, and secret redaction.
 - [`docs/CONFIG_REFERENCE.md`](docs/CONFIG_REFERENCE.md): Authoritative schema reference for `settings.json`, `profiles.json`, `quota_config.json`, and directory resolution rules.

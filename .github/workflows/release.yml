@@ -31,9 +31,6 @@ jobs:
       - name: Run Unit Tests
         run: dotnet test --verbosity normal
 
-      - name: Publish Binaries
-        run: dotnet publish AgyAccountSwarm.csproj -c Release -o publish --nologo
-
       - name: Extract Tag Name & Version
         id: vars
         shell: pwsh
@@ -45,28 +42,10 @@ jobs:
           $isBeta = $tag -match "beta|alpha|rc"
           echo "IS_PRERELEASE=$isBeta" >> $env:GITHUB_OUTPUT
 
-      - name: Compile Windows Inno Setup Installer
+      - name: Build Multiplatform Packages (Windows, Linux, macOS x64/ARM64)
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path dist -Force | Out-Null
-          iscc "/Qp" scripts/installer.iss
-
-      - name: Package Windows Portable ZIP
-        shell: pwsh
-        run: |
-          $ver = "${{ steps.vars.outputs.VERSION }}"
-          Compress-Archive -Path publish/* -DestinationPath "dist/Agy-CLI-Account-Swarm-v$ver-win-x64.zip" -CompressionLevel Optimal
-
-      - name: Compute SHA256 Checksums
-        shell: pwsh
-        run: |
-          $files = Get-ChildItem -Path dist -File | Where-Object { $_.Name -ne "SHA256SUMS.txt" -and $_.Extension -match "exe|zip" }
-          $lines = [System.Collections.Generic.List[string]]::new()
-          foreach ($f in $files) {
-            $hash = (Get-FileHash -Path $f.FullName -Algorithm SHA256).Hash.ToLower()
-            $lines.Add("$hash  $($f.Name)")
-          }
-          [System.IO.File]::WriteAllLines("dist/SHA256SUMS.txt", $lines)
+          & ./scripts/build-installer.ps1 -Version "${{ steps.vars.outputs.VERSION }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87238604da99376a6cb63 # v2.2.1
@@ -78,6 +57,7 @@ jobs:
           files: |
             dist/*.exe
             dist/*.zip
+            dist/*.tar.gz
             dist/SHA256SUMS.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Installer for Agy CLI Account Swarm (Linux)
-# Version: 0.9.8-beta
+# Version: 0.9.13-beta
 # ==============================================================================
 set -e
 
@@ -12,7 +12,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${CYAN}============================================================${NC}"
-echo -e "${CYAN}    Agy CLI Account Swarm — Linux Installer (v0.9.8-beta)    ${NC}"
+echo -e "${CYAN}    Agy CLI Account Swarm — Linux Installer (v0.9.13-beta)   ${NC}"
 echo -e "${CYAN}============================================================${NC}"
 
 # Detect install target
@@ -29,7 +29,15 @@ else
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PAYLOAD_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+if [ -f "$SCRIPT_DIR/AgyCliAccountSwarmGUI" ] || [ -f "$SCRIPT_DIR/AgyCliAccountSwarmGUI.dll" ]; then
+    PAYLOAD_DIR="$SCRIPT_DIR"
+elif [ -f "$SCRIPT_DIR/../AgyCliAccountSwarmGUI" ] || [ -f "$SCRIPT_DIR/../AgyCliAccountSwarmGUI.dll" ]; then
+    PAYLOAD_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+elif [ -d "$SCRIPT_DIR/../publish" ]; then
+    PAYLOAD_DIR="$(cd "$SCRIPT_DIR/../publish" && pwd)"
+else
+    PAYLOAD_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
 
 echo -e "${YELLOW}[1/4] Creating installation directories...${NC}"
 mkdir -p "$INSTALL_DIR"
@@ -46,6 +54,7 @@ else
     # Current payload directory copy
     cp -r "$PAYLOAD_DIR"/* "$INSTALL_DIR/" 2>/dev/null || true
 fi
+chmod +x "$INSTALL_DIR/AgyCliAccountSwarmGUI" 2>/dev/null || true
 
 # Copy icon if available
 if [ -f "$PAYLOAD_DIR/docs/assets/banner.svg" ]; then

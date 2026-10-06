@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Installer for Agy CLI Account Swarm (macOS)
-# Version: 0.9.8-beta
+# Version: 0.9.13-beta
 # ==============================================================================
 set -e
 
@@ -11,7 +11,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo -e "${CYAN}============================================================${NC}"
-echo -e "${CYAN}    Agy CLI Account Swarm — macOS Installer (v0.9.8-beta)    ${NC}"
+echo -e "${CYAN}    Agy CLI Account Swarm — macOS Installer (v0.9.13-beta)   ${NC}"
 echo -e "${CYAN}============================================================${NC}"
 
 APP_NAME="Agy CLI Account Swarm"
@@ -24,28 +24,37 @@ else
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PAYLOAD_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-echo -e "${YELLOW}[1/4] Preparing macOS App Bundle structure at $APP_DIR...${NC}"
-mkdir -p "$APP_DIR/Contents/MacOS"
-mkdir -p "$APP_DIR/Contents/Resources"
-mkdir -p "$BIN_DIR"
-
-echo -e "${YELLOW}[2/4] Copying application payload...${NC}"
-if [ -d "$PAYLOAD_DIR/publish" ]; then
-    cp -r "$PAYLOAD_DIR/publish"/* "$APP_DIR/Contents/Resources/"
-elif [ -d "$PAYLOAD_DIR/bundle" ]; then
-    cp -r "$PAYLOAD_DIR/bundle"/* "$APP_DIR/Contents/Resources/"
+if [ -d "$SCRIPT_DIR/$APP_NAME.app" ]; then
+    PREBUILT_APP="$SCRIPT_DIR/$APP_NAME.app"
+elif [ -d "$SCRIPT_DIR/../$APP_NAME.app" ]; then
+    PREBUILT_APP="$(cd "$SCRIPT_DIR/.." && pwd)/$APP_NAME.app"
 else
-    cp -r "$PAYLOAD_DIR"/* "$APP_DIR/Contents/Resources/" 2>/dev/null || true
+    PREBUILT_APP=""
 fi
 
-# Copy uninstaller into app bundle
-cp "$SCRIPT_DIR/uninstall-macos.sh" "$APP_DIR/Contents/Resources/uninstall.sh"
-chmod +x "$APP_DIR/Contents/Resources/uninstall.sh"
+if [ -n "$PREBUILT_APP" ] && [ -d "$PREBUILT_APP" ]; then
+    echo -e "${YELLOW}[1/3] Installing pre-built macOS App Bundle to $APP_DIR...${NC}"
+    mkdir -p "$(dirname "$APP_DIR")"
+    mkdir -p "$BIN_DIR"
+    rm -rf "$APP_DIR"
+    cp -R "$PREBUILT_APP" "$APP_DIR"
+else
+    PAYLOAD_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+    echo -e "${YELLOW}[1/3] Preparing macOS App Bundle structure at $APP_DIR...${NC}"
+    mkdir -p "$APP_DIR/Contents/MacOS"
+    mkdir -p "$APP_DIR/Contents/Resources"
+    mkdir -p "$BIN_DIR"
 
-echo -e "${YELLOW}[3/4] Generating macOS Info.plist & Launchers...${NC}"
-cat << EOF > "$APP_DIR/Contents/Info.plist"
+    echo -e "${YELLOW}[2/3] Copying application payload...${NC}"
+    if [ -d "$PAYLOAD_DIR/publish" ]; then
+        cp -r "$PAYLOAD_DIR/publish"/* "$APP_DIR/Contents/Resources/"
+    elif [ -d "$PAYLOAD_DIR/bundle" ]; then
+        cp -r "$PAYLOAD_DIR/bundle"/* "$APP_DIR/Contents/Resources/"
+    else
+        cp -r "$PAYLOAD_DIR"/* "$APP_DIR/Contents/Resources/" 2>/dev/null || true
+    fi
+
+    cat << EOF > "$APP_DIR/Contents/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -57,16 +66,16 @@ cat << EOF > "$APP_DIR/Contents/Info.plist"
     <key>CFBundleName</key>
     <string>Agy CLI Account Swarm</string>
     <key>CFBundleVersion</key>
-    <string>0.9.8-beta</string>
+    <string>0.9.13-beta</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.9.8-beta</string>
+    <string>0.9.13-beta</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
 </dict>
 </plist>
 EOF
 
-cat << 'EOF' > "$APP_DIR/Contents/MacOS/agy-cli-account-swarm"
+    cat << 'EOF' > "$APP_DIR/Contents/MacOS/agy-cli-account-swarm"
 #!/usr/bin/env bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RES_DIR="$(cd "$SCRIPT_DIR/../Resources" && pwd)"
@@ -83,7 +92,16 @@ else
     exit 1
 fi
 EOF
-chmod +x "$APP_DIR/Contents/MacOS/agy-cli-account-swarm"
+fi
+
+# Copy uninstaller into app bundle
+cp "$SCRIPT_DIR/uninstall-macos.sh" "$APP_DIR/Contents/Resources/uninstall.sh" 2>/dev/null || true
+chmod +x "$APP_DIR/Contents/Resources/uninstall.sh" 2>/dev/null || true
+
+echo -e "${YELLOW}[3/3] Setting executable permissions and Gatekeeper quarantine bypass...${NC}"
+chmod +x "$APP_DIR/Contents/MacOS/agy-cli-account-swarm" 2>/dev/null || true
+chmod +x "$APP_DIR/Contents/Resources/AgyCliAccountSwarmGUI" 2>/dev/null || true
+xattr -cr "$APP_DIR" 2>/dev/null || true
 
 # Create symlink in bin directory
 ln -sf "$APP_DIR/Contents/MacOS/agy-cli-account-swarm" "$BIN_DIR/agy-cli-account-swarm"
