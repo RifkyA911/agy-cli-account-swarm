@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Installation &amp; Deployment Guide - Agy Account Swarm</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --primary: #10b981;
+      --blue: #38bdf8;
+      --amber: #f59e0b;
+      --code-bg: #1e293b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+    .container { max-width: 1060px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    p.lead { color: var(--muted); font-size: 15px; }
+    h2 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 30px 0 14px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+    h3 { font-size: 16px; font-weight: 700; color: var(--blue); margin: 20px 0 10px 0; }
+    p { margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+    th, td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; }
+    th { background: rgba(255, 255, 255, 0.04); color: var(--blue); font-weight: 700; }
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      color: #e2e8f0;
+    }
+    pre {
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    pre code { background: transparent; padding: 0; }
+    ul, ol { padding-left: 20px; margin-bottom: 14px; font-size: 14px; color: #cbd5e1; }
+    li { margin-bottom: 6px; }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">MULTI-PLATFORM RELEASE v0.9.13-BETA</div>
+      <h1>Installation &amp; Deployment Guide</h1>
+      <p class="lead">Complete setup instructions for Windows, Linux, and macOS (x64 and ARM64 architectures).</p>
+    </header>
+
+    <div class="card">
+      <h2>1. Distribution Packages Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Architecture</th>
+            <th>Format</th>
+            <th>Filename</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Windows</strong></td>
+            <td>x64</td>
+            <td>Setup GUI (.exe)</td>
+            <td><code>Agy-CLI-Account-Swarm-Setup-v0.9.13-beta.exe</code></td>
+            <td>Inno Setup Wizard with Desktop shortcut &amp; uninstaller</td>
+          </tr>
+          <tr>
+            <td><strong>Windows</strong></td>
+            <td>x64</td>
+            <td>Portable (.zip)</td>
+            <td><code>Agy-CLI-Account-Swarm-v0.9.13-beta-win-x64.zip</code></td>
+            <td>Standalone zero-install archive (extract and launch)</td>
+          </tr>
+          <tr>
+            <td><strong>Windows</strong></td>
+            <td>ARM64</td>
+            <td>Portable (.zip)</td>
+            <td><code>Agy-CLI-Account-Swarm-v0.9.13-beta-win-arm64.zip</code></td>
+            <td>Native ARM64 for Snapdragon X Elite &amp; Surface Pro Copilot+</td>
+          </tr>
+          <tr>
+            <td><strong>Linux</strong></td>
+            <td>x64</td>
+            <td>Tarball (.tar.gz)</td>
+            <td><code>Agy-CLI-Account-Swarm-v0.9.13-beta-linux-x64.tar.gz</code></td>
+            <td>Standalone binaries with <code>install.sh</code> &amp; .desktop entry</td>
+          </tr>
+          <tr>
+            <td><strong>Linux</strong></td>
+            <td>ARM64</td>
+            <td>Tarball (.tar.gz)</td>
+            <td><code>Agy-CLI-Account-Swarm-v0.9.13-beta-linux-arm64.tar.gz</code></td>
+            <td>Native aarch64 build for ARM servers, Pi 5, &amp; VMs</td>
+          </tr>
+          <tr>
+            <td><strong>macOS</strong></td>
+            <td>Apple Silicon</td>
+            <td>Tarball (.tar.gz)</td>
+            <td><code>Agy-CLI-Account-Swarm-v0.9.13-beta-macos-arm64.tar.gz</code></td>
+            <td>Pre-assembled <code>Agy CLI Account Swarm.app</code> bundle</td>
+          </tr>
+          <tr>
+            <td><strong>macOS</strong></td>
+            <td>Intel</td>
+            <td>Tarball (.tar.gz)</td>
+            <td><code>Agy-CLI-Account-Swarm-v0.9.13-beta-macos-x64.tar.gz</code></td>
+            <td>Pre-assembled <code>Agy CLI Account Swarm.app</code> for Intel Macs</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>2. Windows Installation</h2>
+      <h3>Option A: GUI Setup Installer</h3>
+      <ol>
+        <li>Download <code>Agy-CLI-Account-Swarm-Setup-v0.9.13-beta.exe</code> from GitHub Releases.</li>
+        <li>Launch the installer and follow the setup wizard.</li>
+        <li>The application installs per-user into <code>%LOCALAPPDATA%\Programs\Agy CLI Account Swarm</code> without requiring UAC Administrator elevation.</li>
+      </ol>
+      <h3>Option B: Standalone Portable ZIP</h3>
+      <ol>
+        <li>Extract the ZIP archive to your desired directory.</li>
+        <li>Run <code>AgyCliAccountSwarmGUI.exe</code>.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>3. Linux Installation (Wayland &amp; X11)</h2>
+      <pre><code>tar -xzf Agy-CLI-Account-Swarm-v0.9.13-beta-linux-x64.tar.gz
+cd agy-cli-account-swarm-v0.9.13-beta-linux-x64
+bash install.sh</code></pre>
+      <p>The installer copies binaries to <code>~/.local/share/agy-cli-account-swarm</code>, creates terminal wrapper <code>~/.local/bin/agy-cli-account-swarm</code>, and registers a <code>.desktop</code> entry in your desktop app drawer.</p>
+    </div>
+
+    <div class="card">
+      <h2>4. macOS Installation (Apple Silicon &amp; Intel)</h2>
+      <pre><code>tar -xzf Agy-CLI-Account-Swarm-v0.9.13-beta-macos-arm64.tar.gz
+cd agy-cli-account-swarm-v0.9.13-beta-macos-arm64
+bash install.sh</code></pre>
+      <p>The installer copies <code>Agy CLI Account Swarm.app</code> to <code>/Applications</code>, clears macOS Gatekeeper quarantine attributes (<code>xattr -cr</code>), and symlinks the launch command.</p>
+    </div>
+  </div>
+</body>
+</html>

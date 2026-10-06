@@ -118,13 +118,11 @@ Unlike synthetic dummy statistical models, `Agy CLI Account Swarm` parses real t
 
 ---
 
-## 5. Real-Time Chat Studio & Inter-Agent Coordination
+## 5. Personal Chat Studio & Swarm Workers Event Bus
 
-The Real-Time Chat Studio (`/realtime-chat`) serves as the central collaboration cockpit:
-- **Event Bus Streaming (`.swarm/bus.jsonl`)**: An append-only event log monitored via a low-overhead, byte-offset `FileSystemWatcher`.
-- **Live Output Stream Chips ("dia lagi ngapain")**: Dynamic chips and status banners displaying the exact shell command and real-time execution output for each active worker.
-- **Shared Blackboard (`.swarm/blackboard.md`)**: Reactive markdown specification sheet shared among all workers for consensus coordination.
-- **Human-in-the-Loop Steering**: Direct input bar allowing broadcast directives or targeted `@WorkerName` instructions.
+The application provides dual complementary conversational engines:
+- **Dedicated Personal Chat Studio (`/chat`)**: Focused 1-on-1 development studio directly connected to Google Antigravity CLI (`agy`) with isolated multi-account sandboxing. Features windowed history pagination (initial 35 messages with background `Task.Run` loading), dynamic runtime model discovery (`IAgyModelService`), verified reasoning effort control, and local Rust RAG attachments (`arag-cli`).
+- **Swarm Workers Event Bus (`/dispatcher`, Tab 0)**: Multi-agent collaboration center with append-only event streaming (`.swarm/bus.jsonl`), real-time worker execution streams ("dia lagi ngapain"), shared architecture specifications (`.swarm/blackboard.md`), and broadcast directives.
 
 ---
 

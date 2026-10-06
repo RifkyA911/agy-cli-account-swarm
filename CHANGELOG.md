@@ -29,6 +29,12 @@ All notable changes to the **Agy CLI Account Swarm** project are documented here
   - Completely eliminated UI dispatcher freezes: all disk reads (`FileStream`, JSON deserialization, and swarm task telemetry) now execute strictly in background `Task.Run` threads with zero UI thread contention.
   - Added background pruning & sanitization in `PersonalChatService`: automatically strips out raw CLI execution dumps (`Created At: ...`, build outputs, and internal tool invocations) from synced transcripts, reducing bloated session files from 26 MB down to ~150 KB (>70 MB disk space reclaimed).
   - Eliminated redundant session and message reloads when switching between views.
+- **Complete Multiplatform Installers & Release Matrix (Windows, Linux, macOS | x64 & ARM64)**:
+  - **Windows**: Modern Inno Setup installer (`Agy-CLI-Account-Swarm-Setup-v0.9.13-beta.exe`) with integrated Start Menu & Desktop shortcuts and uninstaller, alongside zero-install portable ZIP archives for both x64 and native ARM64 (Surface Pro Copilot+ and Snapdragon X Elite).
+  - **Linux**: Standalone `.tar.gz` packages for both x64 (x86_64) and ARM64 (aarch64) with automated `install.sh` script provisioning desktop application launchers (`.desktop`), scalable vector icons, and `agy-cli-account-swarm` terminal wrappers.
+  - **macOS**: Native application packages for both Apple Silicon (M1/M2/M3/M4) and Intel x64 featuring pre-assembled `Agy CLI Account Swarm.app` bundles, automated Gatekeeper quarantine resolution (`xattr -cr`), and terminal command symlinks.
+  - **Unified Release Builder (`scripts/build-installer.ps1`)**: Automated PowerShell script compiling all 6 targets, running Inno Setup, creating tarballs and zip archives, and generating cryptographic `SHA256SUMS.txt`.
+  - **Comprehensive Multiplatform Documentation**: Added [`docs/INSTALLATION.md`](docs/INSTALLATION.md) and [`docs/RELEASE_NOTES_v0.9.13-beta.md`](docs/RELEASE_NOTES_v0.9.13-beta.md).
 - **Zero Warnings, Zero Errors Release Verification**:
   - 170/170 hermetic tests passing.
   - Re-published to `publish/` with 0 build warnings and 0 errors.

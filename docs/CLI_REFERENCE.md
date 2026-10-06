@@ -95,29 +95,47 @@ Used by `AgyUsageParser` to fetch active capacity limits without spending tokens
 }
 ```
 
-### 3. Context Capacity Probe (`/context`)
+### 3. Dynamic Model Discovery (`agy models`)
+```bash
+agy models
+```
+Used by `IAgyModelService` to discover available models in real-time from the active Google Antigravity CLI without hardcoded model lists. Output lists models supported for your tier (`gemini-3.8-flash-high`, `gemini-3.7-flash`, `claude-sonnet-4-6`, `claude-opus-4-6-thinking`, `gpt-oss-120b-medium`).
+
+### 4. Verified Reasoning Effort Flag
+The CLI supports the `--reasoning-effort` parameter:
+```bash
+agy -m gemini-3.8-flash-high --reasoning-effort high -p "Your prompt"
+```
+> [!IMPORTANT]
+> Empirical verification confirms that Antigravity CLI strictly supports `low`, `medium`, and `high`. Values like `xhigh` or `max` are rejected with exit code 1.
+
+### 5. Context Capacity Probe (`/context`)
 ```bash
 agy -p "/context" --output-format json
 ```
 Extracts model context limits (e.g. 1M or 2M tokens for Gemini Pro/Flash), cached token counts, and current prompt headroom.
 
-### 4. Resume Most Recent Session
+### 6. Resume Most Recent Session
 ```bash
 agy -p "/continue"
 ```
 Bypasses session initialization and continues the most recent conversation transcript in the active workspace.
 
-### 5. Resume Specific Conversation by ID
+### 7. Resume Specific Conversation by ID
 ```bash
 agy --conversation 7b9a528e-59c4-42b7-a36b-6772a441e8f2
 ```
 Instantly loads a selected conversation transcript and trajectory history from the sandbox's `brain/` directory.
 
-### 6. Sandbox Terminal Shell (CLI-Only Mode)
+### 8. Sandbox Terminal Shell (CLI-Only Mode)
 ```bash
+# Windows
 run-agy.cmd --cli-only
+
+# Linux / macOS
+./run-agy.sh --cli-only
 ```
-Drops the developer directly into an isolated Command Prompt or PowerShell terminal with all sandbox environment variables configured, ready for custom scripting, batch commands, or manual `agy` prompts.
+Drops the developer directly into an isolated shell with all sandbox environment variables configured, ready for custom scripting, batch commands, or manual `agy` prompts.
 
 ---
 
