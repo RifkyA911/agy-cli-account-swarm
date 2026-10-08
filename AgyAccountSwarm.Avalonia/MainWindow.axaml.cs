@@ -22,6 +22,20 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        try
+        {
+            var iconUri = new Uri("avares://AgyCliAccountSwarmGUI/Assets/favicon.ico");
+            if (global::Avalonia.Platform.AssetLoader.Exists(iconUri))
+            {
+                using var stream = global::Avalonia.Platform.AssetLoader.Open(iconUri);
+                Icon = new WindowIcon(stream);
+            }
+        }
+        catch
+        {
+            // Fallback to XAML attribute
+        }
+
         _viewModel = new AvaloniaMainViewModel();
         DataContext = _viewModel;
 

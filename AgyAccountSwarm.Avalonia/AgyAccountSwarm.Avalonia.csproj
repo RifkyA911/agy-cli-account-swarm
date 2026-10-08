@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>AgyCliAccountSwarmGUI</AssemblyName>
+    <ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Company>RifkyA911</Company>
     <Authors>RifkyA911</Authors>
@@ -16,6 +17,13 @@
     <Product>Agy CLI Account Swarm (Avalonia UI)</Product>
     <Description>Cross-platform desktop GUI orchestrator and sandbox session manager for Google Antigravity CLI</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\favicon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>favicon.ico</Link>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.3" />

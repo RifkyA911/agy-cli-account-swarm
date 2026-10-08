@@ -4,6 +4,12 @@ All notable changes to the **Agy CLI Account Swarm** project are documented here
 
 ## [v0.9.13-beta] - 2026-10-08
 ### Added & Changed
+- **Fixed Missing Desktop App & Executable Icons**:
+  - Embedded multi-resolution application icon (`Assets/favicon.ico`) directly into `AgyCliAccountSwarmGUI.exe` via `<ApplicationIcon>` in `AgyAccountSwarm.Avalonia.csproj`.
+  - Configured standalone `favicon.ico` content output in publish and portable distribution packages.
+  - Enabled the desktop shortcut task by default in Inno Setup (`installer.iss`) by removing `Flags: unchecked`.
+  - Explicitly mapped `IconFilename: "{app}\{#MyAppExeName}"` and `IconIndex: 0` for all desktop and start menu application shortcuts.
+  - Added programmatic `WindowIcon` fallback in `MainWindow.axaml.cs` using `global::Avalonia.Platform.AssetLoader`.
 - **Tagged Chat Studio as Experimental (`[EXP]`)**:
   - Added `[EXP]` badge pill to Chat sidebar navigation (both expanded and collapsed view).
   - Added `[EXPERIMENTAL]` indicator to the Chat page header bar.
