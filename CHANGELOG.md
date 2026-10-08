@@ -2,8 +2,28 @@
 
 All notable changes to the **Agy CLI Account Swarm** project are documented here.
 
-## [v0.9.13-beta] - 2026-10-05
+## [v0.9.13-beta] - 2026-10-08
 ### Added & Changed
+- **Tagged Chat Studio as Experimental (`[EXP]`)**:
+  - Added `[EXP]` badge pill to Chat sidebar navigation (both expanded and collapsed view).
+  - Added `[EXPERIMENTAL]` indicator to the Chat page header bar.
+- **Consolidated Global Shortcuts Guide in Accounts Toolbar**:
+  - Replaced crowded inline shortcut chip badges beside Select All with a single, elegant `[⌨️ Shortcuts]` action button.
+  - Interactive Flyout popup displaying all active global shortcuts:
+    - `Ctrl + Shift + C`: Quick jump to Chat Studio [EXP]
+    - `Ctrl + N`: Initialize new account sandbox profile
+    - `Ctrl + F`: Focus account search & filter input
+    - `Ctrl + R`: Re-sync all account quotas and tokens
+- **Eliminated Account Card Chat Failures**:
+  - Removed "Chat Realtime" and "Personal Chat" trigger buttons from individual account card footers.
+  - Eliminates CLI Exit Code 1 crashes, authentication timeouts (60s), and missing conversation errors caused by invoking sessions on unauthenticated or mismatched sandbox profiles from card actions.
+  - Profile sandboxes now cleanly focus on isolated CLI snippet copying, sandbox directory exploration, and chat conversation imports.
+- **Windows Defender & SmartScreen Hardening**:
+  - Added explicit `<trustInfo>` with `<requestedExecutionLevel level="asInvoker" uiAccess="false" />` to `app.manifest`.
+  - Linked `<ApplicationManifest>app.manifest</ApplicationManifest>` and assembly metadata (`Company`, `Authors`, `Copyright`) in `AgyAccountSwarm.Avalonia.csproj`.
+  - Configured authentic PE metadata (`VersionInfoCompany`, `VersionInfoDescription`, `VersionInfoProductName`, `VersionInfoCopyright`, `VersionInfoVersion`) in Inno Setup script `scripts/installer.iss` to resolve heuristic flags.
+  - Added `scripts/sign-release.ps1` utility for Authenticode digital signing and local trusted certificate installation.
+  - Integrated automated signing step into `scripts/build-installer.ps1`.
 - **Relocated Realtime Swarm Chat to Swarm Workers (`/dispatcher`)**:
   - Eliminated the bulky 2-tab switcher ("Tab Menu Gede") from the Chat page that was taking up excessive vertical screen estate.
   - Integrated the Realtime Swarm multi-agent event bus feed directly into Swarm Workers (`/dispatcher`, Tab 0) alongside worker dispatching, blackboard specs, and live agent streams.

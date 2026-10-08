@@ -4,6 +4,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>AgyCliAccountSwarmGUI</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Company>RifkyA911</Company>
+    <Authors>RifkyA911</Authors>
+    <Copyright>Copyright (c) 2026 RifkyA911</Copyright>
+    <NeutralLanguage>en-US</NeutralLanguage>
     <Version>0.9.13-beta</Version>
     <AssemblyVersion>0.9.13.0</AssemblyVersion>
     <FileVersion>0.9.13.0</FileVersion>

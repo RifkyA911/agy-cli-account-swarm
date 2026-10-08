@@ -145,6 +145,16 @@ if ($IsccPath -ne "") {
     Write-Warning "  ISCC.exe not found. Skipped Inno Setup .exe installer."
 }
 
+# Sign published binaries and installer if certificate is available
+$signScript = Join-Path $ScriptDir "sign-release.ps1"
+if (Test-Path $signScript) {
+    try {
+        & "$signScript"
+    } catch {
+        Write-Warning "Signing step encountered an error: $_"
+    }
+}
+
 $WinX64Zip = Join-Path $DistDir "Agy-CLI-Account-Swarm-v$Version-win-x64.zip"
 if (Test-Path $WinX64Zip) { Remove-Item $WinX64Zip -Force }
 Compress-Archive -Path "$PublishDir\*" -DestinationPath $WinX64Zip -CompressionLevel Optimal

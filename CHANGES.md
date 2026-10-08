@@ -183,6 +183,20 @@ Sebelum merilis versi publik atau memperbarui installer:
 
 ---
 
+### G. Pembaruan v0.9.13-beta (Tagging [EXP], Shortcut Key Popup, Cleanup Kartu Akun, dan Mitigasi Defender/SmartScreen)
+
+| Komponen | Perubahan | Rationale / Kenapa Diubah |
+|---|---|---|
+| `MainWindow.axaml` (Sidebar Nav & Header) | Penambahan badge pill `[EXP]` pada navigasi menu Chat dan badge `EXPERIMENTAL` di header Chat Studio. | Memberikan penanda yang jelas kepada pengguna bahwa modul Chat Studio berstatus eksperimental. |
+| `MainWindow.axaml` (Toolbar Accounts) | Penggantian 4 chip shortcut inline yang memadati toolbar dengan tombol tunggal `[⌨️ Shortcuts]` berbasis Flyout modal popup. | Menampilkan panduan pintasan tombol global (`Ctrl+Shift+C`, `Ctrl+N`, `Ctrl+F`, `Ctrl+R`) secara rapi, luas, dan estetis tanpa memadati toolbar daftar akun. |
+| `MainWindow.axaml` (Account Card Footer) | Penghapusan tombol pintasan aksi "Chat Realtime" dan "Personal Chat" dari kartu profil akun. | Menghilangkan insiden kegagalan CLI Exit Code 1, batas waktu autentikasi OAuth Google (timeout 60s), dan peringatan percakapan hilang ketika pengguna mengklik chat dari kartu profil yang belum terautentikasi atau tidak cocok. |
+| `app.manifest` | Penambahan elemen `<trustInfo>` dengan `<requestedExecutionLevel level="asInvoker" uiAccess="false" />` dan deklarasi kompatibilitas OS. | Menginstruksikan Windows UAC dan Windows Defender bahwa aplikasi berjalan dengan izin pengguna standar, menghilangkan peringatan heuristik deteksi instalasi/virtualisasi UAC. |
+| `AgyAccountSwarm.Avalonia.csproj` | Penautan eksplisit `<ApplicationManifest>app.manifest</ApplicationManifest>` serta metadata perakitan (`Company`, `Authors`, `Copyright`, `NeutralLanguage`). | Memastikan file manifest benar-benar disematkan ke dalam PE binary Windows hasil kompilasi. |
+| `scripts/installer.iss` | Penambahan metadata PE installer Inno Setup (`VersionInfoCompany`, `VersionInfoDescription`, `VersionInfoProductName`, `VersionInfoCopyright`, `VersionInfoVersion`). | Menghilangkan deteksi file installer mencurigakan oleh Microsoft Defender yang dipicu oleh ketiadaan metadata versi PE. |
+| `scripts/sign-release.ps1` | Pembuatan utilitas otomatisasi tanda tangan digital Authenticode dan instalasi sertifikat lokal terpercaya. | Memfasilitasi penandatanganan mandiri atau sertifikat resmi sehingga aplikasi dikenali secara aman di lingkungan Windows. |
+
+---
+
 ## 6. Bukti Verifikasi Teknis
 
 ### A. `dotnet build`
