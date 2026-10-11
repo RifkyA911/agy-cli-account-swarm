@@ -20,4 +20,5 @@ public class AppSettings
     public string SwarmExecutionMode { get; set; } = "ConcurrentCli";
     public bool ConfirmWorktreeMerge { get; set; } = true;
     public string NavbarDisplayMode { get; set; } = "Detailed";
+    public bool HasAcceptedExperimentalWarning { get; set; } = false;
 }

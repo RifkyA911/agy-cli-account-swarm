@@ -274,8 +274,8 @@ public class AccountProfile : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(name)) return "unnamed_profile";
 
-        // Remove path traversal sequences and separators
-        var cleaned = name.Replace('/', '_').Replace('\\', '_').Replace("..", "_");
+        // Remove path traversal sequences, separators, and parentheses
+        var cleaned = name.Replace('/', '_').Replace('\\', '_').Replace("..", "_").Replace('(', '-').Replace(')', '-');
         var invalid = System.IO.Path.GetInvalidFileNameChars();
         cleaned = string.Join("_", cleaned.Split(invalid, StringSplitOptions.RemoveEmptyEntries)).Trim();
         cleaned = cleaned.Trim('.', ' ');

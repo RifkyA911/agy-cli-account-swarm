@@ -24,8 +24,10 @@ LicenseFile=..\LICENSE
 OutputDir=..\dist
 OutputBaseFilename=Agy-CLI-Account-Swarm-Setup-v{#MyAppVersion}
 SetupIconFile=..\AgyAccountSwarm.Avalonia\Assets\favicon.ico
-UninstallDisplayIcon={app}\{#MyAppExeName}
+UninstallDisplayIcon={app}\favicon.ico
 UninstallDisplayName={#MyAppName}
+CreateUninstallRegKey=yes
+UpdateUninstallLogAppName=yes
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -52,9 +54,9 @@ Source: "..\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs cr
 Source: "..\AgyAccountSwarm.Avalonia\Assets\favicon.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; IconIndex: 0; Comment: "Launch Agy CLI Account Swarm"
-Name: "{autoprograms}\{#MyAppName}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; Comment: "Uninstall Agy CLI Account Swarm"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; IconIndex: 0; Tasks: desktopicon; Comment: "Launch Agy CLI Account Swarm"
+Name: "{autoprograms}\{#MyAppName}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\favicon.ico"; IconIndex: 0; Comment: "Launch Agy CLI Account Swarm"
+Name: "{autoprograms}\{#MyAppName}\Uninstall {#MyAppName}"; Filename: "{uninstallexe}"; IconFilename: "{app}\favicon.ico"; IconIndex: 0; Comment: "Uninstall Agy CLI Account Swarm"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\favicon.ico"; IconIndex: 0; Tasks: desktopicon; Comment: "Launch Agy CLI Account Swarm"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

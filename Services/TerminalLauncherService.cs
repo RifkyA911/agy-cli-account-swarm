@@ -269,18 +269,20 @@ public class TerminalLauncherService : ITerminalLauncherService
         return returnedScript;
     }
 
-    public static string BuildCmdArguments(string scriptPath)
+    public static string BuildCmdArguments(string scriptPath, string? suffix = null)
     {
         var cleanPath = scriptPath.Replace("\"", "");
-        return $"/k call \"{cleanPath}\"";
+        var cleanSuffix = string.IsNullOrWhiteSpace(suffix) ? "" : " " + suffix.Trim();
+        return $"/s /k \"\"{cleanPath}\"{cleanSuffix}\"";
     }
 
-    public static string BuildWindowsTerminalArguments(string title, string workingDir, string scriptPath)
+    public static string BuildWindowsTerminalArguments(string title, string workingDir, string scriptPath, string? suffix = null)
     {
         var cleanTitle = System.Text.RegularExpressions.Regex.Replace(title.Replace("\"", "").Replace(";", " - "), @"\s+", " ").Trim();
         var cleanWorkDir = workingDir.Replace("\"", "");
         var cleanScript = scriptPath.Replace("\"", "");
-        return $"--title \"{cleanTitle}\" -d \"{cleanWorkDir}\" cmd.exe /k call \"{cleanScript}\"";
+        var cleanSuffix = string.IsNullOrWhiteSpace(suffix) ? "" : " " + suffix.Trim();
+        return $"--title \"{cleanTitle}\" -d \"{cleanWorkDir}\" cmd.exe /s /k \"\"{cleanScript}\"{cleanSuffix}\"";
     }
 
     public static string BuildPowerShellCommand(string title, string effectiveDir, string workingDir, string agyBinary, string? extraArgs, bool isIsolated = false, bool isCliOnly = false)
@@ -630,7 +632,7 @@ public class TerminalLauncherService : ITerminalLauncherService
                 psi = new ProcessStartInfo
                 {
                     FileName = "wt.exe",
-                    Arguments = BuildWindowsTerminalArguments(title, workingDir, scriptPath) + scriptCallSuffix,
+                    Arguments = BuildWindowsTerminalArguments(title, workingDir, scriptPath, scriptCallSuffix),
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };
@@ -681,7 +683,7 @@ public class TerminalLauncherService : ITerminalLauncherService
                     psi = new ProcessStartInfo
                     {
                         FileName = "cmd.exe",
-                        Arguments = BuildCmdArguments(scriptPath) + scriptCallSuffix,
+                        Arguments = BuildCmdArguments(scriptPath, scriptCallSuffix),
                         UseShellExecute = true,
                         WorkingDirectory = workingDir
                     };
@@ -692,7 +694,7 @@ public class TerminalLauncherService : ITerminalLauncherService
                 psi = new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = BuildCmdArguments(scriptPath) + scriptCallSuffix,
+                    Arguments = BuildCmdArguments(scriptPath, scriptCallSuffix),
                     UseShellExecute = true,
                     WorkingDirectory = workingDir
                 };

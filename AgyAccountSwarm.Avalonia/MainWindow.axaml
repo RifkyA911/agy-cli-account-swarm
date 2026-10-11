@@ -181,9 +181,9 @@
                                                            Foreground="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Chat}"
                                                            VerticalAlignment="Center" />
                                             </StackPanel>
-                                            <Border Grid.Column="2" Background="#1E293B" BorderBrush="#EAB308" BorderThickness="1"
-                                                    CornerRadius="6" Padding="5,1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                                <TextBlock Text="EXP" FontSize="9" FontWeight="Bold" Foreground="#EAB308" />
+                                            <Border Grid.Column="2" Background="{DynamicResource BrushWarningAlertBg}" BorderBrush="{DynamicResource BrushWarningAlertBorder}" BorderThickness="1"
+                                                    CornerRadius="6" Padding="5,1.5" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <TextBlock Text="EXP" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushWarningAlertText}" />
                                             </Border>
                                         </Grid>
 
@@ -193,9 +193,9 @@
                                                   Stroke="{Binding CurrentPage, Converter={StaticResource ActiveNavFgConverter}, ConverterParameter=Chat}"
                                                   StrokeThickness="1.75" StrokeLineCap="Round" StrokeJoin="Round"
                                                   Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                            <Border Background="#1E293B" BorderBrush="#EAB308" BorderThickness="1"
+                                            <Border Background="{DynamicResource BrushWarningAlertBg}" BorderBrush="{DynamicResource BrushWarningAlertBorder}" BorderThickness="1"
                                                     CornerRadius="6" Padding="3,1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-2,-3,0">
-                                                <TextBlock Text="EXP" FontSize="7.5" FontWeight="Bold" Foreground="#EAB308" />
+                                                <TextBlock Text="EXP" FontSize="7" FontWeight="Bold" Foreground="{DynamicResource BrushWarningAlertText}" />
                                             </Border>
                                         </Grid>
                                     </Grid>
@@ -659,6 +659,17 @@
                                         CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding AppVersion}" Foreground="{DynamicResource BrushBadgeText}" FontSize="11" FontWeight="SemiBold" />
                                 </Border>
+
+                                <!-- Update Available Banner Button -->
+                                <Button Command="{Binding NavigateCommand}" CommandParameter="Settings"
+                                        IsVisible="{Binding IsUpdateAvailable}"
+                                        Classes="emerald" Padding="8,3" Height="26" VerticalAlignment="Center"
+                                        ToolTip.Tip="A new release is available! Click to update in Settings">
+                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                        <TextBlock Text="✨ Update:" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding LatestVersionTag}" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
 
                             <!-- Right CTA: Sync Swarm and Launch Swarm -->
@@ -1370,77 +1381,15 @@
                                         Classes="outline"
                                         Padding="10,6"
                                         FontSize="11" />
-                                <Button Classes="outline"
+                                <Button Command="{Binding ShowShortcutsModalCommand}"
+                                        Classes="outline"
                                         Padding="10,6"
                                         FontSize="11"
-                                        ToolTip.Tip="Global Keyboard Shortcuts Guide">
+                                        ToolTip.Tip="Open Global Keyboard Shortcuts Guide">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                         <Path Data="{StaticResource HeroIconCommandLine}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.75" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
                                         <TextBlock Text="⌨️ Shortcuts" FontWeight="SemiBold" VerticalAlignment="Center" />
                                     </StackPanel>
-                                    <Button.Flyout>
-                                        <Flyout Placement="BottomEdgeAlignedLeft">
-                                            <Border Background="{DynamicResource BrushCard}"
-                                                    BorderBrush="{DynamicResource BrushCardBorder}"
-                                                    BorderThickness="1"
-                                                    CornerRadius="10"
-                                                    Padding="16"
-                                                    MinWidth="310">
-                                                <StackPanel Spacing="10">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                        <Path Data="{StaticResource HeroIconCommandLine}" Stroke="#38BDF8" StrokeThickness="1.75" Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center" />
-                                                        <TextBlock Text="Keyboard Shortcuts" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                    </StackPanel>
-
-                                                    <Border Height="1" Background="{DynamicResource BrushCardBorder}" Margin="0,2" />
-
-                                                    <!-- Ctrl+Shift+C -->
-                                                    <Grid ColumnDefinitions="*,Auto">
-                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                            <TextBlock Text="Open Chat Studio [EXP]" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                            <TextBlock Text="Quick jump directly to chat tab" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                        </StackPanel>
-                                                        <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="7,3" VerticalAlignment="Center">
-                                                            <TextBlock Text="Ctrl + Shift + C" FontWeight="Bold" FontSize="10.5" Foreground="#38BDF8" />
-                                                        </Border>
-                                                    </Grid>
-
-                                                    <!-- Ctrl+N -->
-                                                    <Grid ColumnDefinitions="*,Auto">
-                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                            <TextBlock Text="Add New Sandbox Profile" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                            <TextBlock Text="Initialize a new account sandbox" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                        </StackPanel>
-                                                        <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="7,3" VerticalAlignment="Center">
-                                                            <TextBlock Text="Ctrl + N" FontWeight="Bold" FontSize="10.5" Foreground="#10B981" />
-                                                        </Border>
-                                                    </Grid>
-
-                                                    <!-- Ctrl+F -->
-                                                    <Grid ColumnDefinitions="*,Auto">
-                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                            <TextBlock Text="Search / Filter Accounts" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                            <TextBlock Text="Focus accounts search box" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                        </StackPanel>
-                                                        <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="7,3" VerticalAlignment="Center">
-                                                            <TextBlock Text="Ctrl + F" FontWeight="Bold" FontSize="10.5" Foreground="#F59E0B" />
-                                                        </Border>
-                                                    </Grid>
-
-                                                    <!-- Ctrl+R -->
-                                                    <Grid ColumnDefinitions="*,Auto">
-                                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                            <TextBlock Text="Sync Swarm Telemetry" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
-                                                            <TextBlock Text="Re-sync all profile tokens &amp; quotas" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                        </StackPanel>
-                                                        <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="7,3" VerticalAlignment="Center">
-                                                            <TextBlock Text="Ctrl + R" FontWeight="Bold" FontSize="10.5" Foreground="#A855F7" />
-                                                        </Border>
-                                                    </Grid>
-                                                </StackPanel>
-                                            </Border>
-                                        </Flyout>
-                                    </Button.Flyout>
                                 </Button>
                             </StackPanel>
 
@@ -1558,10 +1507,12 @@
                                                     </StackPanel>
 
                                                     <!-- Col 2: Top-Right Quick Sync Button & Swarm Checkbox Pill -->
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Spacing="6">
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Spacing="6">
                                                         <Button Command="{Binding SingleSyncCommand}"
                                                                 Classes="outline"
-                                                                Padding="7,4"
+                                                                Height="28"
+                                                                Padding="8,0"
+                                                                VerticalAlignment="Center"
                                                                 ToolTip.Tip="Refresh credentials, tokens, and live quota telemetry for this account">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
                                                                 <Path Data="{StaticResource HeroIconArrowPath}"
@@ -1572,20 +1523,23 @@
                                                         </Button>
 
                                                         <!-- Swarm Checkbox Pill -->
-                                                        <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Padding="9,4" VerticalAlignment="Center" ToolTip.Tip="Include profile in Swarm Launch (⚡ Launch Swarm)"
+                                                        <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="6" Height="28" Padding="8,0" VerticalAlignment="Center" ToolTip.Tip="Include profile in Swarm Launch (⚡ Launch Swarm)"
                                                                 IsEnabled="{Binding IsAuthenticated}">
                                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
                                                                 <CheckBox IsChecked="{Binding IsSelectedForSwarm}"
                                                                           IsEnabled="{Binding IsAuthenticated}"
-                                                                          VerticalAlignment="Center" />
+                                                                          VerticalAlignment="Center"
+                                                                          Margin="0" MinHeight="0" MinWidth="0" />
                                                                 <TextBlock Text="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).Strings[Accounts_SwarmBadge]}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
                                                             </StackPanel>
                                                         </Border>
                                                         <!-- Fold Toggle Button -->
                                                         <Button Command="{Binding ToggleCardExpandedCommand}"
                                                                 Classes="outline"
-                                                                Padding="8,4"
+                                                                Height="28"
+                                                                Padding="8,0"
                                                                 CornerRadius="6"
+                                                                VerticalAlignment="Center"
                                                                 ToolTip.Tip="Fold / Unfold Profile Card">
                                                             <TextBlock Text="{Binding IsCardExpanded, Converter={StaticResource BoolToChevronConverter}}"
                                                                        FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
@@ -2159,6 +2113,16 @@
                                               ToolTip.Tip="Reasoning effort level (passed via --effort)" />
                                 </StackPanel>
 
+                                <!-- Toggle Sidebar Button -->
+                                <Button Command="{Binding ToggleChatSidebarCommand}"
+                                        Classes="outline" Height="32" Padding="10,0" VerticalAlignment="Center"
+                                        ToolTip.Tip="Toggle session history sidebar (Show / Hide)">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource HeroIconBars3BottomLeft}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.6" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                        <TextBlock Text="Sidebar" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+
                                 <!-- Export Session Button -->
                                 <Button Command="{Binding ExportPersonalChatSessionCommand}"
                                         Classes="outline" Height="32" Padding="10,0" VerticalAlignment="Center"
@@ -2179,10 +2143,12 @@
                         </Grid>
                     </Border>
 
-                    <!-- Main Chat Studio Body: Left Sessions (Width 260) + Right Conversation Canvas (*) -->
-                    <Grid Grid.Row="1" ColumnDefinitions="260,*" Margin="20,14,20,16">
+                    <!-- Main Chat Studio Body: Left Sessions (Width 260, Collapsible) + Right Conversation Canvas (*) -->
+                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="20,14,20,16">
                         <!-- Left: Sessions Sidebar -->
                         <Border Grid.Column="0"
+                                Width="260"
+                                IsVisible="{Binding IsChatSidebarVisible}"
                                 Background="{DynamicResource BrushCard}"
                                 BorderBrush="{DynamicResource BrushCardBorder}"
                                 BorderThickness="1"
@@ -2228,25 +2194,42 @@
                                         <ItemsControl ItemsSource="{Binding PersonalChatSessions}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="models:PersonalChatSession">
-                                                    <Button Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).SelectPersonalChatSessionCommand}"
-                                                            CommandParameter="{Binding}"
-                                                            Background="{DynamicResource BrushSurfaceHover}"
+                                                    <Border Background="{DynamicResource BrushSurfaceHover}"
                                                             BorderBrush="{DynamicResource BrushCardBorder}"
                                                             BorderThickness="1"
                                                             CornerRadius="8"
                                                             Padding="10,8"
-                                                            HorizontalAlignment="Stretch"
-                                                            HorizontalContentAlignment="Stretch"
                                                             Margin="0,0,0,6">
-                                                        <Grid RowDefinitions="Auto,Auto">
-                                                            <TextBlock Grid.Row="0" Text="{Binding Title}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
-                                                            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
-                                                                <TextBlock Text="{Binding RelativeTimeDisplay}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                <TextBlock Text="•" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                                <TextBlock Text="{Binding TurnCount, StringFormat='{}{0} turns'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
-                                                            </StackPanel>
+                                                        <Grid ColumnDefinitions="*,Auto">
+                                                            <Button Grid.Column="0"
+                                                                    Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).SelectPersonalChatSessionCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Background="Transparent"
+                                                                    BorderThickness="0"
+                                                                    Padding="0"
+                                                                    HorizontalAlignment="Stretch"
+                                                                    HorizontalContentAlignment="Stretch">
+                                                                <Grid RowDefinitions="Auto,Auto">
+                                                                    <TextBlock Grid.Row="0" Text="{Binding Title}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" TextTrimming="CharacterEllipsis" />
+                                                                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
+                                                                        <TextBlock Text="{Binding RelativeTimeDisplay}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                        <TextBlock Text="•" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                        <TextBlock Text="{Binding TurnCount, StringFormat='{}{0} turns'}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                                                    </StackPanel>
+                                                                </Grid>
+                                                            </Button>
+                                                            <Button Grid.Column="1"
+                                                                    Command="{Binding $parent[Window].((vm:AvaloniaMainViewModel)DataContext).DeletePersonalChatSessionCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Classes="outline"
+                                                                    Height="24" Width="24" Padding="4"
+                                                                    Margin="6,0,0,0"
+                                                                    VerticalAlignment="Center"
+                                                                    ToolTip.Tip="Delete this conversation thread">
+                                                                <Path Data="{StaticResource HeroIconTrash}" Stroke="{DynamicResource BrushTextMuted}" StrokeThickness="1.5" Width="11" Height="11" Stretch="Uniform" />
+                                                            </Button>
                                                         </Grid>
-                                                    </Button>
+                                                    </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
@@ -5351,6 +5334,52 @@
                                         <ProgressBar IsIndeterminate="True" Height="3" IsVisible="{Binding IsCheckingForUpdate}" Foreground="#38BDF8" Margin="0,2,0,0" />
                                     </StackPanel>
                                 </Grid>
+
+                                <!-- Interactive Update Action Card (Shown when update is available) -->
+                                <Border IsVisible="{Binding IsUpdateAvailable}"
+                                        Background="{DynamicResource BrushSurface}"
+                                        BorderBrush="#10B981"
+                                        BorderThickness="1.5"
+                                        CornerRadius="8"
+                                        Padding="16"
+                                        Margin="0,8,0,0">
+                                    <StackPanel Spacing="10">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock Text="{Binding LatestVersionTag, StringFormat='{}🎉 Ready to Install: {0}'}"
+                                                           FontSize="13.5" FontWeight="Bold" Foreground="#10B981" />
+                                                <TextBlock Text="A new official release has been verified on GitHub. You can upgrade with a single click."
+                                                           FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                <Button Command="{Binding OpenReleasePageCommand}"
+                                                        Classes="outline" Padding="10,6" FontSize="11">
+                                                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                                        <Path Data="{StaticResource HeroIconArrowTopRightOnSquare}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="1.5" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center" />
+                                                        <TextBlock Text="Release Notes" FontSize="11" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                                <Button Command="{Binding DownloadAndInstallUpdateCommand}"
+                                                        IsEnabled="{Binding !IsDownloadingUpdate}"
+                                                        Classes="emerald" Padding="14,6" FontSize="11">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                        <Path Data="{StaticResource HeroIconArrowDownTray}" Stroke="#FFFFFF" StrokeThickness="2" Width="13" Height="13" Stretch="Uniform" VerticalAlignment="Center" />
+                                                        <TextBlock Text="1-Click Update Now" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Download Progress Bar -->
+                                        <StackPanel IsVisible="{Binding IsDownloadingUpdate}" Spacing="4" Margin="0,4,0,0">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0" Text="Downloading setup package from GitHub releases..." FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" />
+                                                <TextBlock Grid.Column="1" Text="{Binding UpdateDownloadProgress, StringFormat='{}{0}%'}" FontSize="11" FontWeight="Bold" Foreground="#10B981" />
+                                            </Grid>
+                                            <ProgressBar Value="{Binding UpdateDownloadProgress}" Maximum="100" Height="6" CornerRadius="3" Foreground="#10B981" Background="{DynamicResource BrushSurfaceHover}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Border>
 
@@ -5806,6 +5835,190 @@
                         <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0,18,0,0">
                             <Button Grid.Column="1" Content="{Binding Strings[Skills_Folder]}" Command="{Binding OpenSkillFolderCommand}" CommandParameter="{Binding SelectedSkillForDetails}" Classes="outline" Padding="14,8" Margin="0,0,8,0" />
                             <Button Grid.Column="2" Content="{Binding Strings[Modal_Close]}" Command="{Binding CloseSkillDetailsCommand}" Background="#3B82F6" Foreground="#FFFFFF" Padding="18,8" FontWeight="Bold" />
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ============================================================== -->
+        <!-- KEYBOARD SHORTCUTS GUIDE MODAL OVERLAY                        -->
+        <!-- ============================================================== -->
+        <Border Background="#A0000000"
+                IsVisible="{Binding IsShortcutsModalVisible}"
+                ZIndex="9990"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="{DynamicResource BrushCard}"
+                        BorderBrush="{DynamicResource BrushCardBorder}"
+                        BorderThickness="1"
+                        CornerRadius="12"
+                        Padding="24"
+                        Width="440"
+                        BoxShadow="0 8 32 #40000000">
+                    <Grid RowDefinitions="Auto,*,Auto">
+                        <!-- Header -->
+                        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="32" Height="32" CornerRadius="8" Background="#1538BDF8" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource HeroIconCommandLine}" Stroke="#38BDF8" StrokeThickness="1.8" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Keyboard Shortcuts Guide" FontWeight="Bold" FontSize="14.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <TextBlock Text="Accelerate your workflow with keyboard navigation" FontSize="11" Foreground="{DynamicResource BrushTextMuted}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="1" Command="{Binding CloseShortcutsModalCommand}" Classes="outline" Padding="6" Height="28" Width="28" VerticalAlignment="Center">
+                                <Path Data="{StaticResource HeroIconXMark}" Stroke="{DynamicResource BrushTextSecondary}" StrokeThickness="2" Width="11" Height="11" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Shortcuts List -->
+                        <StackPanel Grid.Row="1" Spacing="10" Margin="0,4,0,20">
+                            <!-- Ctrl + Shift + C -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Open Chat Studio [EXP]" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <TextBlock Text="Quick jump directly to interactive chat tab" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                </StackPanel>
+                                <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="8,4" VerticalAlignment="Center">
+                                    <TextBlock Text="Ctrl + Shift + C" FontWeight="Bold" FontSize="11" Foreground="#38BDF8" />
+                                </Border>
+                            </Grid>
+
+                            <!-- Ctrl + N -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Add New Sandbox Profile" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <TextBlock Text="Initialize a fresh account sandbox profile" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                </StackPanel>
+                                <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="8,4" VerticalAlignment="Center">
+                                    <TextBlock Text="Ctrl + N" FontWeight="Bold" FontSize="11" Foreground="#10B981" />
+                                </Border>
+                            </Grid>
+
+                            <!-- Ctrl + F -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Search / Filter Accounts" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <TextBlock Text="Focus the account list search box" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                </StackPanel>
+                                <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="8,4" VerticalAlignment="Center">
+                                    <TextBlock Text="Ctrl + F" FontWeight="Bold" FontSize="11" Foreground="#F59E0B" />
+                                </Border>
+                            </Grid>
+
+                            <!-- Ctrl + R -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Sync Swarm Telemetry" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" />
+                                    <TextBlock Text="Re-sync all profile auth tokens, quotas, and logs" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" />
+                                </StackPanel>
+                                <Border Grid.Column="1" Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="5" Padding="8,4" VerticalAlignment="Center">
+                                    <TextBlock Text="Ctrl + R" FontWeight="Bold" FontSize="11" Foreground="#A855F7" />
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Footer -->
+                        <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="Shortcuts work globally across all application pages." FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Content="Done" Command="{Binding CloseShortcutsModalCommand}" Classes="emerald" Padding="18,6" FontSize="11.5" FontWeight="Bold" />
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ============================================================== -->
+        <!-- FIRST-LAUNCH EXPERIMENTAL DISCLAIMER & TOS MODAL              -->
+        <!-- ============================================================== -->
+        <Border Background="#D0050810"
+                IsVisible="{Binding IsExperimentalWarningVisible}"
+                ZIndex="9995"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+                <Border Background="{DynamicResource BrushCard}"
+                        BorderBrush="{DynamicResource BrushCardBorder}"
+                        BorderThickness="1"
+                        CornerRadius="14"
+                        Padding="28"
+                        MaxWidth="640"
+                        BoxShadow="0 12 40 #60000000">
+                    <Grid RowDefinitions="Auto,*,Auto">
+                        <!-- Header -->
+                        <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <Border Width="38" Height="38" CornerRadius="10" Background="#20EAB308" BorderBrush="#60EAB308" BorderThickness="1" VerticalAlignment="Center">
+                                    <TextBlock Text="⚠️" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="Experimental Sandbox Engine" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <Border Background="{DynamicResource BrushWarningAlertBg}" BorderBrush="{DynamicResource BrushWarningAlertBorder}" BorderThickness="1" CornerRadius="6" Padding="6,2" VerticalAlignment="Center">
+                                            <TextBlock Text="EXP" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushWarningAlertText}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Important Guidelines &amp; Multi-Agent Operational Disclosure" FontSize="11.5" Foreground="{DynamicResource BrushTextMuted}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Content Body -->
+                        <ScrollViewer Grid.Row="1" MaxHeight="380" Padding="0,0,8,0">
+                            <StackPanel Spacing="12">
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="1. Isolated Profile Sandboxing" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Each profile maintains an isolated sandbox in ANTIGRAVITY_APP_DATA_DIR with independent token keyrings and settings. This prevents session cross-contamination across multiple accounts."
+                                                   FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" LineHeight="17" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="2. Authentication Prerequisite" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="Before sending prompts in Chat Studio or dispatching tasks in Swarm Workers, every profile must be authenticated via Google OAuth using the Authenticate button in the Accounts tab."
+                                                   FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" LineHeight="17" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="3. Rate Limits &amp; Compliance" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="All API and CLI calls are routed through upstream Google Antigravity servers subject to daily quotas, 5-hour sliding windows, and fair usage policies. Agy CLI Account Swarm is an open-source orchestration tool and does not bypass official Google rate limits."
+                                                   FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" LineHeight="17" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="{DynamicResource BrushSurface}" BorderBrush="{DynamicResource BrushCardBorder}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="4. Local Privacy Guarantee" FontWeight="Bold" FontSize="12.5" Foreground="{DynamicResource BrushTextPrimary}" />
+                                        <TextBlock Text="All profiles, chat transcripts, and telemetry databases are stored 100% locally on your device in your AppData directory. No telemetry is shared or transmitted to third parties."
+                                                   FontSize="11.5" Foreground="{DynamicResource BrushTextSecondary}" TextWrapping="Wrap" LineHeight="17" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Footer CTA -->
+                        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,18,0,0">
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="You can review the Terms of Service anytime via the sidebar." FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" />
+                            </StackPanel>
+                            <Button Grid.Column="1"
+                                    Command="{Binding AcceptExperimentalWarningCommand}"
+                                    Classes="emerald"
+                                    Padding="22,10"
+                                    FontSize="12"
+                                    FontWeight="Bold">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource HeroIconShieldCheck}" Stroke="#FFFFFF" StrokeThickness="2" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                                    <TextBlock Text="I Understand &amp; Accept" FontWeight="Bold" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
                         </Grid>
                     </Grid>
                 </Border>

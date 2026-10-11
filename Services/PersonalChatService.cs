@@ -333,68 +333,69 @@ public class PersonalChatService : IPersonalChatService
 
         try
         {
-            var psi = new ProcessStartInfo
-            {
-                FileName = agyBinary,
-                Arguments = argsBuilder.ToString(),
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                StandardOutputEncoding = Encoding.UTF8,
-                WorkingDirectory = !string.IsNullOrWhiteSpace(profile.DefaultWorkspace) && Directory.Exists(profile.DefaultWorkspace)
-                    ? profile.DefaultWorkspace
-                    : Directory.GetCurrentDirectory()
-            };
+            var (exitCode, stdout, stderr, authRequired) = await ExecuteAgyCliProcessAsync(
+                profile,
+                argsBuilder.ToString(),
+                agyBinary,
+                cancellationToken);
 
-            // Sandbox Environment Isolation
-            var targetHome = !string.IsNullOrEmpty(profile.CustomProfilePath)
-                ? profile.CustomProfilePath
-                : (profile.IsMainDefaultProfile()
-                    ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
-                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".gemini-profiles", profile.Id));
-
-            if (!profile.IsMainDefaultProfile())
+            // If conversation ID was not found in profile sandbox, retry once fresh without conversation ID
+            if (!string.IsNullOrWhiteSpace(conversationId) &&
+                (stderr.Contains("not found", StringComparison.OrdinalIgnoreCase) || stdout.Contains("not found", StringComparison.OrdinalIgnoreCase)) &&
+                (stderr.Contains("conversation", StringComparison.OrdinalIgnoreCase) || stdout.Contains("conversation", StringComparison.OrdinalIgnoreCase)))
             {
-                Directory.CreateDirectory(targetHome);
-                psi.EnvironmentVariables["USERPROFILE"] = targetHome;
-                psi.EnvironmentVariables["HOME"] = targetHome;
+                Logger.Warn($"[PersonalChatService] Conversation '{conversationId}' not found in profile '{profile.Name}'. Retrying fresh turn without conversation ID...");
+                
+                var fallbackArgs = new StringBuilder();
+                if (!string.IsNullOrWhiteSpace(model)) fallbackArgs.Append($"--model \"{model}\" ");
+                if (!string.IsNullOrWhiteSpace(effort)) fallbackArgs.Append($"--effort \"{effort}\" ");
+                if (profile.DangerouslySkipPermissions) fallbackArgs.Append("--dangerously-skip-permissions ");
+                fallbackArgs.Append("--output-format json ");
+                fallbackArgs.Append("-p ");
+                fallbackArgs.Append($"\"{escapedPrompt}\"");
+
+                var retryResult = await ExecuteAgyCliProcessAsync(
+                    profile,
+                    fallbackArgs.ToString(),
+                    agyBinary,
+                    cancellationToken);
+
+                exitCode = retryResult.ExitCode;
+                stdout = retryResult.Stdout;
+                stderr = retryResult.Stderr;
+                authRequired = retryResult.AuthRequired;
             }
-
-            // Keyring Decoupling
-            psi.EnvironmentVariables["SSH_CONNECTION"] = "1";
-            psi.EnvironmentVariables["SSH_CLIENT"] = "1";
-
-            using var proc = Process.Start(psi);
-            if (proc == null)
-            {
-                assistantMsg.Content = "⚠️ Error: Unable to launch Antigravity CLI (agy) process.";
-                return assistantMsg;
-            }
-
-            // Read output stream
-            var stdoutTask = proc.StandardOutput.ReadToEndAsync(cancellationToken);
-            var stderrTask = proc.StandardError.ReadToEndAsync(cancellationToken);
-
-            await Task.WhenAll(stdoutTask, stderrTask);
-            await proc.WaitForExitAsync(cancellationToken);
 
             sw.Stop();
             assistantMsg.ExecutionDurationSeconds = sw.Elapsed.TotalSeconds;
 
-            var stdout = await stdoutTask;
-            var stderr = await stderrTask;
+            if (authRequired)
+            {
+                assistantMsg.Content = $"⚠️ Authentication Required for Profile **{profile.Name}**\n\n" +
+                                       "This profile sandbox is currently unauthenticated or session has expired.\n\n" +
+                                       "👉 **Action Required:** Open the **Accounts** tab and click **Authenticate** on this profile to complete the Google OAuth login in your browser.";
+                return assistantMsg;
+            }
 
-            if (proc.ExitCode == 0 && !string.IsNullOrWhiteSpace(stdout))
+            if (exitCode == 0 && !string.IsNullOrWhiteSpace(stdout))
             {
                 ParseAgyJsonResponse(stdout, assistantMsg);
             }
             else
             {
                 var errorText = !string.IsNullOrWhiteSpace(stderr) ? stderr : stdout;
-                assistantMsg.Content = !string.IsNullOrWhiteSpace(errorText)
-                    ? $"⚠️ Antigravity CLI Error (Exit Code {proc.ExitCode}):\n\n{errorText}"
-                    : "⚠️ No response received from Antigravity CLI.";
+                if (errorText.Contains("Authentication required", StringComparison.OrdinalIgnoreCase) ||
+                    errorText.Contains("authentication failed or timed out", StringComparison.OrdinalIgnoreCase))
+                {
+                    assistantMsg.Content = $"⚠️ Authentication Required for Profile **{profile.Name}**\n\n" +
+                                           "Please authenticate this account in the **Accounts** tab before chatting.";
+                }
+                else
+                {
+                    assistantMsg.Content = !string.IsNullOrWhiteSpace(errorText)
+                        ? $"⚠️ Antigravity CLI Error (Exit Code {exitCode}):\n\n{errorText}"
+                        : "⚠️ No response received from Antigravity CLI.";
+                }
             }
         }
         catch (OperationCanceledException)
@@ -411,6 +412,96 @@ public class PersonalChatService : IPersonalChatService
         }
 
         return assistantMsg;
+    }
+
+    private static async Task<(int ExitCode, string Stdout, string Stderr, bool AuthRequired)> ExecuteAgyCliProcessAsync(
+        AccountProfile profile,
+        string arguments,
+        string agyBinary,
+        CancellationToken cancellationToken)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = agyBinary,
+            Arguments = arguments,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
+            WorkingDirectory = !string.IsNullOrWhiteSpace(profile.DefaultWorkspace) && Directory.Exists(profile.DefaultWorkspace)
+                ? profile.DefaultWorkspace
+                : Directory.GetCurrentDirectory()
+        };
+
+        var targetHome = profile.GetEffectiveProfileDirectory().TrimEnd('\\', '/');
+        if (!profile.IsMainDefaultProfile())
+        {
+            Directory.CreateDirectory(targetHome);
+            psi.EnvironmentVariables["USERPROFILE"] = targetHome;
+            psi.EnvironmentVariables["HOME"] = targetHome;
+            psi.EnvironmentVariables["ANTIGRAVITY_APP_DATA_DIR"] = Path.Combine(targetHome, ".gemini", "antigravity-cli");
+            psi.EnvironmentVariables["JETSKI_APP_DATA_DIR"] = Path.Combine(targetHome, ".gemini", "antigravity-cli");
+            psi.EnvironmentVariables["SSH_CONNECTION"] = "1";
+            psi.EnvironmentVariables["SSH_CLIENT"] = "1";
+        }
+        else
+        {
+            psi.EnvironmentVariables.Remove("SSH_CONNECTION");
+            psi.EnvironmentVariables.Remove("SSH_CLIENT");
+        }
+
+        using var proc = new Process { StartInfo = psi, EnableRaisingEvents = true };
+        var stdoutSb = new StringBuilder();
+        var stderrSb = new StringBuilder();
+        var authRequired = false;
+        using var authCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        proc.OutputDataReceived += (_, e) =>
+        {
+            if (e.Data == null) return;
+            stdoutSb.AppendLine(e.Data);
+            if (e.Data.Contains("Authentication required", StringComparison.OrdinalIgnoreCase) ||
+                e.Data.Contains("Waiting for authentication", StringComparison.OrdinalIgnoreCase))
+            {
+                authRequired = true;
+                try { if (!proc.HasExited) proc.Kill(); } catch { }
+                authCts.Cancel();
+            }
+        };
+
+        proc.ErrorDataReceived += (_, e) =>
+        {
+            if (e.Data == null) return;
+            stderrSb.AppendLine(e.Data);
+            if (e.Data.Contains("Authentication required", StringComparison.OrdinalIgnoreCase) ||
+                e.Data.Contains("Waiting for authentication", StringComparison.OrdinalIgnoreCase))
+            {
+                authRequired = true;
+                try { if (!proc.HasExited) proc.Kill(); } catch { }
+                authCts.Cancel();
+            }
+        };
+
+        if (!proc.Start())
+        {
+            return (-1, string.Empty, "Unable to start agy process.", false);
+        }
+
+        proc.BeginOutputReadLine();
+        proc.BeginErrorReadLine();
+
+        try
+        {
+            await proc.WaitForExitAsync(authCts.Token);
+        }
+        catch (OperationCanceledException) when (authRequired)
+        {
+            // Aborted fast because OAuth login was prompted interactively
+        }
+
+        return (proc.HasExited ? proc.ExitCode : -1, stdoutSb.ToString(), stderrSb.ToString(), authRequired);
     }
 
     private void ParseAgyJsonResponse(string rawOutput, PersonalChatMessage message)

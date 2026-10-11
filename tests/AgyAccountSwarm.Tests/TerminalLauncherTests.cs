@@ -11,35 +11,34 @@ namespace AgyAccountSwarm.Tests;
 public class TerminalLauncherTests
 {
     [Fact]
-    public void BuildCmdArguments_PathWithSpaces_WrapsInQuotesWithCall()
+    public void BuildCmdArguments_PathWithSpacesAndParentheses_WrapsSafelyInQuotes()
     {
-        // Arrange: Reproduces user's path with spaces:
-        // 'C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd'
-        string scriptPath = @"C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd";
+        // Arrange: Reproduces user's path with parentheses and spaces:
+        // 'C:\Users\rifky\AppData\Roaming\AgyAccountSwarm\profiles\default-(main-account)-(copy)\run-agy.cmd'
+        string scriptPath = @"C:\Users\rifky\AppData\Roaming\AgyAccountSwarm\profiles\default-(main-account)-(copy)\run-agy.cmd";
 
         // Act
         string args = TerminalLauncherService.BuildCmdArguments(scriptPath);
 
-        // Assert: Must format as: /k call "path"
-        Assert.Equal(@"/k call ""C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd""", args);
-        Assert.DoesNotContain(@"""""""", args); // Ensure no double consecutive quotes
+        // Assert: Must format as: /s /k ""path""
+        Assert.Equal(@"/s /k """"C:\Users\rifky\AppData\Roaming\AgyAccountSwarm\profiles\default-(main-account)-(copy)\run-agy.cmd""""", args);
     }
 
     [Fact]
-    public void BuildWindowsTerminalArguments_WithSpaces_FormatsCleanly()
+    public void BuildWindowsTerminalArguments_WithSpacesAndParentheses_FormatsCleanly()
     {
         // Arrange
-        string title = "AGY Swarm - Worker 2";
+        string title = "AGY Swarm - Worker (2)";
         string workingDir = @"D:\Works\My Projects\Workspace 1";
-        string scriptPath = @"C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd";
+        string scriptPath = @"C:\Users\developer\.gemini-profiles\Worker (2)\run-agy.cmd";
 
         // Act
         string args = TerminalLauncherService.BuildWindowsTerminalArguments(title, workingDir, scriptPath);
 
         // Assert
-        Assert.StartsWith(@"--title ""AGY Swarm - Worker 2""", args);
+        Assert.StartsWith(@"--title ""AGY Swarm - Worker (2)""", args);
         Assert.Contains(@"-d ""D:\Works\My Projects\Workspace 1""", args);
-        Assert.Contains(@"cmd.exe /k call ""C:\Users\developer\.gemini-profiles\Worker 2\run-agy.cmd""", args);
+        Assert.Contains(@"cmd.exe /s /k """"C:\Users\developer\.gemini-profiles\Worker (2)\run-agy.cmd""""", args);
     }
 
     [Fact]

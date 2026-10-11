@@ -37,6 +37,32 @@ public partial class AvaloniaMainViewModel : ObservableObject
 
     private readonly DispatcherTimer _syncTimer;
     private readonly SemaphoreSlim _syncSemaphore = new(1, 1);
+    private readonly SemaphoreSlim _reloadProfilesSemaphore = new(1, 1);
+
+    [ObservableProperty]
+    private bool _isExperimentalWarningVisible;
+
+    [ObservableProperty]
+    private bool _isShortcutsModalVisible;
+
+    [ObservableProperty]
+    private bool _isChatSidebarVisible = true;
+
+    [ObservableProperty]
+    private bool _isDownloadingUpdate;
+
+    [ObservableProperty]
+    private double _updateDownloadProgress;
+
+    [ObservableProperty]
+    private string? _updateDownloadUrl;
+
+    [ObservableProperty]
+    private string? _updateReleaseHtmlUrl;
+
+    [ObservableProperty]
+    private string? _updateReleaseNotes;
+
     private DateTime _nextSyncTime = DateTime.UtcNow.AddMinutes(5);
     private readonly List<Process> _activeSwarmProcesses = new();
 
@@ -688,11 +714,12 @@ public partial class AvaloniaMainViewModel : ObservableObject
             AgyUsageParser.InvalidateCache();
 
             // 1. Concurrently refresh all profile auth statuses, tokens, sessions, and live /usage quotas
-            var tasks = Profiles.Select(p => p.RefreshAuthStatusAsync(allowCliSpawn: true));
+            var profilesSnapshot = Profiles.ToList();
+            var tasks = profilesSnapshot.Select(p => p.RefreshAuthStatusAsync(allowCliSpawn: true));
             await Task.WhenAll(tasks);
 
             // 2. Persist updated profile models to disk storage
-            await _storageService.SaveProfilesAsync(Profiles.Select(p => p.Profile));
+            await _storageService.SaveProfilesAsync(profilesSnapshot.Select(p => p.Profile));
 
             // 3. Load latest real telemetry interactions from authentic disk logs
             await LoadTelemetryHistoryAsync();
@@ -1382,7 +1409,8 @@ public partial class AvaloniaMainViewModel : ObservableObject
             }
 
             var appDataDir = _storageService.GetAppDataPath();
-            var targetDir = Path.Combine(appDataDir, "profiles", candidateName.ToLowerInvariant().Replace(' ', '-'));
+            var safeFolder = System.Text.RegularExpressions.Regex.Replace(candidateName.ToLowerInvariant(), @"[^a-z0-9_-]", "-").Trim('-');
+            var targetDir = Path.Combine(appDataDir, "profiles", safeFolder);
             var sourceDir = profile.GetEffectiveProfileDirectory();
 
             if (Directory.Exists(sourceDir))
@@ -1615,11 +1643,23 @@ public partial class AvaloniaMainViewModel : ObservableObject
             _syncTimer.Start();
             ShowNotification("Agy Swarm Avalonia initialized successfully.");
 
+            if (!Settings.HasAcceptedExperimentalWarning)
+            {
+                Dispatcher.UIThread.Post(() => IsExperimentalWarningVisible = true);
+            }
+
             // Automatic background swarm sync on launch with zero CLI flicker
             _ = Task.Run(async () => await SyncSwarmAsync(isPeriodic: true));
 
             // Initialize Personal Chat & RAG Knowledge Bases
             _ = Task.Run(async () => await InitializePersonalChatAsync());
+
+            // Check for updates quietly in the background on startup
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(4000);
+                await CheckForUpdatesAsync();
+            });
 
             // 3-second welcome ambient chime & auto-dismiss splash screen
             _ = Task.Run(async () =>
@@ -1690,24 +1730,36 @@ public partial class AvaloniaMainViewModel : ObservableObject
     [RelayCommand]
     public async Task ReloadProfilesAsync()
     {
+        if (!await _reloadProfilesSemaphore.WaitAsync(0))
+        {
+            return;
+        }
+
         IsSyncing = true;
         try
         {
             var loaded = await _storageService.LoadProfilesAsync();
-            Profiles.Clear();
-            foreach (var p in loaded)
+            var distinctProfiles = loaded.GroupBy(p => p.Id).Select(g => g.First()).ToList();
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Profiles.Add(CreateProfileViewModel(p));
-            }
-            ApplyFilters();
-            UpdateWorktreeTreeNodes();
-            UpdateKpiMetrics();
+                Profiles.Clear();
+                foreach (var p in distinctProfiles)
+                {
+                    Profiles.Add(CreateProfileViewModel(p));
+                }
+                ApplyFilters();
+                UpdateWorktreeTreeNodes();
+                UpdateKpiMetrics();
+            });
+
             _ = LoadTelemetryHistoryAsync();
 
-            // Run background quick auth audit
+            // Snapshot profiles list so background iteration is completely decoupled from the UI collection
+            var snapshot = Profiles.ToList();
             _ = Task.Run(async () =>
             {
-                foreach (var profileItem in Profiles)
+                foreach (var profileItem in snapshot)
                 {
                     try
                     {
@@ -1729,7 +1781,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
                             profile.AuthStatus.ClaudeGptWeeklyRemainingPercent = usage.ClaudeGptWeeklyRemainingPercent ?? 0;
                         }
 
-                        profileItem.SyncFromModel();
+                        Dispatcher.UIThread.Post(() => profileItem.SyncFromModel());
                     }
                     catch (Exception ex)
                     {
@@ -1748,6 +1800,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         finally
         {
             IsSyncing = false;
+            _reloadProfilesSemaphore.Release();
         }
     }
 
@@ -3648,6 +3701,20 @@ public partial class AvaloniaMainViewModel : ObservableObject
             return;
         }
 
+        if (profile.AuthStatus?.Status is AuthStatusType.NeedsLogin or AuthStatusType.NotInitialized && !profile.IsMainDefaultProfile())
+        {
+            var authWarnMsg = new PersonalChatMessage
+            {
+                Role = "assistant",
+                Content = $"⚠️ Authentication Required for Profile **{profile.Name}**\n\nThis account is not authenticated yet.\n\n👉 Please open the **Accounts** tab and click **Authenticate** to complete login in your browser before chatting.",
+                Timestamp = DateTime.UtcNow
+            };
+            PersonalChatMessages.Add(authWarnMsg);
+            _audioService.PlayQuotaAlert();
+            ShowNotification($"Profile '{profile.Name}' needs login. Please authenticate in Accounts tab.");
+            return;
+        }
+
         if (SelectedPersonalChatSession == null)
         {
             CreateNewPersonalChatSession();
@@ -4529,6 +4596,36 @@ public partial class AvaloniaMainViewModel : ObservableObject
     private string _latestVersionTag = "v0.9.13-beta";
 
     [RelayCommand]
+    public async Task AcceptExperimentalWarningAsync()
+    {
+        _audioService.PlayClick();
+        IsExperimentalWarningVisible = false;
+        Settings.HasAcceptedExperimentalWarning = true;
+        await _storageService.SaveSettingsAsync(Settings);
+    }
+
+    [RelayCommand]
+    public void ShowShortcutsModal()
+    {
+        _audioService.PlayClick();
+        IsShortcutsModalVisible = true;
+    }
+
+    [RelayCommand]
+    public void CloseShortcutsModal()
+    {
+        _audioService.PlayClick();
+        IsShortcutsModalVisible = false;
+    }
+
+    [RelayCommand]
+    public void ToggleChatSidebar()
+    {
+        _audioService.PlayClick();
+        IsChatSidebarVisible = !IsChatSidebarVisible;
+    }
+
+    [RelayCommand]
     public async Task CheckForUpdatesAsync()
     {
         IsCheckingForUpdate = true;
@@ -4539,7 +4636,7 @@ public partial class AvaloniaMainViewModel : ObservableObject
         try
         {
             using var client = new System.Net.Http.HttpClient();
-            client.Timeout = TimeSpan.FromSeconds(6);
+            client.Timeout = TimeSpan.FromSeconds(8);
             client.DefaultRequestHeaders.UserAgent.ParseAdd("AgyAccountSwarm-App/0.9.13");
 
             var url = "https://api.github.com/repos/RifkyA911/agy-cli-account-swarm/releases/latest";
@@ -4553,6 +4650,33 @@ public partial class AvaloniaMainViewModel : ObservableObject
                 {
                     var latestTag = tagElem.GetString() ?? "v0.9.13-beta";
                     LatestVersionTag = latestTag;
+
+                    if (doc.RootElement.TryGetProperty("html_url", out var htmlUrlElem))
+                    {
+                        UpdateReleaseHtmlUrl = htmlUrlElem.GetString();
+                    }
+                    if (doc.RootElement.TryGetProperty("body", out var bodyElem))
+                    {
+                        UpdateReleaseNotes = bodyElem.GetString();
+                    }
+
+                    // Look for setup executable in assets
+                    if (doc.RootElement.TryGetProperty("assets", out var assetsElem) && assetsElem.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        foreach (var asset in assetsElem.EnumerateArray())
+                        {
+                            var assetName = asset.TryGetProperty("name", out var nameElem) ? nameElem.GetString() : null;
+                            var downloadUrl = asset.TryGetProperty("browser_download_url", out var dlElem) ? dlElem.GetString() : null;
+                            if (assetName != null && downloadUrl != null)
+                            {
+                                if (assetName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    UpdateDownloadUrl = downloadUrl;
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
                     if (!string.Equals(latestTag.TrimStart('v'), AppVersion.TrimStart('v'), StringComparison.OrdinalIgnoreCase))
                     {
@@ -4582,6 +4706,108 @@ public partial class AvaloniaMainViewModel : ObservableObject
         finally
         {
             IsCheckingForUpdate = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task DownloadAndInstallUpdateAsync()
+    {
+        if (string.IsNullOrWhiteSpace(UpdateDownloadUrl))
+        {
+            OpenReleasePage();
+            return;
+        }
+
+        IsDownloadingUpdate = true;
+        UpdateDownloadProgress = 0;
+        _audioService.PlayClick();
+        ShowNotification("Downloading update installer from GitHub releases...");
+
+        try
+        {
+            using var client = new System.Net.Http.HttpClient();
+            client.Timeout = TimeSpan.FromMinutes(5);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("AgyAccountSwarm-App/0.9.13");
+
+            using var response = await client.GetAsync(UpdateDownloadUrl, System.Net.Http.HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+
+            var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+            var tempDir = Path.GetTempPath();
+            var installerPath = Path.Combine(tempDir, $"AgyAccountSwarm-Setup-{LatestVersionTag}.exe");
+
+            await using (var contentStream = await response.Content.ReadAsStreamAsync())
+            await using (var fileStream = new FileStream(installerPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true))
+            {
+                var buffer = new byte[8192];
+                long totalRead = 0;
+                int bytesRead;
+
+                while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer, 0, bytesRead);
+                    totalRead += bytesRead;
+                    if (totalBytes > 0)
+                    {
+                        UpdateDownloadProgress = Math.Round((double)totalRead / totalBytes * 100, 1);
+                    }
+                }
+            }
+
+            IsDownloadingUpdate = false;
+            _audioService.PlaySuccess();
+            ShowNotification("Update downloaded successfully! Launching installer...");
+
+            // Strip Mark of the Web zone identifier if on Windows so SmartScreen doesn't complain
+            if (OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    var zoneFile = installerPath + ":Zone.Identifier";
+                    if (File.Exists(zoneFile)) File.Delete(zoneFile);
+                }
+                catch { }
+            }
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = installerPath,
+                UseShellExecute = true
+            });
+
+            // Cleanly exit application after launching installer
+            await Task.Delay(1200);
+            if (global::Avalonia.Application.Current?.ApplicationLifetime is global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.Shutdown();
+            }
+        }
+        catch (Exception ex)
+        {
+            IsDownloadingUpdate = false;
+            Logger.Error("[Updater] Failed to download or launch update", ex);
+            ShowNotification($"Failed to download update: {ex.Message}. Opening release page in browser.");
+            OpenReleasePage();
+        }
+    }
+
+    [RelayCommand]
+    public void OpenReleasePage()
+    {
+        var targetUrl = !string.IsNullOrWhiteSpace(UpdateReleaseHtmlUrl)
+            ? UpdateReleaseHtmlUrl
+            : "https://github.com/RifkyA911/agy-cli-account-swarm/releases/latest";
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = targetUrl,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn($"Failed to open release page: {ex.Message}");
         }
     }
 
